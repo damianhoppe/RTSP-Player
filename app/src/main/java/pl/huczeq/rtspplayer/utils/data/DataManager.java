@@ -3,6 +3,7 @@ package pl.huczeq.rtspplayer.utils.data;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.Image;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Base64;
@@ -24,6 +25,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 
 import pl.huczeq.rtspplayer.interfaces.OnDataChanged;
+import pl.huczeq.rtspplayer.utils.Settings;
+import pl.huczeq.rtspplayer.utils.data.threads.ImageLoadingThread;
 
 
 public class DataManager {
@@ -48,10 +51,14 @@ public class DataManager {
 
     private ArrayList<OnDataChanged> onDataChangedListeners;
 
+    private ImageLoadingThread imageLoadingThread;
+
     public DataManager(Context context) {
         this.context = context;
         this.dataLoaded = false;
         this.onDataChangedListeners = new ArrayList<>();
+        this.imageLoadingThread = new ImageLoadingThread(context);
+        this.imageLoadingThread.start();
     }
 
     public void loadData() {
@@ -163,16 +170,16 @@ public class DataManager {
         notifyDataChange();
     }
 
-    public File getPreviewImagesDir() {
-        return this.context.getCacheDir();
-    }
-
     public void savePreviewImg(final Camera camera, final Bitmap bitmap) {
+        final Settings settings = Settings.getInstance(context);
         final String fileName = camera.getName() + ".png";
+        CachedImages.addCachedImage(camera, bitmap);
+        camera.setPreviewImg(camera.getName() + ".png");
+        camera.notifyCameraPreviewImgChanged();
         Thread t = new Thread() {
             @Override
             public void run() {
-                File f = new File(DataManager.this.getPreviewImagesDir(), fileName);
+                File f = new File(settings.getPreviewImagesDir(), fileName);
                 try {
                     FileOutputStream fouts = new FileOutputStream(f);
                     bitmap.compress(Bitmap.CompressFormat.PNG, 100, fouts);
@@ -183,14 +190,7 @@ public class DataManager {
                 } catch (IOException e) {
                     e.printStackTrace();
                 } finally {
-                    camera.setPreviewImg(camera.getName() + ".png");
                     saveData();
-                    new Handler(Looper.getMainLooper()).post(new Runnable() {
-                        @Override
-                        public void run() {
-                            camera.notifyCameraPreviewImgChanged();
-                        }
-                    });
                 }
             }
         };
@@ -198,19 +198,18 @@ public class DataManager {
         //notifyDataChange();
     }
 
-    public Bitmap loadPreviewImg(Camera camera) {
-        if(camera.getPreviewImg() == null)
-            return null;
-        File f = new File(this.getPreviewImagesDir(), camera.getPreviewImg());
-        Bitmap bitmap = null;
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inPreferredConfig = Bitmap.Config.ARGB_8888;
-        try {
-            bitmap = BitmapFactory.decodeStream(new FileInputStream(f), null, options);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+    public void loadPreviewImg(Camera camera, ImageLoadingThread.Callback callback) {
+        loadPreviewImg(new ImageLoadingThread.Data(camera, callback));
+    }
+    public void loadPreviewImg(ImageLoadingThread.Data data) {
+        if(data.getCamera() == null || data.getCallback() == null || data.getCamera().getPreviewImg() == null) return;
+
+        Bitmap bitmap = CachedImages.getCachedBitmap(data.getCamera());
+        if(bitmap != null) {
+            data.getCallback().onImageLoaded(data, bitmap);
+            return;
         }
-        return bitmap;
+        this.imageLoadingThread.sendMessage(ImageLoadingThread.createMessage(data));
     }
 
     public Camera getCamera(String name) {

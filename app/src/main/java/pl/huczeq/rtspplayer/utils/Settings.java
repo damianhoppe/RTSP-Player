@@ -3,6 +3,8 @@ package pl.huczeq.rtspplayer.utils;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import java.io.File;
+
 import pl.huczeq.rtspplayer.utils.data.DataManager;
 
 public class Settings {
@@ -44,5 +46,9 @@ public class Settings {
         edit();
         this.editor.putBoolean(KEY_FIRST_LAUNCH, firstLaunch);
         commit();
+    }
+
+    public File getPreviewImagesDir() {
+        return this.context.getCacheDir();
     }
 }
