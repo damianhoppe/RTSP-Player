@@ -25,6 +25,7 @@ import pl.huczeq.rtspplayer.utils.data.Camera;
 public class ImageLoadingThread extends Thread{
 
     public static Message createMessage(Data data) {
+        if(data.getCamera() == null || data.getCallback() == null || data.getCamera().getPreviewImg() == null) return null;
         Message message = new Message();
         message.obj = data;
         return message;

@@ -90,5 +90,6 @@ public class AddCameraActivity extends BaseActivity {
     private void onClickButtonStartCameraPreview() {
         if(!isFormCorrect()) return;
         videoView.setData(Uri.parse(getCamera().getUrl()));
+        videoView.play();
     }
 }

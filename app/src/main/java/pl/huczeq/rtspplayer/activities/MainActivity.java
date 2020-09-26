@@ -95,7 +95,6 @@ public class MainActivity extends BaseActivity implements OnListItemSelected, On
         }
     }
 
-    //TODO Add 2 ways to onDataChanged listener to edited camera and added camera
     @Override
     protected void onDataChangedWAA() {
         super.onDataChangedWAA();

@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory;
 import android.media.Image;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.Message;
 import android.util.Base64;
 import android.util.Log;
 
@@ -27,6 +28,7 @@ import java.util.ArrayList;
 import pl.huczeq.rtspplayer.interfaces.OnDataChanged;
 import pl.huczeq.rtspplayer.utils.Settings;
 import pl.huczeq.rtspplayer.utils.data.threads.ImageLoadingThread;
+import pl.huczeq.rtspplayer.utils.data.threads.ImageSavingThread;
 
 
 public class DataManager {
@@ -52,13 +54,17 @@ public class DataManager {
     private ArrayList<OnDataChanged> onDataChangedListeners;
 
     private ImageLoadingThread imageLoadingThread;
+    private ImageSavingThread imageSavingThread;
 
     public DataManager(Context context) {
         this.context = context;
         this.dataLoaded = false;
         this.onDataChangedListeners = new ArrayList<>();
         this.imageLoadingThread = new ImageLoadingThread(context);
+        this.imageSavingThread = new ImageSavingThread(context);
+
         this.imageLoadingThread.start();
+        this.imageSavingThread.start();
     }
 
     public void loadData() {
@@ -75,54 +81,57 @@ public class DataManager {
             return;
         }
 
-        StringBuilder text = new StringBuilder();
-        try {
-            BufferedReader br = new BufferedReader(new FileReader(file));
-            String line;
-            while( (line = br.readLine()) != null ) {
-                text.append(line);
-                text.append('\n');
+        synchronized (this) {
+            StringBuilder text = new StringBuilder();
+            try {
+                BufferedReader br = new BufferedReader(new FileReader(file));
+                String line;
+                while ((line = br.readLine()) != null) {
+                    text.append(line);
+                    text.append('\n');
+                }
+                br.close();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-            br.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
-            jsonObject = new JSONObject(text.toString());
-        } catch (JSONException e) {
-            e.printStackTrace();
-            resetFileData();
-        }
+            try {
+                jsonObject = new JSONObject(text.toString());
+            } catch (JSONException e) {
+                e.printStackTrace();
+                resetFileData();
+            }
 
-        data = new Data();
-        try {
-            JSONArray array = jsonObject.getJSONArray(JSONCamerasDataArray);
-            for(int i = 0; i < array.length(); i++)
-            {
-                Log.d(TAG, array.get(i).toString());
-                Camera camera = new Camera(array.getJSONObject(i));
-                data.getCameraList().add(camera);
+            data = new Data();
+            try {
+                JSONArray array = jsonObject.getJSONArray(JSONCamerasDataArray);
+                for (int i = 0; i < array.length(); i++) {
+                    Log.d(TAG, array.get(i).toString());
+                    Camera camera = new Camera(array.getJSONObject(i));
+                    data.getCameraList().add(camera);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
-        } catch (JSONException e) {
-            e.printStackTrace();
+            Log.d(TAG, "Data loaded");
+            this.dataLoaded = true;
         }
-        Log.d(TAG, "Data loaded");
-        this.dataLoaded = true;
     }
 
     public void saveData() {
-        File file = new File(this.context.getFilesDir(), this.fileName);
-        FileOutputStream stream;
-        try {
-            stream = new FileOutputStream(file);
-            updateJsonObject();
-            stream.write(this.jsonObject.toString().getBytes());
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        synchronized (this) {
+            File file = new File(this.context.getFilesDir(), this.fileName);
+            FileOutputStream stream;
+            try {
+                stream = new FileOutputStream(file);
+                updateJsonObject();
+                stream.write(this.jsonObject.toString().getBytes());
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -176,39 +185,24 @@ public class DataManager {
         CachedImages.addCachedImage(camera, bitmap);
         camera.setPreviewImg(camera.getName() + ".png");
         camera.notifyCameraPreviewImgChanged();
-        Thread t = new Thread() {
-            @Override
-            public void run() {
-                File f = new File(settings.getPreviewImagesDir(), fileName);
-                try {
-                    FileOutputStream fouts = new FileOutputStream(f);
-                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, fouts);
-                    fouts.flush();
-                    fouts.close();
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } finally {
-                    saveData();
-                }
-            }
-        };
-        t.start();
-        //notifyDataChange();
+
+        Message msg = ImageSavingThread.createMessage(new ImageSavingThread.Data(camera, bitmap, null));
+        if(msg == null) return;
+        imageSavingThread.sendMessage(msg);
     }
 
     public void loadPreviewImg(Camera camera, ImageLoadingThread.Callback callback) {
         loadPreviewImg(new ImageLoadingThread.Data(camera, callback));
     }
     public void loadPreviewImg(ImageLoadingThread.Data data) {
-        if(data.getCamera() == null || data.getCallback() == null || data.getCamera().getPreviewImg() == null) return;
 
         Bitmap bitmap = CachedImages.getCachedBitmap(data.getCamera());
         if(bitmap != null) {
             data.getCallback().onImageLoaded(data, bitmap);
             return;
         }
+        Message msg = ImageLoadingThread.createMessage(data);
+        if(msg == null) return;
         this.imageLoadingThread.sendMessage(ImageLoadingThread.createMessage(data));
     }
 
