@@ -21,12 +21,11 @@
             </intent-filter>
         </activity>
         <activity android:name=".activities.mgmt.AddCameraActivity" />
+        <activity android:name=".activities.mgmt.EditCameraActivity" />
         <activity android:name=".activities.MainActivity" />
         <activity android:name=".activities.PreviewCameraActivity"
             android:configChanges="orientation|screenSize"
             android:theme="@style/AppTheme.NoActionBar"/>
-        <activity android:name=".activities.VideoActivity" />
-        <activity android:name=".activities.NewActivity" />
     </application>
 
 </manifest>

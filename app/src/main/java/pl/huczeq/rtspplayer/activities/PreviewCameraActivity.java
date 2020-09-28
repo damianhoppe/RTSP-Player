@@ -29,10 +29,12 @@ public class PreviewCameraActivity extends BaseActivity {
     private static String TAG = "PreviewCameraActivity";
 
     public static String EXTRA_CAMERA_NAME = "cameraName";
+    public static String EXTRA_URL = "cameraUrl";
 
     private VideoView videoView;
 
     private Camera camera;
+    private String url;
 
     OrientationListener orientationListener;
 
@@ -43,15 +45,21 @@ public class PreviewCameraActivity extends BaseActivity {
         //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         setContentView(R.layout.activity_preview_camera);
 
+        setViewsWidgets();
+
         camera = dataManager.getCamera(getIntent().getStringExtra(EXTRA_CAMERA_NAME));
         if(camera == null) {
-            finish();
-            return;
+            url = getIntent().getStringExtra(EXTRA_URL);
+            if(url == null) {
+                finish();
+                return;
+            }
+            videoView.setData(Uri.parse(url));
+            Log.d(TAG, "Url: " + url);
+        }else {
+            videoView.setData(Uri.parse(camera.getUrl()));
+            Log.d(TAG, "Camera: " + camera.getUrl());
         }
-        setViewsWidgets();
-        Log.d(TAG, camera.getUrl());
-
-        videoView.setData(Uri.parse(camera.getUrl()));
 
         orientationListener = new OrientationListener(this);
     }
@@ -77,9 +85,8 @@ public class PreviewCameraActivity extends BaseActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        if(videoView.canTakePicture())
+        if(videoView.canTakePicture() && camera != null)
             dataManager.savePreviewImg(this.camera, videoView.getBitmap());
-        Log.d(TAG, "Bitmap setted");
         videoView.pause();
     }
 
@@ -87,6 +94,12 @@ public class PreviewCameraActivity extends BaseActivity {
     protected void onDestroy() {
         super.onDestroy();
         videoView.stop();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                videoView.release();
+            }
+        }).start();
     }
 
     @Override

@@ -9,6 +9,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Base64;
 import android.util.Log;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -41,7 +42,7 @@ public class DataManager {
         return DataManager.instance;
     }
 
-    private final String TAG = "Data";
+    private final String TAG = "DataManager";
 
     private final String fileName = "data.json";
     private Context context;
@@ -56,12 +57,15 @@ public class DataManager {
     private ImageLoadingThread imageLoadingThread;
     private ImageSavingThread imageSavingThread;
 
+    private Settings settings;
+
     public DataManager(Context context) {
         this.context = context;
         this.dataLoaded = false;
         this.onDataChangedListeners = new ArrayList<>();
         this.imageLoadingThread = new ImageLoadingThread(context);
         this.imageSavingThread = new ImageSavingThread(context);
+        this.settings = Settings.getInstance(context);
 
         this.imageLoadingThread.start();
         this.imageSavingThread.start();
@@ -103,12 +107,20 @@ public class DataManager {
                 resetFileData();
             }
 
+            boolean mustSave = false;
             data = new Data();
             try {
                 JSONArray array = jsonObject.getJSONArray(JSONCamerasDataArray);
                 for (int i = 0; i < array.length(); i++) {
                     Log.d(TAG, array.get(i).toString());
                     Camera camera = new Camera(array.getJSONObject(i));
+                    if(camera.getPreviewImg() != null) {
+                        File f = new File(this.settings.getPreviewImagesDir(), camera.getPreviewImg());
+                        if(!f.exists()) {
+                            camera.setPreviewImg(null);
+                            mustSave = true;
+                        }
+                    }
                     data.getCameraList().add(camera);
                 }
             } catch (JSONException e) {
@@ -116,6 +128,7 @@ public class DataManager {
             }
             Log.d(TAG, "Data loaded");
             this.dataLoaded = true;
+            if(mustSave) this.saveData();
         }
     }
 
@@ -180,22 +193,45 @@ public class DataManager {
     }
 
     public void savePreviewImg(final Camera camera, final Bitmap bitmap) {
-        final Settings settings = Settings.getInstance(context);
+        Log.d(TAG, "Save preview image");
         final String fileName = camera.getName() + ".png";
+
+        camera.setPreviewImg(fileName);
         CachedImages.addCachedImage(camera, bitmap);
-        camera.setPreviewImg(camera.getName() + ".png");
+        Log.d(TAG, "Cached preview image");
         camera.notifyCameraPreviewImgChanged();
 
         Message msg = ImageSavingThread.createMessage(new ImageSavingThread.Data(camera, bitmap, null));
         if(msg == null) return;
         imageSavingThread.sendMessage(msg);
+        Log.d(TAG, "Sended message");
+    }
+
+    public void deleteCamera(Camera camera) {
+        data.getCameraList().remove(camera);
+        notifyDataChange();
+        this.saveData();
+    }
+
+    public void updateCamera(String cameraName, Camera nCamera) {
+        Camera camera = getCamera(cameraName);
+        if(camera != null) updateCamera(camera, nCamera);
+    }
+
+    public void updateCamera(Camera camera, Camera nCamera) {
+        camera.setName(nCamera.getName());
+        camera.setUrl(nCamera.getUrl());
+        camera.setUserName(nCamera.getUserName());
+        camera.setPassword(nCamera.getPassword());
+        camera.notifyCameraUpdated();
+        this.saveData();
     }
 
     public void loadPreviewImg(Camera camera, ImageLoadingThread.Callback callback) {
         loadPreviewImg(new ImageLoadingThread.Data(camera, callback));
     }
     public void loadPreviewImg(ImageLoadingThread.Data data) {
-
+        Log.d(TAG, "Loading: " + data.getCamera().getPreviewImg());
         Bitmap bitmap = CachedImages.getCachedBitmap(data.getCamera());
         if(bitmap != null) {
             data.getCallback().onImageLoaded(data, bitmap);

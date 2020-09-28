@@ -13,6 +13,7 @@ import java.util.ArrayList;
 
 import pl.huczeq.rtspplayer.activities.mgmt.AddCameraActivity;
 import pl.huczeq.rtspplayer.activities.main.BaseActivity;
+import pl.huczeq.rtspplayer.activities.mgmt.EditCameraActivity;
 import pl.huczeq.rtspplayer.interfaces.OnMenuItemSelected;
 import pl.huczeq.rtspplayer.utils.data.Camera;
 import pl.huczeq.rtspplayer.adapters.ListAdapter;
@@ -34,12 +35,12 @@ public class MainActivity extends BaseActivity implements OnListItemSelected, On
         setContentView(R.layout.activity_list_cameras);
         setViewsWidgets();
 
-        //TODO loading camera in thread
         ArrayList<Camera> cameras = new ArrayList<Camera>();
         cameras.addAll(dataManager.getData().getCameraList());
-        Log.d(TAG, String.valueOf(cameras.size()));
+
         listAdapter = new ListAdapter(getApplicationContext(), dataManager.getCameraList());
-        this.listView.setAdapter(listAdapter);
+        listView.setAdapter(listAdapter);
+        
         listAdapter.setOnItemSelectedListener(this);
         listAdapter.setOnMenuItemClick(this);
 
@@ -79,18 +80,21 @@ public class MainActivity extends BaseActivity implements OnListItemSelected, On
 
     @Override
     public void onMenuItemSelected(MenuItem menuItem, Camera camera) {
+        Intent intent;
         switch(menuItem.getItemId()) {
             case R.id.watch:
-                Intent intent = new Intent(getApplicationContext(), VideoActivity.class);
-                intent.putExtra(VideoActivity.LOCATION, camera.getUrl());
-                startActivity(intent);
-                //TODO ???????? delete this item?
+                this.onListItemSelected(camera);
                 break;
             case R.id.edit:
+                intent = new Intent(getApplicationContext(), EditCameraActivity.class);
+                intent.putExtra(EditCameraActivity.EXTRA_CAMERA_NAME, camera.getName());
+                startActivity(intent);
+                break;
+            case R.id.move:
                 //TODO
                 break;
             case R.id.delete:
-                //TODO
+                dataManager.deleteCamera(camera);
                 break;
         }
     }

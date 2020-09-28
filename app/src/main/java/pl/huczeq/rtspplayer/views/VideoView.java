@@ -37,32 +37,32 @@ public class VideoView extends TextureView implements IVLCVout.OnNewVideoLayoutL
     ArrayList<String> args = new ArrayList<String>(Arrays.asList("--vout=android-display", "--file-caching=150", "-vvv"));//TODO CHANGED
     LibVLC lib;
 
-    MediaPlayer player;
+    public MediaPlayer player;
     Uri uri;
     Media media;
 
     public VideoView(Context context) {
         super(context);
-        onCreate();
+        onCreate(context);
     }
 
     public VideoView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
-        onCreate();
+        onCreate(context);
     }
 
     public VideoView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        onCreate();
+        onCreate(context);
     }
 
     public VideoView(Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
-        onCreate();
+        onCreate(context);
     }
 
-    public void onCreate() {
-        lib = new LibVLC(getContext(), args);
+    public void onCreate(Context context) {
+        lib = new LibVLC(context, args);
     }
 
     public void setData(final Uri uri) {
@@ -90,6 +90,7 @@ public class VideoView extends TextureView implements IVLCVout.OnNewVideoLayoutL
                 if(player != null) {
                     player.setMedia(media);
                 }
+                Log.d(TAG, "0");
             }
 
             @Override
@@ -99,20 +100,10 @@ public class VideoView extends TextureView implements IVLCVout.OnNewVideoLayoutL
         });
 
         ViewGroup.LayoutParams params = getLayoutParams();
-
+        Log.d(TAG, params.width + " : " + params.height);
         DisplayMetrics dMetrics = getContext().getResources().getDisplayMetrics();
+
         vOut.setWindowSize(params.width, params.height);
-        vOut.addCallback(new IVLCVout.Callback() {
-            @Override
-            public void onSurfacesCreated(IVLCVout vlcVout) {
-                Toast.makeText(getContext(), "1", Toast.LENGTH_LONG).show();
-            }
-
-            @Override
-            public void onSurfacesDestroyed(IVLCVout vlcVout) {
-
-            }
-        });
         player.setEventListener(new MediaPlayer.EventListener() {
             @Override
             public void onEvent(MediaPlayer.Event event) {
@@ -190,6 +181,7 @@ public class VideoView extends TextureView implements IVLCVout.OnNewVideoLayoutL
                 }
             }
         });
+        Log.d(TAG, "2");
     }
 
     @Override
@@ -301,12 +293,16 @@ public class VideoView extends TextureView implements IVLCVout.OnNewVideoLayoutL
 */
 
     public void play() {
+        Log.d(TAG, "3");
         Log.d(TAG, String.valueOf(player.isReleased()));
         if(player != null) {
+            Log.d(TAG, "4");
             if(player.isReleased()) {
+                Log.d(TAG, "5");
                 this.setData(this.uri);
                 player.play();
             }else {
+                Log.d(TAG, this.uri.getPath());
                 player.play();
             }
         }
@@ -326,11 +322,15 @@ public class VideoView extends TextureView implements IVLCVout.OnNewVideoLayoutL
 
     public void stop() {
         if(player != null) {
-            player.stop();
+            if(player.isPlaying()) player.stop();
             player.getVLCVout().detachViews();
-            player.release();
-            lib.release();
         }
+    }
+
+    public void release() {
+        //TODO
+        player.release();
+        lib.release();
     }
 
     public ArrayList<String> getArgs() {
@@ -350,6 +350,7 @@ public class VideoView extends TextureView implements IVLCVout.OnNewVideoLayoutL
 
     @Override
     public void onNewVideoLayout(IVLCVout vlcVout, int width, int height, int visibleWidth, int visibleHeight, int sarNum, int sarDen) {
+        this.setVisibility(VISIBLE);
         Log.d(TAG, String.valueOf(visibleWidth) + "x" + String.valueOf(visibleHeight));
         DisplayMetrics dMetrics = getContext().getResources().getDisplayMetrics();
         ViewGroup.LayoutParams params = getLayoutParams();

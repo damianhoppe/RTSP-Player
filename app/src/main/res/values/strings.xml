@@ -9,6 +9,7 @@
     <!--Menu-->
     <string name="watch">Oglądaj</string>
     <string name="edit">Edytuj</string>
+    <string name="move">Przesuń</string>
     <string name="delete">Usuń</string>
 
     <!--Activity Add Camera-->

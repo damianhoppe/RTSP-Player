@@ -24,7 +24,7 @@ public class Camera {
     private ArrayList<OnCameraChanged> onCameraChangedListeners = new ArrayList<>();
 
     public Camera(String name, String url) {
-        this(name, url, "", "",  "");
+        this(name, url, "", "",  null);
     }
 
     public Camera(String name, String url, String userName, String password) {
@@ -39,15 +39,16 @@ public class Camera {
         this.previewImg = previewImg;
     }
 
-    public Camera(JSONObject jsonObject) {
+    public Camera(JSONObject jsonObject) throws JSONException {
         try {
             this.name = jsonObject.getString(JSONName);
             this.url = jsonObject.getString(JSONUrl);
-            this.previewImg = jsonObject.getString(JSONPreviewImg);
-            this.userName = jsonObject.getString(JSONUrl);
-            this.password = jsonObject.getString(JSONUrl);
+            this.previewImg = jsonObject.optString(JSONPreviewImg, null);
+            this.userName = jsonObject.optString(JSONUrl, null);
+            this.password = jsonObject.optString(JSONUrl, null);
         } catch (JSONException e) {
             e.printStackTrace();
+            throw e;
         }
     }
 
@@ -125,6 +126,16 @@ public class Camera {
                 continue;
             }
             listener.onCameraPrevImgChanged();
+        }
+    }
+
+    public void notifyCameraUpdated() {
+        for (OnCameraChanged listener : this.onCameraChangedListeners) {
+            if(listener == null) {
+                this.onCameraChangedListeners.remove(listener);
+                continue;
+            }
+            listener.onCameraUpdated();
         }
     }
 }

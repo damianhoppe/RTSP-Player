@@ -27,6 +27,7 @@ public class ImageSavingThread extends Thread{
     public static Message createMessage(ImageSavingThread.Data data) {
         if(data.getCamera() == null || data.getBitmap() == null) return null;
         Message message = new Message();
+        message.what = 1;
         message.obj = data;
         return message;
     }
@@ -68,16 +69,20 @@ public class ImageSavingThread extends Thread{
 
     private void returnMessageToQueue(Message message) {
         ImageSavingThread.Data data = (ImageSavingThread.Data) message.obj;
-        if(data.getNumberOfReturns() >= 1) {
+        if(data.getNumberOfReturns() >= 2) {
             Log.e(TAG, "Returned message to queue " + data.getNumberOfReturns() + " times. " + data.getCamera().getName() + "," + data.getCamera().getPreviewImg());
             return;
         }
         data.returnToQueue();
-        ImageSavingThread.this.handler.sendMessageDelayed(message, 1000*30);
+        this.sendMessageDelayed(message, 1000*30);
+    }
+
+    public void sendMessageDelayed(Message message, int delay) {
+        if(!this.handler.hasMessages(1, message.obj)) this.handler.sendMessageDelayed(message, delay);
     }
 
     public void sendMessage(Message message) {
-        this.handler.sendMessage(message);
+        if(!this.handler.hasMessages(1, message.obj)) this.handler.sendMessage(message);
     }
 
     public boolean saveBitmapToFile(Camera camera, Bitmap bitmap) {
@@ -88,14 +93,12 @@ public class ImageSavingThread extends Thread{
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, fouts);
             fouts.flush();
             fouts.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            return false;
         } catch (IOException e) {
             e.printStackTrace();
             return false;
+        } finally {
+            return true;
         }
-        return true;
     }
 
     public static class Data {

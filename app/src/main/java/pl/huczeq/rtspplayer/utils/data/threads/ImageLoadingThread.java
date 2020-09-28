@@ -7,12 +7,14 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,8 +27,9 @@ import pl.huczeq.rtspplayer.utils.data.Camera;
 public class ImageLoadingThread extends Thread{
 
     public static Message createMessage(Data data) {
-        if(data.getCamera() == null || data.getCallback() == null || data.getCamera().getPreviewImg() == null) return null;
+        if(data.getCamera() == null || data.getCallback() == null || data.getCamera().getPreviewImg() == null || data.getCamera().getPreviewImg().equalsIgnoreCase("")) return null;
         Message message = new Message();
+        message.what = 1;
         message.obj = data;
         return message;
     }
@@ -51,12 +54,11 @@ public class ImageLoadingThread extends Thread{
                 if(bitmap == null) {
                     Settings settings = Settings.getInstance(context);
                     File f = new File(settings.getPreviewImagesDir(), data.getCamera().getPreviewImg());
-                    if(!f.canRead()) {
-                        returnMessageToQueue(message);
+                    if(!f.exists()) {
                         return false;
                     }
                     bitmap = loadBitmapFromFile(f);
-                    if(bitmap == null) return false;
+                    if(bitmap == null) returnMessageToQueue(message);;
                     CachedImages.addCachedImage(data.camera, bitmap);
                 }
                 final Bitmap finalBitmap = bitmap;
@@ -73,17 +75,27 @@ public class ImageLoadingThread extends Thread{
     }
 
     private void returnMessageToQueue(Message message) {
-        Data data = (Data) message.obj;
-        if(data.getNumberOfReturns() >= 1) {
-            Log.e(TAG, "Returned message to queue " + data.getNumberOfReturns() + " times. " + data.getCamera().getName() + "," + data.getCamera().getPreviewImg());
+        final Data data = (Data) message.obj;
+        if(data.getNumberOfReturns() >= 2) {
+            Log.e(TAG, "Returned message to queue " + data.getNumberOfReturns() + " times, name: " + data.getCamera().getName() + ", img: " + data.getCamera().getPreviewImg());
+            new Handler(Looper.getMainLooper()).post(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(context, "Returned message to queue " + data.getNumberOfReturns() + " times. " + data.getCamera().getName() + "," + data.getCamera().getPreviewImg(), Toast.LENGTH_LONG).show();
+                }
+            });
             return;
         }
         data.returnToQueue();
-        ImageLoadingThread.this.handler.sendMessageDelayed(message, 1000*30);
+        this.sendMessageDelayed(Message.obtain(message), 1000*30);
+    }
+
+    public void sendMessageDelayed(Message message, int delay) {
+        if(!this.handler.hasMessages(1, message.obj)) this.handler.sendMessageDelayed(message, delay);
     }
 
     public void sendMessage(Message message) {
-        this.handler.sendMessage(message);
+        if(!this.handler.hasMessages(1, message.obj)) this.handler.sendMessage(message);
     }
 
     public Bitmap loadBitmapFromFile(File file) {
@@ -93,6 +105,8 @@ public class ImageLoadingThread extends Thread{
         try {
             bitmap = BitmapFactory.decodeStream(new FileInputStream(file), null, options);
         } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
             e.printStackTrace();
         }
         return bitmap;

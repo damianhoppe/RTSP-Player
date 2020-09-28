@@ -18,6 +18,7 @@ public class BaseActivity extends AbstractBaseActivity implements OnDataChanged 
         super.onCreate(savedInstanceState);
 
         dataManager = DataManager.getInstance(this);
+        dataManager.loadData();
     }
 
     @Override

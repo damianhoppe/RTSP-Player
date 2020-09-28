@@ -51,12 +51,12 @@ public class ListAdapter extends ArrayAdapter<Camera> {
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
         final Camera camera = cameras.get(position);
-        final String image = camera.getPreviewImg();
         final LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        final String[] image = {null};
 
         final View view = inflater.inflate(R.layout.view_camera_item, parent, false);
 
-        TextView textView = view.findViewById(R.id.name);
+        final TextView textView = view.findViewById(R.id.name);
         final ImageView imageView = view.findViewById(R.id.icon);
         final ImageView imageView2 = view.findViewById(R.id.icon2);
         ImageButton imageButtonMenu = view.findViewById(R.id.itemMenu);
@@ -91,27 +91,35 @@ public class ListAdapter extends ArrayAdapter<Camera> {
             @Override
             public void onImageLoaded(ImageLoadingThread.Data data, Bitmap bitmap) {
                 setImage(imageView, imageView2, bitmap);
+                image[0] = camera.getPreviewImg();
             }
         };
         final ImageLoadingThread.Data data = new ImageLoadingThread.Data(camera, imageLoadingCallback);
-        this.dataManager.loadPreviewImg(data);
+        //this.dataManager.loadPreviewImg(data);//TODO ?
 
         final OnCameraChanged onCameraChanged = new OnCameraChanged() {
             @Override
             public void onCameraPrevImgChanged() {
                 dataManager.loadPreviewImg(data);
             }
+
+            @Override
+            public void onCameraUpdated() {
+                textView.setText(camera.getName());
+            }
         };
         view.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
             @Override
             public void onViewAttachedToWindow(View view) {
-                if(camera.getPreviewImg() != image)
+                Log.d(TAG, "onViewAttachedToWindow");
+                if(camera.getPreviewImg() != image[0])
                     onCameraChanged.onCameraPrevImgChanged();
                 camera.addOnCameraChangedListener(onCameraChanged);
             }
 
             @Override
             public void onViewDetachedFromWindow(View view) {
+                Log.d(TAG, "onViewDetachedFromWindow");
                 camera.removeOnCameraChangedListener(onCameraChanged);
             }
         });
@@ -132,6 +140,8 @@ public class ListAdapter extends ArrayAdapter<Camera> {
     }
 
     private void setImage(final ImageView imageView, final ImageView imageView2, final Bitmap bitmap) {
+        imageView.setImageBitmap(bitmap);
+        /*
         final Animation anim_in = AnimationUtils.loadAnimation(getContext(), android.R.anim.fade_in);
         anim_in.setAnimationListener(new Animation.AnimationListener() {
             @Override
@@ -150,6 +160,6 @@ public class ListAdapter extends ArrayAdapter<Camera> {
             public void onAnimationRepeat(Animation animation) {
             }
         });
-        imageView2.startAnimation(anim_in);
+        imageView2.startAnimation(anim_in);*/
     }
 }

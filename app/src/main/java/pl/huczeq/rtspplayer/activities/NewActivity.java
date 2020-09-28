@@ -1,360 +1,247 @@
 package pl.huczeq.rtspplayer.activities;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.Intent;
 import android.content.res.Configuration;
-import android.graphics.PixelFormat;
-import android.net.Uri;
-import android.os.Build;
-import android.os.Environment;
-import android.os.Handler;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.view.TextureView;
-import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewStub;
-import android.widget.FrameLayout;
+import android.view.ViewGroup.LayoutParams;
+import android.widget.Toast;
 
-import org.videolan.libvlc.interfaces.IVLCVout;
 import org.videolan.libvlc.LibVLC;
 import org.videolan.libvlc.Media;
 import org.videolan.libvlc.MediaPlayer;
+import org.videolan.libvlc.interfaces.IVLCVout;
 
-import java.io.File;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 import pl.huczeq.rtspplayer.R;
 
-import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
+public class NewActivity extends Activity implements IVLCVout.Callback {
+    public final static String TAG = "NewActivity";
 
-public class NewActivity extends Activity implements IVLCVout.OnNewVideoLayoutListener {
-    private static final boolean USE_SURFACE_VIEW = true;
-    private static final boolean ENABLE_SUBTITLES = false;
-    private static final String TAG = "JavaActivity";
-    //private static final String SAMPLE_URL = "http://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_640x360.m4v";
-    private static final int SURFACE_BEST_FIT = 0;
-    private static final int SURFACE_FIT_SCREEN = 1;
-    private static final int SURFACE_FILL = 2;
-    private static final int SURFACE_16_9 = 3;
-    private static final int SURFACE_4_3 = 4;
-    private static final int SURFACE_ORIGINAL = 5;
-    private static int CURRENT_SIZE = SURFACE_FIT_SCREEN;
+    public final static String LOCATION = "com.compdigitec.libvlcandroidsample.VideoActivity.location";
 
-    private FrameLayout mVideoSurfaceFrame = null;
-    private SurfaceView mVideoSurface = null;
-    private SurfaceView mSubtitlesSurface = null;
-    private TextureView mVideoTexture = null;
-    private View mVideoView = null;
+    private String mFilePath;
 
-    private Handler mHandler;
-    private View.OnLayoutChangeListener mOnLayoutChangeListener = null;
+    // display surface
+    private SurfaceView mSurface;
+    private SurfaceHolder holder;
 
-    private LibVLC mLibVLC = null;
+    // media player
+    private LibVLC libvlc;
     private MediaPlayer mMediaPlayer = null;
-    private int mVideoHeight = 0;
-    private int mVideoWidth = 0;
-    private int mVideoVisibleHeight = 0;
-    private int mVideoVisibleWidth = 0;
-    private int mVideoSarNum = 0;
-    private int mVideoSarDen = 0;
+    private int mVideoWidth;
+    private int mVideoHeight;
+    private final static int VideoSizeChanged = -1;
 
-    private File file;
+    /*************
+     * Activity
+     *************/
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_video);
 
-        mHandler = new Handler();
+        // Receive path to play from intent
+        Intent intent = getIntent();
+        mFilePath = intent.getExtras().getString(LOCATION);
 
-        setContentView(R.layout.activity_main);
+        Log.d(TAG, "Playing back " + mFilePath);
 
-        requestPermissions(new String[] { WRITE_EXTERNAL_STORAGE }, 1);
-        file = new File(Environment.getExternalStorageDirectory() + File.separator + "test5.mkv");
-
-        final ArrayList<String> args = new ArrayList<>();
-        //args.add("-vvv");
-        mLibVLC = new LibVLC(this, args);
-        mMediaPlayer = new MediaPlayer(mLibVLC);
-
-        mVideoSurfaceFrame = findViewById(R.id.surfaceView);
-        if (USE_SURFACE_VIEW) {
-            ViewStub stub = findViewById(R.id.viewStub);
-            mVideoSurface = (SurfaceView) stub.inflate();
-            if (ENABLE_SUBTITLES) {
-                stub = findViewById(R.id.subtitles_surface_stub);
-                mSubtitlesSurface = (SurfaceView) stub.inflate();
-                mSubtitlesSurface.setZOrderMediaOverlay(true);
-                mSubtitlesSurface.getHolder().setFormat(PixelFormat.TRANSLUCENT);
-            }
-            mVideoView = mVideoSurface;
-        } else {
-            ViewStub stub = findViewById(R.id.texture_stub);
-            mVideoTexture = (TextureView) stub.inflate();
-            mVideoView = mVideoTexture;
-        }
+        mSurface = (SurfaceView) findViewById(R.id.surface);
+        holder = mSurface.getHolder();
+        //holder.addCallback(this);
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        mMediaPlayer.release();
-        mLibVLC.release();
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        setSize(mVideoWidth, mVideoHeight);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        stop();
-        start();
-        /*mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                stop();
-                start();
-                mHandler.postDelayed(this, 2000);
-            }
-        });*/
+        createPlayer(mFilePath);
     }
 
-    private void start() {
-        Log.i(TAG, "start");
-        final IVLCVout vlcVout = mMediaPlayer.getVLCVout();
-        if (mVideoSurface != null) {
-            vlcVout.setVideoView(mVideoSurface);
-            if (mSubtitlesSurface != null)
-                vlcVout.setSubtitlesView(mSubtitlesSurface);
-        }
-        else
-            vlcVout.setVideoView(mVideoTexture);
-        vlcVout.attachViews(this);
-
-        Media media = new Media(mLibVLC, Uri.parse("rtsp://192.168.0.3:554/user=admin&password=&channel=2&stream=0.sdp")/*file.getAbsolutePath()*/);
-        // Media media = new Media(mLibVLC, Uri.parse(SAMPLE_URL));
-        mMediaPlayer.setMedia(media);
-        media.release();
-        mMediaPlayer.play();
-
-        if (mOnLayoutChangeListener == null) {
-            mOnLayoutChangeListener = new View.OnLayoutChangeListener() {
-                private final Runnable mRunnable = new Runnable() {
-                    @Override
-                    public void run() {
-                        updateVideoSurfaces();
-                    }
-                };
-                @Override
-                public void onLayoutChange(View v, int left, int top, int right,
-                                           int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
-                    if (left != oldLeft || top != oldTop || right != oldRight || bottom != oldBottom) {
-                        mHandler.removeCallbacks(mRunnable);
-                        mHandler.post(mRunnable);
-                    }
-                }
-            };
-        }
-        mVideoSurfaceFrame.addOnLayoutChangeListener(mOnLayoutChangeListener);
-    }
-
-    private void stop() {
-        Log.i(TAG, "stop");
-        if (mOnLayoutChangeListener != null) {
-            mVideoSurfaceFrame.removeOnLayoutChangeListener(mOnLayoutChangeListener);
-            mOnLayoutChangeListener = null;
-        }
-        mMediaPlayer.stop();
-        mMediaPlayer.getVLCVout().detachViews();
-    }
-
-    private void changeMediaPlayerLayout(int displayW, int displayH) {
-        /* Change the video placement using the MediaPlayer API */
-        switch (CURRENT_SIZE) {
-            case SURFACE_BEST_FIT:
-                mMediaPlayer.setAspectRatio(null);
-                mMediaPlayer.setScale(0);
-                break;
-            case SURFACE_FIT_SCREEN:
-            case SURFACE_FILL: {
-                Media.VideoTrack vtrack = mMediaPlayer.getCurrentVideoTrack();
-                if (vtrack == null)
-                    return;
-                final boolean videoSwapped = vtrack.orientation == Media.VideoTrack.Orientation.LeftBottom
-                        || vtrack.orientation == Media.VideoTrack.Orientation.RightTop;
-                if (CURRENT_SIZE == SURFACE_FIT_SCREEN) {
-                    int videoW = vtrack.width;
-                    int videoH = vtrack.height;
-                    Log.d(TAG, String.valueOf(videoW) + " : " + videoH);
-
-                    if (videoSwapped) {
-                        int swap = videoW;
-                        videoW = videoH;
-                        videoH = swap;
-                    }
-                    if (vtrack.sarNum != vtrack.sarDen)
-                        videoW = videoW * vtrack.sarNum / vtrack.sarDen;
-
-                    float ar = videoW / (float) videoH;
-                    float dar = displayW / (float) displayH;
-
-                    float scale;
-                    if (dar >= ar)
-                        scale = displayW / (float) videoW; /* horizontal */
-                    else
-                        scale = displayH / (float) videoH; /* vertical */
-                    mMediaPlayer.setScale(scale);
-                    mMediaPlayer.setAspectRatio(null);
-                } else {
-                    mMediaPlayer.setScale(0);
-                    mMediaPlayer.setAspectRatio(!videoSwapped ? ""+displayW+":"+displayH
-                            : ""+displayH+":"+displayW);
-                }
-                break;
-            }
-            case SURFACE_16_9:
-                mMediaPlayer.setAspectRatio("16:9");
-                mMediaPlayer.setScale(0);
-                break;
-            case SURFACE_4_3:
-                mMediaPlayer.setAspectRatio("4:3");
-                mMediaPlayer.setScale(0);
-                break;
-            case SURFACE_ORIGINAL:
-                mMediaPlayer.setAspectRatio(null);
-                mMediaPlayer.setScale(1);
-                break;
-        }
-    }
-
-    private void updateVideoSurfaces() {
-        int sw = getWindow().getDecorView().getWidth();
-        int sh = getWindow().getDecorView().getHeight();
-
-        // sanity check
-        if (sw * sh == 0) {
-            Log.e(TAG, "Invalid surface size");
-            return;
-        }
-
-        mMediaPlayer.getVLCVout().setWindowSize(sw, sh);
-
-        ViewGroup.LayoutParams lp = mVideoView.getLayoutParams();
-        if (mVideoWidth * mVideoHeight == 0) {
-            /* Case of OpenGL vouts: handles the placement of the video using MediaPlayer API */
-            lp.width  = ViewGroup.LayoutParams.MATCH_PARENT;
-            lp.height = ViewGroup.LayoutParams.MATCH_PARENT;
-            mVideoView.setLayoutParams(lp);
-            lp = mVideoSurfaceFrame.getLayoutParams();
-            lp.width  = ViewGroup.LayoutParams.MATCH_PARENT;
-            lp.height = ViewGroup.LayoutParams.MATCH_PARENT;
-            mVideoSurfaceFrame.setLayoutParams(lp);
-            changeMediaPlayerLayout(sw, sh);
-            return;
-        }
-
-        if (lp.width == lp.height && lp.width == ViewGroup.LayoutParams.MATCH_PARENT) {
-            /* We handle the placement of the video using Android View LayoutParams */
-            mMediaPlayer.setAspectRatio(null);
-            mMediaPlayer.setScale(0);
-        }
-
-        double dw = sw, dh = sh;
-        final boolean isPortrait = getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT;
-
-        if (sw > sh && isPortrait || sw < sh && !isPortrait) {
-            dw = sh;
-            dh = sw;
-        }
-
-        // compute the aspect ratio
-        double ar, vw;
-        if (mVideoSarDen == mVideoSarNum) {
-            /* No indication about the density, assuming 1:1 */
-            vw = mVideoVisibleWidth;
-            ar = (double)mVideoVisibleWidth / (double)mVideoVisibleHeight;
-        } else {
-            /* Use the specified aspect ratio */
-            vw = mVideoVisibleWidth * (double)mVideoSarNum / mVideoSarDen;
-            ar = vw / mVideoVisibleHeight;
-        }
-
-        // compute the display aspect ratio
-        double dar = dw / dh;
-
-        switch (CURRENT_SIZE) {
-            case SURFACE_BEST_FIT:
-                if (dar < ar)
-                    dh = dw / ar;
-                else
-                    dw = dh * ar;
-                break;
-            case SURFACE_FIT_SCREEN:
-                if (dar >= ar)
-                    dh = dw / ar; /* horizontal */
-                else
-                    dw = dh * ar; /* vertical */
-                break;
-            case SURFACE_FILL:
-                break;
-            case SURFACE_16_9:
-                ar = 16.0 / 9.0;
-                if (dar < ar)
-                    dh = dw / ar;
-                else
-                    dw = dh * ar;
-                break;
-            case SURFACE_4_3:
-                ar = 4.0 / 3.0;
-                if (dar < ar)
-                    dh = dw / ar;
-                else
-                    dw = dh * ar;
-                break;
-            case SURFACE_ORIGINAL:
-                dh = mVideoVisibleHeight;
-                dw = vw;
-                break;
-        }
-
-        // set display size
-        lp.width  = (int) Math.ceil(dw * mVideoWidth / mVideoVisibleWidth);
-        lp.height = (int) Math.ceil(dh * mVideoHeight / mVideoVisibleHeight);
-        mVideoView.setLayoutParams(lp);
-        if (mSubtitlesSurface != null)
-            mSubtitlesSurface.setLayoutParams(lp);
-
-        // set frame size (crop if necessary)
-        lp = mVideoSurfaceFrame.getLayoutParams();
-        lp.width = (int) Math.floor(dw);
-        lp.height = (int) Math.floor(dh);
-        mVideoSurfaceFrame.setLayoutParams(lp);
-
-        mVideoView.invalidate();
-        if (mSubtitlesSurface != null)
-            mSubtitlesSurface.invalidate();
-    }
-
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
     @Override
-    public void onNewVideoLayout(IVLCVout vlcVout, int width, int height, int visibleWidth, int visibleHeight, int sarNum, int sarDen) {
-        Log.d(TAG, String.valueOf(width));
+    protected void onPause() {
+        super.onPause();
+        releasePlayer();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        releasePlayer();
+    }
+
+    /*************
+     * Surface
+     *************/
+    private void setSize(int width, int height) {
         mVideoWidth = width;
         mVideoHeight = height;
-        mVideoVisibleWidth = visibleWidth;
-        mVideoVisibleHeight = visibleHeight;
-        mVideoSarNum = sarNum;
-        mVideoSarDen = sarDen;
-        updateVideoSurfaces();
+        if (mVideoWidth * mVideoHeight <= 1)
+            return;
+
+        if(holder == null || mSurface == null)
+            return;
+
+        // get screen size
+        int w = getWindow().getDecorView().getWidth();
+        int h = getWindow().getDecorView().getHeight();
+
+        // getWindow().getDecorView() doesn't always take orientation into
+        // account, we have to correct the values
+        boolean isPortrait = getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT;
+        if (w > h && isPortrait || w < h && !isPortrait) {
+            int i = w;
+            w = h;
+            h = i;
+        }
+
+        float videoAR = (float) mVideoWidth / (float) mVideoHeight;
+        float screenAR = (float) w / (float) h;
+
+        if (screenAR < videoAR)
+            h = (int) (w / videoAR);
+        else
+            w = (int) (h * videoAR);
+
+        // force surface buffer size
+        holder.setFixedSize(mVideoWidth, mVideoHeight);
+
+        // set display size
+        LayoutParams lp = mSurface.getLayoutParams();
+        lp.width = w;
+        lp.height = h;
+        mSurface.setLayoutParams(lp);
+        mSurface.invalidate();
+    }
+
+    /*************
+     * Player
+     *************/
+
+    private void createPlayer(String media) {
+        releasePlayer();
+        try {
+            if (media.length() > 0) {
+                Toast toast = Toast.makeText(this, media, Toast.LENGTH_LONG);
+                toast.setGravity(Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL, 0,
+                        0);
+                toast.show();
+            }
+
+            // Create LibVLC
+            // TODO: make this more robust, and sync with audio demo
+            ArrayList<String> options = new ArrayList<String>();
+            //options.add("--subsdec-encoding <encoding>");
+            options.add("--aout=opensles");
+            options.add("--audio-time-stretch"); // time stretching
+            options.add("-vvv"); // verbosity
+            libvlc = new LibVLC(getApplicationContext(), options);
+            holder.setKeepScreenOn(true);
+
+            // Create media player
+            mMediaPlayer = new MediaPlayer(libvlc);
+            mMediaPlayer.setEventListener(mPlayerListener);
+
+            // Set up video output
+            final IVLCVout vout = mMediaPlayer.getVLCVout();
+            vout.setVideoView(mSurface);
+            //vout.setSubtitlesView(mSurfaceSubtitles);
+            vout.addCallback(this);
+            vout.attachViews();
+
+            Media m = new Media(libvlc, media);
+            mMediaPlayer.setMedia(m);
+            mMediaPlayer.play();
+        } catch (Exception e) {
+            Toast.makeText(this, "Error creating player!", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    // TODO: handle this cleaner
+    private void releasePlayer() {
+        if (libvlc == null)
+            return;
+        mMediaPlayer.stop();
+        final IVLCVout vout = mMediaPlayer.getVLCVout();
+        vout.removeCallback(this);
+        vout.detachViews();
+        holder = null;
+        libvlc.release();
+        libvlc = null;
+
+        mVideoWidth = 0;
+        mVideoHeight = 0;
+    }
+
+    /*************
+     * Events
+     *************/
+
+    private MediaPlayer.EventListener mPlayerListener = new MyPlayerListener(this);
+
+    public void onNewLayout(IVLCVout vout, int width, int height, int visibleWidth, int visibleHeight, int sarNum, int sarDen) {
+        if (width * height == 0)
+            return;
+
+        // store video size
+        mVideoWidth = width;
+        mVideoHeight = height;
+        setSize(mVideoWidth, mVideoHeight);
+    }
+
+    @Override
+    public void onSurfacesCreated(IVLCVout vout) {
+
+    }
+
+    @Override
+    public void onSurfacesDestroyed(IVLCVout vout) {
+
+    }
+
+    private static class MyPlayerListener implements MediaPlayer.EventListener {
+        private WeakReference<NewActivity> mOwner;
+
+        public MyPlayerListener(NewActivity owner) {
+            mOwner = new WeakReference<NewActivity>(owner);
+        }
+
+        @Override
+        public void onEvent(MediaPlayer.Event event) {
+            NewActivity player = mOwner.get();
+
+            switch(event.type) {
+                case MediaPlayer.Event.EndReached:
+                    Log.d(TAG, "MediaPlayerEndReached");
+                    player.releasePlayer();
+                    break;
+                case MediaPlayer.Event.Playing:
+                case MediaPlayer.Event.Paused:
+                case MediaPlayer.Event.Stopped:
+                default:
+                    break;
+            }
+        }
+    }
+
+    public void eventHardwareAccelerationError() {
+        // Handle errors with hardware acceleration
+        Log.e(TAG, "Error with hardware acceleration");
+        this.releasePlayer();
+        Toast.makeText(this, "Error with hardware acceleration", Toast.LENGTH_LONG).show();
     }
 }
-
