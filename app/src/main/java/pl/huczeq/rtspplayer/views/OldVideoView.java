@@ -2,22 +2,15 @@ package pl.huczeq.rtspplayer.views;
 
 import android.content.Context;
 import android.content.res.Configuration;
-import android.graphics.Bitmap;
 import android.graphics.Matrix;
-import android.graphics.RectF;
-import android.graphics.SurfaceTexture;
 import android.net.Uri;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.Display;
-import android.view.Surface;
 import android.view.TextureView;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import org.videolan.libvlc.LibVLC;
@@ -25,12 +18,16 @@ import org.videolan.libvlc.Media;
 import org.videolan.libvlc.MediaPlayer;
 import org.videolan.libvlc.interfaces.IMedia;
 import org.videolan.libvlc.interfaces.IVLCVout;
-import org.videolan.libvlc.util.VLCUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class VideoView extends TextureView implements IVLCVout.OnNewVideoLayoutListener {
+public class OldVideoView extends TextureView implements IVLCVout.OnNewVideoLayoutListener {
+
+    public interface Callback {
+        void onVideoStart();
+        void onVideError();
+    }
 
     private final String TAG = "VideoView";
 
@@ -41,22 +38,27 @@ public class VideoView extends TextureView implements IVLCVout.OnNewVideoLayoutL
     Uri uri;
     Media media;
 
-    public VideoView(Context context) {
+    Callback callback;
+    public void setCallback(Callback callback) {
+        this.callback = callback;
+    }
+
+    public OldVideoView(Context context) {
         super(context);
         onCreate(context);
     }
 
-    public VideoView(Context context, @Nullable AttributeSet attrs) {
+    public OldVideoView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         onCreate(context);
     }
 
-    public VideoView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public OldVideoView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         onCreate(context);
     }
 
-    public VideoView(Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+    public OldVideoView(Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         onCreate(context);
     }
@@ -110,9 +112,6 @@ public class VideoView extends TextureView implements IVLCVout.OnNewVideoLayoutL
                 switch (event.type) {
                     case MediaPlayer.Event.Buffering:
                         Log.d(TAG, "Buffering");
-                        Log.d(TAG, String.valueOf(event.getBuffering()));
-                        if(event.getBuffering() == 100)
-                            Toast.makeText(getContext(), "OK", Toast.LENGTH_LONG).show();
                         break;
                     case MediaPlayer.Event.EncounteredError:
                         Log.d(TAG, "EncounteredError");
@@ -159,10 +158,12 @@ public class VideoView extends TextureView implements IVLCVout.OnNewVideoLayoutL
                         break;
                     case MediaPlayer.Event.Stopped:
                         Log.d(TAG, "Stopped");
+                        if(callback != null) {
+                            callback.onVideError();
+                        }
                         break;
                     case MediaPlayer.Event.TimeChanged:
                         Log.d(TAG, "TimeChanged");
-                        Log.d(TAG, String.valueOf(event.getTimeChanged()));
                         break;
                     case MediaPlayer.Event.Vout:
                         Log.d(TAG, "Vout");
@@ -174,7 +175,7 @@ public class VideoView extends TextureView implements IVLCVout.OnNewVideoLayoutL
                                 } catch (InterruptedException e) {
                                     e.printStackTrace();
                                 }
-                                VideoView.this.canTakePicture = true;
+                                OldVideoView.this.canTakePicture = true;
                             }
                         }).start();
                         break;
@@ -296,6 +297,8 @@ public class VideoView extends TextureView implements IVLCVout.OnNewVideoLayoutL
         Log.d(TAG, "3");
         Log.d(TAG, String.valueOf(player.isReleased()));
         if(player != null) {
+            if(!player.getVLCVout().areViewsAttached())
+                player.getVLCVout().attachViews(this);
             Log.d(TAG, "4");
             if(player.isReleased()) {
                 Log.d(TAG, "5");
@@ -329,6 +332,7 @@ public class VideoView extends TextureView implements IVLCVout.OnNewVideoLayoutL
 
     public void release() {
         //TODO
+        player.getMedia().release();
         player.release();
         lib.release();
     }
@@ -363,6 +367,9 @@ public class VideoView extends TextureView implements IVLCVout.OnNewVideoLayoutL
         this.height = height;
         vlcVout.setWindowSize(params.height, params.width);//TODO ADDED
         this.setLayoutParams(params);
-        Toast.makeText(getContext(), "2", Toast.LENGTH_LONG).show();
+        //Toast.makeText(getContext(), "2", Toast.LENGTH_LONG).show();
+
+        if(this.callback != null)
+            callback.onVideoStart();
     }
 }

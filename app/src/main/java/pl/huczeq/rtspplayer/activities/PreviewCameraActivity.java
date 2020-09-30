@@ -2,27 +2,28 @@ package pl.huczeq.rtspplayer.activities;
 
 import android.content.Context;
 import android.content.pm.ActivityInfo;
-import android.graphics.Bitmap;
+import android.content.res.Configuration;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.HandlerThread;
-import android.util.DisplayMetrics;
+import android.os.Looper;
 import android.util.Log;
 import android.view.OrientationEventListener;
-import android.view.PixelCopy;
-import android.view.SurfaceView;
+import android.view.View;
 import android.view.Window;
+import android.view.WindowManager;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import androidx.annotation.RequiresApi;
+import androidx.annotation.NonNull;
+
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.InterstitialAd;
 
 import pl.huczeq.rtspplayer.R;
-import pl.huczeq.rtspplayer.activities.main.BaseActivity;
+import pl.huczeq.rtspplayer.activities.base.BaseActivity;
 import pl.huczeq.rtspplayer.utils.data.Camera;
-import pl.huczeq.rtspplayer.utils.data.Data;
-import pl.huczeq.rtspplayer.views.VideoView;
+import pl.huczeq.rtspplayer.views.OldVideoView;
 
 public class PreviewCameraActivity extends BaseActivity {
 
@@ -31,12 +32,13 @@ public class PreviewCameraActivity extends BaseActivity {
     public static String EXTRA_CAMERA_NAME = "cameraName";
     public static String EXTRA_URL = "cameraUrl";
 
-    private VideoView videoView;
+    private OldVideoView videoView;
+    private ProgressBar pBLoading;
 
     private Camera camera;
     private String url;
 
-    OrientationListener orientationListener;
+    //OrientationListener orientationListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,18 +63,82 @@ public class PreviewCameraActivity extends BaseActivity {
             Log.d(TAG, "Camera: " + camera.getUrl());
         }
 
-        orientationListener = new OrientationListener(this);
+        videoView.setCallback(new OldVideoView.Callback() {
+            @Override
+            public void onVideoStart() {
+                pBLoading.setVisibility(View.INVISIBLE);
+            }
+
+            @Override
+            public void onVideError() {
+                pBLoading.setVisibility(View.INVISIBLE);
+                Toast.makeText(getApplicationContext(), getString(R.string.video_error), Toast.LENGTH_SHORT).show();
+            }
+        });
+        //orientationListener = new OrientationListener(this);
+
+        videoView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showUI();
+            }
+        });
+        showUI();
+    }
+
+    Thread thread;
+
+    private void hideUI() {
+        View decorView = getWindow().getDecorView();
+        decorView.setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_IMMERSIVE
+                        | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_FULLSCREEN);
+
+    }
+
+    private void showUI() {
+        View decorView = getWindow().getDecorView();
+        decorView.setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+
+        if(thread!=null) {
+            thread.interrupt();
+        }
+        thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    return;
+                }
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        hideUI();
+                    }
+                });
+            }
+        });
+        thread.start();
     }
 
     @Override
     protected void onStart() {
-        orientationListener.enable();
+        //orientationListener.enable();
         super.onStart();
     }
 
     @Override
     protected void onStop() {
-        orientationListener.disable();
+        //orientationListener.disable();
         super.onStop();
     }
 
@@ -107,7 +173,22 @@ public class PreviewCameraActivity extends BaseActivity {
         super.setViewsWidgets();
 
         videoView = findViewById(R.id.cameraPreview);
+        pBLoading = findViewById(R.id.pBLoading);
     }
+
+    /*@Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        switch (newConfig.orientation) {
+            case Configuration.ORIENTATION_PORTRAIT:
+                Log.d(TAG, "ORIENTATION_PORTRAIT");
+                break;
+            case Configuration.ORIENTATION_LANDSCAPE:
+                Log.d(TAG, "ORIENTATION_LANDSCAPE");
+                break;
+        }
+        Log.d(TAG, String.valueOf(getWindowManager().getDefaultDisplay().getRotation()));
+    }*/
 
     private class OrientationListener extends OrientationEventListener {
         final int ROTATION_O    = 1;

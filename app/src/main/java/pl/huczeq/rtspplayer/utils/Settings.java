@@ -19,11 +19,14 @@ public class Settings {
 
     private Context context;
     private final String preferencesName = "Settings";
+    public static final long adFullscreenDelay = 1000*60*60;
 
     private SharedPreferences preferences;
     private SharedPreferences.Editor editor;
 
     private final String KEY_FIRST_LAUNCH = "first_launch";
+
+    private final String KEY_LAST_ADD_TIME = "last_add_time";
 
     public Settings(Context context) {
         this.context = context;
@@ -37,6 +40,11 @@ public class Settings {
     private void commit() {
         this.commit();
     }
+    public File getPreviewImagesDir() {
+        return this.context.getCacheDir();
+    }
+
+    // DATA
 
     public boolean isFirstLaunch() {
         return this.preferences.getBoolean(KEY_FIRST_LAUNCH, true);
@@ -48,7 +56,13 @@ public class Settings {
         commit();
     }
 
-    public File getPreviewImagesDir() {
-        return this.context.getCacheDir();
+    public long getLastAddTime() {
+        return this.preferences.getLong(KEY_LAST_ADD_TIME, 0);
+    }
+
+    public void setLastAddTime(long time) {
+        edit();
+        this.editor.putLong(KEY_LAST_ADD_TIME, time);
+        commit();
     }
 }

@@ -1,25 +1,17 @@
 package pl.huczeq.rtspplayer.activities.mgmt;
 
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.util.Log;
-import android.view.SurfaceView;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.tabs.TabLayout;
 
 import pl.huczeq.rtspplayer.activities.PreviewCameraActivity;
-import pl.huczeq.rtspplayer.activities.main.BaseActivity;
+import pl.huczeq.rtspplayer.activities.base.BaseActivity;
 import pl.huczeq.rtspplayer.utils.data.Camera;
 import pl.huczeq.rtspplayer.R;
-import pl.huczeq.rtspplayer.views.VideoView;
 
 public class EditCameraActivity extends BaseActivity {
 
@@ -59,10 +51,12 @@ public class EditCameraActivity extends BaseActivity {
 
     @Override
     protected void setViewsWidgets() {
+        super.setViewsWidgets();
+
         etCameraName = findViewById(R.id.etCameraName);
         etCameraUrl = findViewById(R.id.etCameraUrl);
-        etUserName = findViewById(R.id.etUserName);
-        etPassword = findViewById(R.id.etPassword);
+        /*etUserName = findViewById(R.id.etUserName);
+        etPassword = findViewById(R.id.etPassword);*/
         buttonAddCamera = findViewById(R.id.saveCameraFAButton);
         buttonStartCameraPreview = findViewById(R.id.startPreviewFAButton);
 

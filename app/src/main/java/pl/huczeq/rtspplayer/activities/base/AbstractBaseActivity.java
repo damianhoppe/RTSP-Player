@@ -1,4 +1,4 @@
-package pl.huczeq.rtspplayer.activities.main;
+package pl.huczeq.rtspplayer.activities.base;
 
 import androidx.appcompat.app.AppCompatActivity;
 

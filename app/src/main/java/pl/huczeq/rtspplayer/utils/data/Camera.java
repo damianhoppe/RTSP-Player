@@ -44,8 +44,8 @@ public class Camera {
             this.name = jsonObject.getString(JSONName);
             this.url = jsonObject.getString(JSONUrl);
             this.previewImg = jsonObject.optString(JSONPreviewImg, null);
-            this.userName = jsonObject.optString(JSONUrl, null);
-            this.password = jsonObject.optString(JSONUrl, null);
+            this.userName = jsonObject.optString(JSONUserName, null);
+            this.password = jsonObject.optString(JSONPassword, null);
         } catch (JSONException e) {
             e.printStackTrace();
             throw e;

@@ -34,12 +34,44 @@ import pl.huczeq.rtspplayer.utils.data.threads.ImageSavingThread;
 
 public class DataManager {
 
+    public interface Callback {
+        void onDataLoaded();
+    }
+
     private static DataManager instance;
 
     public static DataManager getInstance(Context context) {
+        return getInstance(context, null);
+    }
+
+    public static DataManager getInstance(Context context, final Callback callback) {
         if(DataManager.instance == null)
             DataManager.instance = new DataManager(context);
+        if(!instance.dataLoaded) {
+            if(callback == null) {
+                instance.loadData();
+            }else {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        instance.loadData();
+                        instance.dataLoaded = true;
+                        if(callback != null) notifyDataLoaded(callback);
+                    }
+                }).start();
+            }
+        }
         return DataManager.instance;
+    }
+
+    private static void notifyDataLoaded(final Callback callback) {
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run() {
+                if (callback != null)
+                    callback.onDataLoaded();
+            }
+        });
     }
 
     private final String TAG = "DataManager";
@@ -71,7 +103,7 @@ public class DataManager {
         this.imageSavingThread.start();
     }
 
-    public void loadData() {
+    private void loadData() {
         this.context.getFilesDir();
         File file = new File(this.context.getFilesDir(), this.fileName);
         if(!file.exists()) {
@@ -81,6 +113,7 @@ public class DataManager {
             return;
         }
         if(!file.canRead()){
+            resetFileData();
             Log.d(TAG, "Data can not be loaded");
             return;
         }
@@ -97,8 +130,10 @@ public class DataManager {
                 br.close();
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
+                resetFileData();
             } catch (IOException e) {
                 e.printStackTrace();
+                resetFileData();
             }
             try {
                 jsonObject = new JSONObject(text.toString());
@@ -125,6 +160,7 @@ public class DataManager {
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
+                resetFileData();
             }
             Log.d(TAG, "Data loaded");
             this.dataLoaded = true;
@@ -272,5 +308,9 @@ public class DataManager {
             }
             listener.onDataChanged();
         }
+    }
+
+    public boolean isDataLoaded() {
+        return this.dataLoaded;
     }
 }

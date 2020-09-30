@@ -7,17 +7,60 @@
     android:layout_height="match_parent"
     tools:ignore="ResAuto">
 
+    <include
+        android:id="@+id/include"
+        layout="@layout/toolbar"
+        app:layout_constraintBottom_toTopOf="@+id/listCameras"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="parent"/>
+
     <ListView
         android:id="@+id/listCameras"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#fff"
-        android:cacheColorHint="@android:color/transparent"
+        android:layout_gravity="top"
+        android:background="@color/background"
         android:choiceMode="singleChoice"
-        android:divider="@android:color/transparent"
+        android:clipToPadding="false"
+        android:divider="@android:color/darker_gray"
         android:dividerHeight="0dp"
         android:fadingEdgeLength="0dp"
-        tools:ignore="MissingConstraints"/>
+        android:foregroundGravity="top"
+        android:paddingBottom="150dp"
+        android:scrollbarStyle="outsideOverlay"
+        android:scrollbars="none"
+        android:layout_marginTop="10dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/include" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/adContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="20dp"
+        android:paddingTop="5dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:background="@color/background">
+
+        <com.google.android.gms.ads.AdView
+            xmlns:ads="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/adView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_alignParentBottom="true"
+            ads:adSize="BANNER"
+            ads:adUnitId="ca-app-pub-8191844178329148/8504824792"
+            ads:layout_constraintTop_toTopOf="parent"
+            ads:layout_constraintBottom_toBottomOf="parent"
+            tools:ignore="MissingConstraints">
+        </com.google.android.gms.ads.AdView>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/addCameraFAButton"
@@ -29,5 +72,5 @@
         app:maxImageSize="30dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:srcCompat="@android:drawable/ic_menu_add" />
+        app:srcCompat="@drawable/ic_add" />
 </androidx.constraintlayout.widget.ConstraintLayout>

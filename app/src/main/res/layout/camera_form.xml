@@ -5,7 +5,7 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    <TextView
+    <!--<TextView
         android:id="@+id/nameCameraLabel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -15,9 +15,13 @@
     <EditText
         android:id="@+id/etCameraName"
         android:layout_width="match_parent"
-        android:layout_height="45dp"
+        android:layout_height="50dp"
         android:layout_marginBottom="8dp"
         android:ems="10"
+        android:hint="@string/label_edittext_name_camera"
+        android:paddingHorizontal="20dp"
+        android:paddingVertical="5dp"
+        android:background="@drawable/edittext_border"
         android:inputType="textPersonName"/>
 
     <TextView
@@ -64,5 +68,53 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
         android:ems="10"
-        android:inputType="textPassword" />
+        android:inputType="textPassword" />-->
+
+    <EditText
+        android:id="@+id/etCameraName"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="18dp"
+        android:ems="10"
+        android:hint="@string/label_edittext_name_camera"
+        android:paddingHorizontal="20dp"
+        android:paddingVertical="5dp"
+        android:background="@drawable/edittext_selector"
+        android:inputType="textPersonName"/>
+
+    <EditText
+        android:id="@+id/etCameraUrl"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="18dp"
+        android:ems="10"
+        android:hint="rtsp://"
+        android:paddingHorizontal="20dp"
+        android:paddingVertical="5dp"
+        android:background="@drawable/edittext_selector"
+        android:inputType="textPersonName"/>
+
+    <!--<EditText
+        android:id="@+id/etUserName"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="18dp"
+        android:ems="10"
+        android:hint="@string/label_user_name"
+        android:paddingHorizontal="20dp"
+        android:paddingVertical="5dp"
+        android:background="@drawable/edittext_selector"
+        android:inputType="textPersonName" />
+
+    <EditText
+        android:id="@+id/etPassword"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="18dp"
+        android:ems="10"
+        android:hint="@string/label_password"
+        android:paddingHorizontal="20dp"
+        android:paddingVertical="5dp"
+        android:background="@drawable/edittext_selector"
+        android:inputType="textPassword" />-->
 </LinearLayout>

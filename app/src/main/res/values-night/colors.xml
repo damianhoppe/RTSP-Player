@@ -4,6 +4,6 @@
     <color name="colorPrimaryDark">#3700B3</color>
     <color name="colorAccent">#25A761</color>
     <color name="colorAccentDark">#25A761</color>
-    <color name="background">#FFF</color>
+    <color name="background">#000000</color>
     <bool name="windowLightStatusBar">true</bool>
 </resources>

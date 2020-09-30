@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">RTSP Player</string>
+
+    <!--Incorrect-->
+    <string name="incorrect_camera_url">Adres jest niepoprawny</string>
+    <string name="incorrect_camera_name">Nazwa jest niepoprawna</string>
+    <string name="camera_name_is_used">Nazwa jest zajęta</string>
+
+    <!--Menu-->
+    <string name="watch">Oglądaj</string>
+    <string name="edit">Edytuj</string>
+    <string name="move">Przesuń</string>
+    <string name="delete">Usuń</string>
+
+    <!--Activity Add/Edit Camera-->
+    <string name="label_edittext_name_camera">Nazwa</string>
+    <string name="label_edittext_camera_url">Adres url</string>
+    <string name="label_ip">Adres IP</string>
+    <string name="label_port">Port</string>
+    <string name="label_user_name">Nazwa użytkownika</string>
+    <string name="label_password">Hasło</string>
+    <string name="button_add_camera">Dodaj</string>
+    <string name="button_start_camera_preview">Podgląd</string>
+    <string name="title_activity_main">MainActivity</string>
+
+    <!--Activity Preview Camera-->
+    <string name="video_error">Napotkano błąd</string>
+
+    <!--Activity App Info-->
+    <string name="app_info">Aplikacje została wydana na licensji GPLv3, więcej informacji znajdziesz: </string>
+</resources>

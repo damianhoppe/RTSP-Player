@@ -19,6 +19,12 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.LoadAdError;
+
 import java.util.List;
 
 import pl.huczeq.rtspplayer.R;
@@ -50,6 +56,16 @@ public class ListAdapter extends ArrayAdapter<Camera> {
     @NonNull
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+        /*if(position >= cameras.size()) {
+            AdView adView = new AdView(getContext());
+            adView.setAdSize(AdSize.BANNER);
+            //adView.setAdUnitId("ca-app-pub-8191844178329148/4118873131");
+            adView.setAdUnitId("ca-app-pub-3940256099942544/6300978111");
+
+            AdRequest adRequest = new AdRequest.Builder().addTestDevice(AdRequest.DEVICE_ID_EMULATOR).build();
+            adView.loadAd(adRequest);
+            return adView;
+        }*/
         final Camera camera = cameras.get(position);
         final LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         final String[] image = {null};
@@ -71,6 +87,13 @@ public class ListAdapter extends ArrayAdapter<Camera> {
             @Override
             public void onClick(View view) {
                 if(onItemSelectedListener != null) onItemSelectedListener.onListItemSelected(camera);
+            }
+        });
+        view.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                popupMenu.show();
+                return false;
             }
         });
         imageButtonMenu.setOnClickListener(new View.OnClickListener() {
@@ -137,6 +160,11 @@ public class ListAdapter extends ArrayAdapter<Camera> {
 
     public void setOnMenuItemClick(OnMenuItemSelected onMenuItemClickListener) {
         this.onMenuItemClickListener = onMenuItemClickListener;
+    }
+
+    @Override
+    public int getCount() {
+        return this.cameras.size();// + 1;
     }
 
     private void setImage(final ImageView imageView, final ImageView imageView2, final Bitmap bitmap) {

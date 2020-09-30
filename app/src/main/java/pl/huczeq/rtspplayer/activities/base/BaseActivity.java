@@ -1,9 +1,16 @@
-package pl.huczeq.rtspplayer.activities.main;
+package pl.huczeq.rtspplayer.activities.base;
 
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.ImageView;
 
+import androidx.appcompat.widget.Toolbar;
+
+import pl.huczeq.rtspplayer.R;
 import pl.huczeq.rtspplayer.interfaces.OnDataChanged;
-import pl.huczeq.rtspplayer.utils.data.Camera;
+import pl.huczeq.rtspplayer.utils.Settings;
 import pl.huczeq.rtspplayer.utils.data.DataManager;
 
 public class BaseActivity extends AbstractBaseActivity implements OnDataChanged {
@@ -12,13 +19,20 @@ public class BaseActivity extends AbstractBaseActivity implements OnDataChanged 
     private boolean dataChanged = false;
     private boolean active = false;
 
+    protected Toolbar toolbar;
+    private ImageView toolbarIcon;
+
     protected DataManager dataManager;
+    protected Settings settings;
+
+    public BaseActivity() {
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         dataManager = DataManager.getInstance(this);
-        dataManager.loadData();
+        settings = Settings.getInstance(this);
     }
 
     @Override
@@ -42,6 +56,17 @@ public class BaseActivity extends AbstractBaseActivity implements OnDataChanged 
 
     @Override
     protected void setViewsWidgets() {
+        Log.d(TAG, "0");
+        View v = findViewById(R.id.include);
+        if(v == null) return;
+        Log.d(TAG, "0.5");
+        toolbar = findViewById(R.id.include);
+        if(toolbar != null) {
+            Log.d(TAG, "1");
+            setSupportActionBar(toolbar);
+            toolbar.setTitle(R.string.app_name);
+            toolbarIcon = findViewById(R.id.iconToolbar);
+        }
     }
 
     /**
@@ -58,5 +83,17 @@ public class BaseActivity extends AbstractBaseActivity implements OnDataChanged 
 
     public void enableOnDataChangeListener() {
         dataManager.addOnDataChangedListener(this);
+    }
+
+    public void enableToolbarIcon(Drawable icon, View.OnClickListener onClickListener) {
+        Log.d(TAG, "2");
+        toolbarIcon.setVisibility(View.VISIBLE);
+        toolbarIcon.setImageDrawable(icon);
+        if(onClickListener != null)
+            toolbarIcon.setOnClickListener(onClickListener);
+    }
+
+    public void disableToolbarIcon() {
+        toolbarIcon.setVisibility(View.INVISIBLE);
     }
 }
