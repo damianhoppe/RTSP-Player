@@ -36,10 +36,10 @@ public class Settings {
     private void edit() {
         this.editor = this.preferences.edit();
     }
-
     private void commit() {
-        this.commit();
+        this.editor.commit();
     }
+
     public File getPreviewImagesDir() {
         return this.context.getCacheDir();
     }

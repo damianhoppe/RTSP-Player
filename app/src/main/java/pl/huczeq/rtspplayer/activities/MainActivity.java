@@ -2,6 +2,7 @@ package pl.huczeq.rtspplayer.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AbsListView;
@@ -87,12 +88,11 @@ public class MainActivity extends BaseActivity implements OnListItemSelected, On
         interstitialAd.setAdUnitId("ca-app-pub-8191844178329148/6089047466");
         interstitialAd.setAdListener(new AdListener(){
             @Override
-            public void onAdLoaded() {
+            public void onAdOpened() {
                 super.onAdLoaded();
                 settings.setLastAddTime(System.currentTimeMillis());
             }
         });
-        //interstitialAd.setAdUnitId("ca-app-pub-3940256099942544/1033173712");
     }
 
     @Override

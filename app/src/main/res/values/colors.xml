@@ -6,4 +6,5 @@
     <color name="colorAccentDark">#25A761</color>
     <color name="background">#FFF</color>
     <bool name="windowLightStatusBar">true</bool>
+    <bool name="windowLightNavigationBar">true</bool>
 </resources>

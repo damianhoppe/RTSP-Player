@@ -21,8 +21,8 @@ public class EditCameraActivity extends BaseActivity {
 
     EditText etCameraUrl;
     EditText etCameraName;
-    EditText etUserName;
-    EditText etPassword;
+    /*EditText etUserName;
+    EditText etPassword;*/
     FloatingActionButton buttonAddCamera;
     FloatingActionButton buttonStartCameraPreview;
 
@@ -45,8 +45,8 @@ public class EditCameraActivity extends BaseActivity {
 
         etCameraName.setText(camera.getName());
         etCameraUrl.setText(camera.getUrl());
-        etUserName.setText(camera.getUserName());
-        etPassword.setText(camera.getPassword());
+        //etUserName.setText(camera.getUserName());
+        //etPassword.setText(camera.getPassword());
     }
 
     @Override
@@ -86,8 +86,8 @@ public class EditCameraActivity extends BaseActivity {
     private Camera getCamera() {
         Camera nCamera = new Camera(etCameraName.getText().toString());
         nCamera.setUrl(etCameraUrl.getText().toString());
-        nCamera.setUserName(etUserName.getText().toString());
-        nCamera.setPassword(etPassword.getText().toString());
+        //nCamera.setUserName(etUserName.getText().toString());
+        //nCamera.setPassword(etPassword.getText().toString());
         return nCamera;
     }
 
@@ -107,6 +107,9 @@ public class EditCameraActivity extends BaseActivity {
     }
 
     private void onClickButtonStartCameraPreview() {
+        if(!isFormCorrect()) {
+            return;
+        }
         Intent intent = new Intent(getApplicationContext(), PreviewCameraActivity.class);
         intent.putExtra(PreviewCameraActivity.EXTRA_URL, etCameraUrl.getText().toString());
         startActivity(intent);

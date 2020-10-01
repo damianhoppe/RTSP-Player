@@ -33,6 +33,7 @@
         android:layout_margin="20dp"
         app:fabSize="normal"
         app:maxImageSize="30dp"
+        android:contentDescription="Save"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:srcCompat="@drawable/ic_confirm" />
@@ -46,6 +47,7 @@
         android:layout_margin="20dp"
         app:fabSize="normal"
         app:maxImageSize="30dp"
+        android:contentDescription="Preview"
         app:layout_constraintBottom_toTopOf="@id/saveCameraFAButton"
         app:layout_constraintEnd_toEndOf="parent"/>
 

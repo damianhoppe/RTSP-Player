@@ -106,8 +106,6 @@ public class ImageLoadingThread extends Thread{
             bitmap = BitmapFactory.decodeStream(new FileInputStream(file), null, options);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
         return bitmap;
     }

@@ -4,8 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:ignore="ResAuto">
+    android:layout_height="match_parent">
 
     <include
         android:id="@+id/include"
@@ -56,7 +55,7 @@
             ads:adUnitId="ca-app-pub-8191844178329148/8504824792"
             ads:layout_constraintTop_toTopOf="parent"
             ads:layout_constraintBottom_toBottomOf="parent"
-            tools:ignore="MissingConstraints">
+            ads:layout_constraintStart_toStartOf="parent">
         </com.google.android.gms.ads.AdView>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -72,5 +71,6 @@
         app:maxImageSize="30dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        android:contentDescription="Add camera"
         app:srcCompat="@drawable/ic_add" />
 </androidx.constraintlayout.widget.ConstraintLayout>

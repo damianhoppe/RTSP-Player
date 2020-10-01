@@ -1,22 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.appcompat.widget.Toolbar
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.appcompat.widget.Toolbar xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/Mytoolbar"
     android:background="@color/background"
     android:layout_height="wrap_content"
     android:layout_width="match_parent"
     android:titleTextColor="@color/black"
-    android:titleMargin="10dp"
     android:title="@string/app_name"
-    android:collapseIcon="@android:drawable/ic_menu_mylocation"
-    android:elevation="0dp" >
+    android:elevation="0dp"
+    app:titleMarginTop="30dp"
+    app:titleMarginStart="10dp"
+    android:paddingBottom="10dp">
     <ImageView
         android:id="@+id/iconToolbar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="55dp"
+        android:layout_height="55dp"
         android:src="@drawable/is_settings"
         android:layout_gravity="end"
-        android:padding="4dp"
-        android:layout_marginEnd="5dp"
-        android:visibility="visible"/>
+        android:layout_marginTop="10dp"
+        android:padding="14dp"
+        android:contentDescription="Toolbar icon"
+        android:visibility="invisible"/>
 </androidx.appcompat.widget.Toolbar>

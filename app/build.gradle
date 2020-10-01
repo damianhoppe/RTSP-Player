@@ -3,13 +3,14 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 30
     buildToolsVersion "30.0.0"
+    android.ndkVersion "21.0.6113669"
 
     defaultConfig {
         applicationId "pl.huczeq.rtspplayer"
         minSdkVersion 23
         targetSdkVersion 30
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "1.1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -33,7 +34,7 @@ android {
             // Specifies a list of ABIs that Gradle should create APKs for.
             include "x86", "x86_64", "armeabi-v7a", "arm64-v8a"
             // Specifies that we do not want to also generate a universal APK that includes all ABIs.
-            universalApk false
+            universalApk true
         }
     }
 }

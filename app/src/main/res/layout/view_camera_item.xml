@@ -37,7 +37,7 @@
                 android:id="@+id/icon2"
                 android:layout_width="150dp"
                 android:layout_height="84dp"
-                android:contentDescription="Icon"
+                android:contentDescription="Icon animated"
                 app:layout_constraintEnd_toStartOf="@+id/name"
                 app:srcCompat="@drawable/ic_video_camera"
                 android:background="#DDD"
@@ -62,6 +62,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             style="?android:attr/actionOverflowButtonStyle"
+            android:contentDescription="Menu"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"/>
 

@@ -90,6 +90,9 @@ public class AddCameraActivity extends BaseActivity {
     }
 
     private void onClickButtonStartCameraPreview() {
+        if(!isFormCorrect()) {
+            return;
+        }
         Intent intent = new Intent(getApplicationContext(), PreviewCameraActivity.class);
         intent.putExtra(PreviewCameraActivity.EXTRA_URL, etCameraUrl.getText().toString());
         startActivity(intent);
