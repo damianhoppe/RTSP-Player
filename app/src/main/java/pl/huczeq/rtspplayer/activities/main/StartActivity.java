@@ -20,7 +20,7 @@ public class StartActivity extends AppCompatActivity implements DataManager.Call
     final String TAG = "StartActivity";
     boolean activityReady = false;
     boolean dataLoaded = false;
-    boolean adsInitialized = false;
+    boolean adsInitialized = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,7 +40,7 @@ public class StartActivity extends AppCompatActivity implements DataManager.Call
                 activityReady = true;
                 tryStartNextActivity();
             }
-        }, 200);
+        }, 50);
 
         Log.d(TAG, String.valueOf(adsInitialized));
         /* ADS INITIALIZE */
@@ -48,8 +48,6 @@ public class StartActivity extends AppCompatActivity implements DataManager.Call
             @Override
             public void onInitializationComplete(InitializationStatus initializationStatus) {
                 Log.d(TAG, "AdsInitialized");
-                adsInitialized = true;
-                tryStartNextActivity();
             }
         });
     }
