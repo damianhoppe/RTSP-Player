@@ -1,4 +1,16 @@
+import java.text.SimpleDateFormat
+
 apply plugin: 'com.android.application'
+
+def appVersionCode = 3
+def appSiteUrl = "https://github.com/Huczeq/RTSP-Player"
+def urlAddModelForm = "https://docs.google.com/forms/d/e/1FAIpQLSdIlcGRIdQSlwCDhrjd2s62ZVPadYcQDpa2At543e9urx2VyQ/viewform?usp=sf_link"
+def appVersionName = "1.2"
+def buildTime(String format = "yyyy-MM-dd") {
+    def df = new SimpleDateFormat(format)
+    df.setTimeZone(TimeZone.getTimeZone("UTC"))
+    return df.format(new Date())
+}
 
 android {
     compileSdkVersion 30
@@ -9,8 +21,8 @@ android {
         applicationId "pl.huczeq.rtspplayer"
         minSdkVersion 23
         targetSdkVersion 30
-        versionCode 2
-        versionName "1.1"
+        versionCode appVersionCode
+        versionName "${appVersionName}"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -19,6 +31,9 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            versionNameSuffix "-debug"
         }
     }
 
@@ -37,6 +52,21 @@ android {
             universalApk true
         }
     }
+
+    signingConfigs {
+        buildTypes {
+            debug {
+                buildConfigField("String", "BUILD_TIME", "\"${buildTime("yyyy-MM-dd HH:mm:ss")}\"")
+                buildConfigField("String", "SITE_URL", "\"${appSiteUrl}\"")
+                buildConfigField("String", "URL_ADD_MODEL_FORM", "\"${urlAddModelForm}\"")
+            }
+            release {
+                buildConfigField("String", "BUILD_TIME", "\"${buildTime("yyyy-MM-dd HH:mm:ss")}\"")
+                buildConfigField("String", "SITE_URL", "\"${appSiteUrl}\"")
+                buildConfigField("String", "URL_ADD_MODEL_FORM", "\"${urlAddModelForm}\"")
+            }
+        }
+    }
 }
 
 dependencies {
@@ -51,6 +81,8 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
 
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    implementation "androidx.preference:preference:1.1.1"
+
     implementation 'org.videolan.android:libvlc-all:3.3.0'
 
     implementation 'com.google.android.gms:play-services-ads:19.4.0'

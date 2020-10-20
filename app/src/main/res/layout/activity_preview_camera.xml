@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:fitsSystemWindows="false">
 
-    <pl.huczeq.rtspplayer.views.OldVideoView
+    <pl.huczeq.rtspplayer.ui.views.OldVideoView
         android:id="@+id/cameraPreview"
         android:layout_width="420dp"
         android:layout_height="420dp"

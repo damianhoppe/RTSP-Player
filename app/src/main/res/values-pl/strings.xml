@@ -6,27 +6,95 @@
     <string name="incorrect_camera_url">Adres jest niepoprawny</string>
     <string name="incorrect_camera_name">Nazwa jest niepoprawna</string>
     <string name="camera_name_is_used">Nazwa jest zajęta</string>
+    <string name="incorrect_addressip">Adres IP jest niepoprawny</string>
+    <string name="incorrect_port">Port jest niepoprawny</string>
+    <string name="incorrect_channel">Kanał jest niepoprawny</string>
 
     <!--Menu-->
     <string name="watch">Oglądaj</string>
     <string name="edit">Edytuj</string>
-    <string name="move">Przesuń</string>
-    <string name="delete">Usuń</string>
+    <string name="duplicate">Duplikuj</string>
+    <string name="remove">Usuń</string>
+
+    <!--Dialog-->
+    <string name="yes">Tak</string>
+    <string name="cancel">Anuluj</string>
 
     <!--Activity Add/Edit Camera-->
-    <string name="label_edittext_name_camera">Nazwa</string>
-    <string name="label_edittext_camera_url">Adres url</string>
+    <string name="label_producers">Wyberz producenta:</string>
+    <string name="label_models">Wyberz model:</string>
+    <string name="label_name_camera">Nazwa</string>
+    <string name="label_camera_url">rtsp://</string>
     <string name="label_ip">Adres IP</string>
     <string name="label_port">Port</string>
     <string name="label_user_name">Nazwa użytkownika</string>
     <string name="label_password">Hasło</string>
+    <string name="label_channel">Kanał</string>
+    <string name="label_show_more">Pokaż więcej</string>
+    <string name="label_show_less">Ukryj</string>
+    <string name="label_none_url_template">Brak</string>
+    <string name="label_server_url">Adres url serwera</string>
     <string name="button_add_camera">Dodaj</string>
     <string name="button_start_camera_preview">Podgląd</string>
-    <string name="title_activity_main">MainActivity</string>
+    <string name="title_activity_main">@string/app_name</string>
+    <string name="title_activity_add_camera">Dodawanie</string>
+    <string name="title_activity_edit_camera">Edycja</string>
+    <string name="title_activity_settings">Ustawienia</string>
+    <string name="dialog_remove_title">Usuń kamere</string>
+    <string name="dialog_remove_message">Jesteś pewny?</string>
+
+    <string name="none">Żaden</string>
 
     <!--Activity Preview Camera-->
     <string name="video_error">Napotkano błąd</string>
 
     <!--Activity App Info-->
-    <string name="app_info">Aplikacje została wydana na licensji GPLv3, więcej informacji znajdziesz: </string>
+    <string name="app_info">RTSP Player pozwala na odtwarzanie strumieni sieciowych wykorzystując bibliotekę libVLC. Aplikacja jest objęta licencją LGPL 3.0 oraz oferuje otwarty kod źródłowy.</string>
+    <string name="label_show_license"><u>Pokaż licencję</u></string>
+
+    <!--Spinner stream-->
+    <string-array name="spinner_stream">
+        <item value="0">Główny strumień</item>
+        <item value="1">Podstrumień</item>
+    </string-array>
+
+    <!--Preferences-->
+    <string name="label_interface">Interfejs</string>
+    <string name="label_ads">Reklamy</string>
+    <string name="label_data">Dane</string>
+    <string name="label_import_data">Importuj dane</string>
+    <string name="summary_import_data">Importuj wyeksportowane dane</string>
+    <string name="label_export_data">Eksportuj dane</string>
+    <string name="summary_export_data">Wyeksportuj dane</string>
+    <string name="label_others">Inne</string>
+    <string name="label_url_add_model_form">Dodaj nowy model</string>
+    <string name="summary_url_add_model_form">Zostaniesz przekierowany do formularza dodawania nowego modelu, formularz zostanie otworzony w twojej przeglądarce internetowej</string>
+    <string name="label_about_app">O aplikacji</string>
+    <string name="label_app_information">Informacje</string>
+    <string name="label_license">Licencja</string>
+
+    <string name="pref_theme_label">Motyw</string>
+    <string name="pref_theme_summary">Wybierz motyw aplikacji</string>
+    <string-array name="pref_theme_labels">
+        <item>Automatyczny (systemowy)</item>
+        <item>Ciemny</item>
+        <item>Jasny</item>
+    </string-array>
+
+    <string name="pref_ads_label">Tryb wyświetlania reklam</string>
+    <string name="pref_ads_summary">Określ jakie reklamy chcesz oglądać</string>
+    <string-array name="pref_ads_labels">
+        <item>Tylk pasek reklamowy</item>
+        <item>Tylko pełnoekranowe</item>
+        <item>Pełnoekranowe oraz pasek reklamowy</item>
+    </string-array>
+
+    <string name="pref_fullscreen_ads_delay_label">Częstotliwość reklam pełnoekranowych</string>
+    <string name="pref_fullscreen_ads_delay_summary">Wybierz jak często moją się pojawiać reklamy pełnoekranowe</string>
+    <string-array name="pref_fullscreen_ads_delay_labels">
+        <item>Raz na godzinę</item>
+        <item>Raz na 3 godziny</item>
+        <item>Raz na 6 godzin</item>
+        <item>Raz na 12 godzin</item>
+    </string-array>
 </resources>

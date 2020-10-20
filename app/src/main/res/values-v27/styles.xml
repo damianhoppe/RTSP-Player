@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="AppTheme" parent="AppTheme.V27"/>
+    <style name="AppTheme.Player" parent="AppTheme.V27.Player"/>
+
+    <style name="AppTheme.V27" parent="AppTheme.Default">
+        <item name="android:navigationBarColor">@color/background</item>
+        <item name="android:windowLightNavigationBar">@bool/windowLightNavigationBar</item>
+    </style>
+
+    <style name="AppTheme.V27.Player" parent="AppTheme.Default.Player">
+        <item name="android:navigationBarColor">@android:color/black</item>
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+</resources>

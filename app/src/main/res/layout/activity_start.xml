@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".activities.main.StartActivity">
+    tools:context=".ui.activities.main.StartActivity"
+    android:background="@color/background">
 
     <ImageView
         android:id="@+id/iVIcon"
@@ -16,7 +17,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         android:contentDescription="Icon"
-        app:srcCompat="@drawable/ic_app" />
+        app:srcCompat="@mipmap/ic_launcher" />
 
     <TextView
         android:id="@+id/tVAppName"

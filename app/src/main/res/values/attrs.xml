@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="dependentValue" format="string" />
+    <declare-styleable name="MyListPreferences">
+        <attr name="dependentValue" />
+    </declare-styleable>
+</resources>

@@ -14,10 +14,11 @@
         app:layout_constraintTop_toBottomOf="@+id/include">
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:paddingBottom="250dp">
             <include
                 android:id="@+id/includedForm"
-                layout="@layout/camera_form"
+                layout="@layout/form_camera"
                 android:layout_height="wrap_content"
                 android:layout_width="match_parent"
                 android:layout_margin="20dp"

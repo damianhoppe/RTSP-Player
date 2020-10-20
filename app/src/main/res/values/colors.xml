@@ -1,10 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#6200EE</color>
-    <color name="colorPrimaryDark">#3700B3</color>
+    <color name="colorPrimary">#DDD</color>
+    <color name="colorPrimaryDark">#BBB</color>
     <color name="colorAccent">#25A761</color>
     <color name="colorAccentDark">#25A761</color>
     <color name="background">#FFF</color>
+    <color name="popupBackground">#EFEFEF</color>
+    <color name="popupTextColor">#444</color>
+    <color name="spinnerPopupBackground">#EEE</color>
+    <color name="spinnerPopupTextColor">#666</color>
+    <color name="textColorPrimary">#000</color>
+    <color name="textColor">#666</color>
+    <color name="iconFillColor">#0000</color>
+    <color name="textColorHint">#AAA</color>
+    <color name="selectable_item_background">#AAA</color>
+    <color name="edittext_background">#EFEFEF</color>
+    <color name="tint">#000</color>
+    <color name="colorControlHighlight">#3666</color>
+    <color name="textColorSecondary">#999</color>
+    <color name="textColorDisabled">#7777</color>
+    <color name="textColorDisabledSecondary">#7AAA</color>
+
     <bool name="windowLightStatusBar">true</bool>
     <bool name="windowLightNavigationBar">true</bool>
 </resources>

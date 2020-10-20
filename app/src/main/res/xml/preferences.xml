@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:iconSpaceReserved="false">
+
+    <PreferenceCategory
+        app:title="@string/label_interface"
+        app:iconSpaceReserved="false">
+        <ListPreference
+            app:key="theme"
+            app:entries="@array/pref_theme_labels"
+            app:entryValues="@array/pref_theme_values"
+            app:title="@string/pref_theme_label"
+            app:summary="@string/pref_theme_summary"
+            app:defaultValue="0"
+            app:iconSpaceReserved="false"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        app:title="@string/label_ads"
+        app:iconSpaceReserved="false">
+        <pl.huczeq.rtspplayer.ui.views.MyListPreferences
+            app:key="adsMode"
+            app:dependentValue="0"
+            app:entries="@array/pref_ads_labels"
+            app:entryValues="@array/pref_ads_values"
+            app:title="@string/pref_ads_label"
+            app:summary="@string/pref_ads_summary"
+            app:defaultValue="0"
+            app:iconSpaceReserved="false"/>
+
+        <ListPreference
+            app:key="fullscreenAdsDelay"
+            app:dependency="adsMode"
+            app:entries="@array/pref_fullscreen_ads_delay_labels"
+            app:entryValues="@array/pref_fullscreen_ads_delay_values"
+            app:title="@string/pref_fullscreen_ads_delay_label"
+            app:summary="@string/pref_fullscreen_ads_delay_summary"
+            app:defaultValue="3"
+            app:iconSpaceReserved="false"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        app:title="@string/label_others"
+        app:iconSpaceReserved="false">
+        <Preference
+            app:key="openAddModelForm"
+            app:title="@string/label_url_add_model_form"
+            app:summary="@string/summary_url_add_model_form"
+            app:iconSpaceReserved="false"/>
+    </PreferenceCategory>
+
+    <!--
+    <PreferenceCategory
+        app:title="@string/label_data"
+        app:iconSpaceReserved="false">
+        <Preference
+            app:key="importData"
+            app:title="@string/label_import_data"
+            app:summary="@string/summary_import_data"
+            app:iconSpaceReserved="false"/>
+
+        <Preference
+            app:key="exportData"
+            app:title="@string/label_export_data"
+            app:summary="@string/summary_export_data"
+            app:iconSpaceReserved="false"/>
+    </PreferenceCategory>
+    -->
+
+    <PreferenceCategory
+        app:title="@string/label_about_app"
+        app:iconSpaceReserved="false">
+        <Preference
+            app:key="appInformations"
+            app:title="@string/label_app_information"
+            app:iconSpaceReserved="false"/>
+        <Preference
+            app:key="showLicense"
+            app:title="@string/label_license"
+            app:iconSpaceReserved="false"/>
+    </PreferenceCategory>
+
+</PreferenceScreen>

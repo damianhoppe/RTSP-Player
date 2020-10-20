@@ -1,31 +1,116 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">RTSP Player</string>
 
     <!--Incorrect-->
     <string name="incorrect_camera_url">The address is not correct</string>
     <string name="incorrect_camera_name">The name is not correct</string>
     <string name="camera_name_is_used">The name is already taken</string>
+    <string name="incorrect_addressip">Address IP is not correct</string>
+    <string name="incorrect_port">Port is not correct</string>
+    <string name="incorrect_channel">Channel is not correct</string>
 
     <!--Menu-->
     <string name="watch">Watch</string>
     <string name="edit">Edit</string>
-    <string name="move">Move</string>
-    <string name="delete">Delete</string>
+    <string name="duplicate">Duplicate</string>
+    <string name="remove">Remove</string>
+
+    <!--Dialog-->
+    <string name="yes">Yes</string>
+    <string name="cancel">Cancel</string>
 
     <!--Activity Add/Edit Camera-->
-    <string name="label_edittext_name_camera">Name</string>
-    <string name="label_edittext_camera_url">Address url</string>
+    <string name="label_producers">Select producer:</string>
+    <string name="label_models">Select model:</string>
+    <string name="label_name_camera">Name</string>
+    <string name="label_camera_url">rtsp://</string>
     <string name="label_ip">Adreess IP</string>
     <string name="label_port">Port</string>
-    <string name="label_user_name">Ueer name</string>
+    <string name="label_user_name">User name</string>
     <string name="label_password">Password</string>
+    <string name="label_channel">Channel</string>
+    <string name="label_show_more">Show more</string>
+    <string name="label_show_less">Hide</string>
+    <string name="label_none_url_template">None</string>
+    <string name="label_server_url">Server url</string>
     <string name="button_add_camera">Add</string>
     <string name="button_start_camera_preview">Preview</string>
-    <string name="title_activity_main">MainActivity</string>
+    <string name="title_activity_main">@string/app_name</string>
+    <string name="title_activity_add_camera">Addition</string>
+    <string name="title_activity_edit_camera">Editing</string>
+    <string name="title_activity_settings">Settings</string>
+    <string name="dialog_remove_title">Delete camera</string>
+    <string name="dialog_remove_message">Are you sure?</string>
+
+    <string name="none">None</string>
 
     <!--Activity Preview Camera-->
     <string name="video_error">An error has been encountered</string>
 
     <!--Activity App Info-->
-    <string name="app_info">The application has been released under GPLv3 licensing, see more information</string>
+    <string name="app_info">RTSP Player allows you to play network streams using the libVLC library. The application is licensed under LGPL 3.0 and offers open source code.</string>
+    <string name="label_show_license"><u>Show license</u></string>
+
+    <!--Spinner stream-->
+    <string-array name="spinner_stream">
+        <item>Main stream</item>
+        <item>Substream</item>
+    </string-array>
+
+    <!--Preferences-->
+    <string name="label_interface">Interface</string>
+    <string name="label_ads">Ads</string>
+    <string name="label_data">Data</string>
+    <string name="label_import_data">Import data</string>
+    <string name="summary_import_data">You can import exported data</string>
+    <string name="label_export_data">Export data</string>
+    <string name="summary_export_data">You can export data</string>
+    <string name="label_others">Others</string>
+    <string name="label_url_add_model_form">Open add model form</string>
+    <string name="summary_url_add_model_form">You will be redirected to the adding a new model form, the form will open in your web browser</string>
+    <string name="label_about_app">About app</string>
+    <string name="label_app_information">Informations</string>
+    <string name="label_license">License</string>
+
+
+    <string name="pref_theme_label">Theme</string>
+    <string name="pref_theme_summary">Select an application theme</string>
+    <string-array name="pref_theme_labels">
+        <item>Auto (system theme)</item>
+        <item>Dark</item>
+        <item>Light</item>
+    </string-array>
+    <string-array name="pref_theme_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+
+    <string name="pref_ads_label">Advertising display mode</string>
+    <string name="pref_ads_summary">Define what ads you want to watch</string>
+    <string-array name="pref_ads_labels">
+        <item>Only bar</item>
+        <item>Only fullscreen</item>
+        <item>Fullscreen and bar</item>
+    </string-array>
+    <string-array name="pref_ads_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+
+    <string name="pref_fullscreen_ads_delay_label">Fullscreen ads frequency</string>
+    <string name="pref_fullscreen_ads_delay_summary">Choose how often your fullscreen ad may show</string>
+    <string-array name="pref_fullscreen_ads_delay_labels">
+        <item>Once per hour</item>
+        <item>Once every 3 hours</item>
+        <item>Once every 6 hours</item>
+        <item>Once every 12 hours</item>
+    </string-array>
+    <string-array name="pref_fullscreen_ads_delay_values">
+        <item>1</item>
+        <item>3</item>
+        <item>6</item>
+        <item>12</item>
+    </string-array>
 </resources>

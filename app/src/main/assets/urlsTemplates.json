@@ -1,0 +1,45 @@
+{
+  "producers": [
+    {
+      "name": "Default",
+      "models":[
+        {
+          "name": "Default",
+          "urlTemplate": {
+            "urlAuth": "rtsp://{user}:{password}@{addressip}:{port}{serverurl}",
+            "urlNoneAuth": "rtsp://{addressip}:{port}{serverurl}",
+            "additionalFields": [3]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Hikvision",
+      "models":[
+        {
+          "name": "Default",
+          "urlTemplate": {
+            "urlAuth": "rtsp://{user}:{password}@{addressip}:{port}/Streaming/channels/{channel}0{stream}",
+            "urlNoneAuth": "{protocol}://{addressip}:{port}/Streaming/channels/{channel}0{stream}",
+            "additionalFields": [1,2],
+            "mainStream": "1",
+            "subStream": "2"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Pioneer",
+      "models":[
+        {
+          "name": "Default",
+          "urlTemplate": {
+            "urlAuth": "rtsp://{addressip}:{port}/user={user}&password={password}&channel={channel}&stream={stream}.sdp",
+            "urlNoneAuth": "{protocol}://{addressip}:{port}/user=&password=&channel={channel}&stream={stream}.sdp",
+            "additionalFields": [1,2]
+          }
+        }
+      ]
+    }
+  ]
+}

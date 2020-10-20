@@ -1,6 +1,7 @@
 package pl.huczeq.rtspplayer.adapters;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -8,8 +9,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -18,22 +17,17 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
-import com.google.android.gms.ads.AdListener;
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdSize;
-import com.google.android.gms.ads.AdView;
-import com.google.android.gms.ads.LoadAdError;
+import androidx.appcompat.view.ContextThemeWrapper;
 
 import java.util.List;
 
 import pl.huczeq.rtspplayer.R;
 import pl.huczeq.rtspplayer.interfaces.OnCameraChanged;
 import pl.huczeq.rtspplayer.interfaces.OnMenuItemSelected;
-import pl.huczeq.rtspplayer.utils.data.Camera;
+import pl.huczeq.rtspplayer.data.objects.Camera;
 import pl.huczeq.rtspplayer.interfaces.OnListItemSelected;
-import pl.huczeq.rtspplayer.utils.data.DataManager;
-import pl.huczeq.rtspplayer.utils.data.threads.ImageLoadingThread;
+import pl.huczeq.rtspplayer.data.DataManager;
+import pl.huczeq.rtspplayer.data.threads.ImageLoadingThread;
 
 public class ListAdapter extends ArrayAdapter<Camera> {
 
@@ -67,21 +61,22 @@ public class ListAdapter extends ArrayAdapter<Camera> {
             return adView;
         }*/
         final Camera camera = cameras.get(position);
-        final LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        final String[] image = {null};
+        final LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
-        final View view = inflater.inflate(R.layout.view_camera_item, parent, false);
+        final View view = inflater.inflate(R.layout.item_view_camera, parent, false);
 
         final TextView textView = view.findViewById(R.id.name);
         final ImageView imageView = view.findViewById(R.id.icon);
         final ImageView imageView2 = view.findViewById(R.id.icon2);
         ImageButton imageButtonMenu = view.findViewById(R.id.itemMenu);
 
-        final PopupMenu popupMenu = new PopupMenu(getContext(), imageButtonMenu);
+        ContextThemeWrapper ctw = new ContextThemeWrapper(view.getContext(), R.style.AppTheme_Default_PopupMenu);
+        final PopupMenu popupMenu = new PopupMenu(ctw, imageButtonMenu);
         Menu menu = popupMenu.getMenu();
         popupMenu.getMenuInflater().inflate(R.menu.menu_camera_item, menu);
 
-        textView.setText(camera.getName());
+        String cameraName = camera.getName();
+        setCameraTitle(textView, cameraName);
 
         view.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -113,35 +108,34 @@ public class ListAdapter extends ArrayAdapter<Camera> {
         ImageLoadingThread.Callback imageLoadingCallback = new ImageLoadingThread.Callback() {
             @Override
             public void onImageLoaded(ImageLoadingThread.Data data, Bitmap bitmap) {
+                Log.d(TAG, "Loading " + data.getCamera().getPreviewImg());
                 setImage(imageView, imageView2, bitmap);
-                image[0] = camera.getPreviewImg();
             }
         };
         final ImageLoadingThread.Data data = new ImageLoadingThread.Data(camera, imageLoadingCallback);
-        //this.dataManager.loadPreviewImg(data);//TODO ?
+        this.dataManager.loadPreviewImg(data);
 
         final OnCameraChanged onCameraChanged = new OnCameraChanged() {
             @Override
             public void onCameraPrevImgChanged() {
+                Log.d(TAG, "onCameraPrevImgChanged");
                 dataManager.loadPreviewImg(data);
             }
 
             @Override
             public void onCameraUpdated() {
-                textView.setText(camera.getName());
+                setCameraTitle(textView, camera.getName());
             }
         };
+
         view.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
             @Override
             public void onViewAttachedToWindow(View view) {
-                Log.d(TAG, "onViewAttachedToWindow");
-                if(camera.getPreviewImg() != image[0])
-                    onCameraChanged.onCameraPrevImgChanged();
                 camera.addOnCameraChangedListener(onCameraChanged);
             }
 
             @Override
-            public void onViewDetachedFromWindow(View view) {
+            public void onViewDetachedFromWindow(final View view) {
                 Log.d(TAG, "onViewDetachedFromWindow");
                 camera.removeOnCameraChangedListener(onCameraChanged);
             }
@@ -169,25 +163,36 @@ public class ListAdapter extends ArrayAdapter<Camera> {
 
     private void setImage(final ImageView imageView, final ImageView imageView2, final Bitmap bitmap) {
         imageView.setImageBitmap(bitmap);
-        /*
-        final Animation anim_in = AnimationUtils.loadAnimation(getContext(), android.R.anim.fade_in);
-        anim_in.setAnimationListener(new Animation.AnimationListener() {
-            @Override
-            public void onAnimationStart(Animation animation) {
-                imageView2.setVisibility(View.VISIBLE);
-                imageView2.setImageBitmap(bitmap);
-            }
+        imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        imageView2.setScaleType(ImageView.ScaleType.CENTER_CROP);
+    }
 
-            @Override
-            public void onAnimationEnd(Animation animation) {
-                imageView.setImageBitmap(bitmap);
-                imageView2.setVisibility(View.INVISIBLE);
-            }
+    private void setCameraTitle(TextView tv, String text) {
+        TextView textView = new TextView(getContext());
+        textView.setTypeface(tv.getTypeface());
+        textView.setLayoutParams(tv.getLayoutParams());
 
-            @Override
-            public void onAnimationRepeat(Animation animation) {
-            }
-        });
-        imageView2.startAnimation(anim_in);*/
+        textView.setText(text);
+        textView.measure(0, 0);
+
+        int maxTextWidth = Resources.getSystem().getDisplayMetrics().widthPixels;
+        maxTextWidth = maxTextWidth/2-maxTextWidth/5;
+
+        Log.d(TAG, "maxTextWidth: " + maxTextWidth);
+        if(textView.getMeasuredWidth() > maxTextWidth) {
+            StringBuilder newText = new StringBuilder();
+            char[] textA = text.toCharArray();
+            int i = 0;
+            do {
+                newText.append(textA[i]);
+                textView.setText(newText+".");
+                textView.measure(0, 0);
+                i++;
+                Log.d(TAG, "MeasuredWidth: " + textView.getMeasuredWidth());
+            }while(textView.getMeasuredWidth() < maxTextWidth);
+            newText.deleteCharAt(newText.length()-1);
+            text = newText.toString() + "...";
+        }
+        tv.setText(text);
     }
 }
