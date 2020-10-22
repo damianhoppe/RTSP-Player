@@ -40,6 +40,8 @@
     <string name="title_activity_add_camera">Dodawanie</string>
     <string name="title_activity_edit_camera">Edycja</string>
     <string name="title_activity_settings">Ustawienia</string>
+    <string name="title_activity_create_backup">Stwórz kopię zapasową</string>
+    <string name="title_activity_restore_backup">Przywróć kopię zapasową</string>
     <string name="dialog_remove_title">Usuń kamere</string>
     <string name="dialog_remove_message">Jesteś pewny?</string>
 
@@ -58,14 +60,29 @@
         <item value="1">Podstrumień</item>
     </string-array>
 
+    <!--Export & import data-->
+    <string name="cameras">Kamery</string>
+    <string name="settings">Ustawienia</string>
+    <string name="export_data">Eksportuj</string>
+    <string name="import_data">Importuj</string>
+    <string name="label_list_backups">Kopie zapasowe:</string>
+    <string name="number_of_cameras">Liczba kamer</string>
+    <string name="no_backups">Brak kopii zapasowych</string>
+    <string name="permissions_storage_rationale">Aby móc zapisać kopię musisz nadać uprawnienia</string>
+    <string name="success_restore">Przywracanie powiodło się</string>
+    <string name="success_created">Utworzono kopię pomyślnie</string>
+    <string name="error_restore">Wystapił błąd</string>
+    <string name="backup_cameras_summary">Exportuje wszystkie kamery, zaierając ich wszystkie dane, takie jak adres ip, port, nazwa użytkownika oraz hasło.</string>
+    <string name="backup_settings_summary">Wszystkie ustawienia aplikacji.</string>
+
     <!--Preferences-->
     <string name="label_interface">Interfejs</string>
     <string name="label_ads">Reklamy</string>
     <string name="label_data">Dane</string>
-    <string name="label_import_data">Importuj dane</string>
-    <string name="summary_import_data">Importuj wyeksportowane dane</string>
-    <string name="label_export_data">Eksportuj dane</string>
-    <string name="summary_export_data">Wyeksportuj dane</string>
+    <string name="label_restore_backup">Przywróć kopię zapasową</string>
+    <string name="summary_restore_backup">Przywróć wcześniej utworzoną kopię zapasową</string>
+    <string name="label_create_backup">Utwórz kopię zapasową</string>
+    <string name="summary_create_backup">Utwórz kopię zapasową danych</string>
     <string name="label_others">Inne</string>
     <string name="label_url_add_model_form">Dodaj nowy model</string>
     <string name="summary_url_add_model_form">Zostaniesz przekierowany do formularza dodawania nowego modelu, formularz zostanie otworzony w twojej przeglądarce internetowej</string>
@@ -84,9 +101,9 @@
     <string name="pref_ads_label">Tryb wyświetlania reklam</string>
     <string name="pref_ads_summary">Określ jakie reklamy chcesz oglądać</string>
     <string-array name="pref_ads_labels">
-        <item>Tylk pasek reklamowy</item>
+        <item>Tylk baner reklamowy</item>
         <item>Tylko pełnoekranowe</item>
-        <item>Pełnoekranowe oraz pasek reklamowy</item>
+        <item>Pełnoekranowe oraz baner reklamowy</item>
     </string-array>
 
     <string name="pref_fullscreen_ads_delay_label">Częstotliwość reklam pełnoekranowych</string>

@@ -10,14 +10,6 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 
 import androidx.appcompat.app.AlertDialog;
-
-import com.google.android.gms.ads.AdListener;
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdSize;
-import com.google.android.gms.ads.AdView;
-import com.google.android.gms.ads.InterstitialAd;
-import com.google.android.gms.ads.MobileAds;
-import com.google.android.gms.ads.RequestConfiguration;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import pl.huczeq.rtspplayer.ui.activities.mgmt.AddCameraActivity;
@@ -42,9 +34,6 @@ public class MainActivity extends BaseActivity implements OnListItemSelected, On
     private ListAdapter listAdapter;
     private LinearLayout adContainer;
 
-    AdView adView;
-    private InterstitialAd interstitialAd;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,14 +50,14 @@ public class MainActivity extends BaseActivity implements OnListItemSelected, On
 
         enableOnDataChangeListener();
     }
-
+/*
     public void enableBarAds() {
         Log.d(TAG, "enableBarAds");
         if(adView != null) {
             disableBarAds();
         }
         adView = new AdView(this);
-        adView.setAdSize(AdSize.BANNER);
+        adView.setAdSize(AdSize.SMART_BANNER);
         adView.setAdUnitId("ca-app-pub-8191844178329148/8504824792");
         AdRequest adRequest = new AdRequest.Builder().build();
         adView.loadAd(adRequest);
@@ -102,37 +91,12 @@ public class MainActivity extends BaseActivity implements OnListItemSelected, On
 
         interstitialAd.loadAd(new AdRequest.Builder().build());
         interstitialAd.show();
-    }
+    }*/
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         if(!this.dataManager.isDataSaved()) this.dataManager.saveData();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if(settings.getAdsMode() == Settings.ADS_MODE_BAR || settings.getAdsMode() == Settings.ADS_MODE_BAR_AND_FULLSCREEN) {
-            if(adView == null) {
-                enableBarAds();
-            }
-            adView.resume();
-        }else {
-            disableBarAds();
-        }
-
-        if(settings.getAdsMode() == Settings.ADS_MODE_FULLSCREEN || settings.getAdsMode() == Settings.ADS_MODE_BAR_AND_FULLSCREEN) {
-            if (System.currentTimeMillis() - settings.getLastAddTime() > settings.getFullscreenAdsDelay()*60*60*1000) {
-                showFullscreenAd();
-            }
-        }
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        if(adView != null) adView.pause();
     }
 
     @Override

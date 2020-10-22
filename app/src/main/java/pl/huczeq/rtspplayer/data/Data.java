@@ -1,6 +1,7 @@
 package pl.huczeq.rtspplayer.data;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import pl.huczeq.rtspplayer.data.objects.Camera;
 
@@ -22,5 +23,10 @@ public class Data {
 
     public void deleteCamera(Camera camera) {
         this.cameraList.remove(camera);
+    }
+
+    public void updateCamerasList(ArrayList<Camera> list) {
+        this.cameraList.clear();
+        this.cameraList.addAll(list);
     }
 }

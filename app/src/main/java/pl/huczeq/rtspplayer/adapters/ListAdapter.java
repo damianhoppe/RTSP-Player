@@ -46,7 +46,6 @@ public class ListAdapter extends ArrayAdapter<Camera> {
         this.dataManager = DataManager.getInstance(context);
     }
 
-    //TODO Loading images in thread
     @NonNull
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
@@ -194,5 +193,10 @@ public class ListAdapter extends ArrayAdapter<Camera> {
             text = newText.toString() + "...";
         }
         tv.setText(text);
+    }
+
+    public void setList(List<Camera> list) {
+        this.cameras = list;
+        notifyDataSetChanged();
     }
 }

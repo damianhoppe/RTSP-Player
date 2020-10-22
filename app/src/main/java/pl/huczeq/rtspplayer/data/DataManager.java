@@ -81,7 +81,8 @@ public class DataManager {
     private Data data;
     private JSONObject jsonObject;
 
-    public final String JSONCamerasDataArray = "camerasData";
+    public final static String JSONCamerasDataArray = "camerasData";
+    public final static String JSONSettings = "settings";
 
     private ArrayList<OnDataChanged> onDataChangedListeners;
     private ImageLoadingThread imageLoadingThread;
@@ -116,12 +117,19 @@ public class DataManager {
             jsonObject = newJsonObject;
 
             File file = new File(context.getFilesDir(), fileName);
-            FileOutputStream stream;
+            FileOutputStream stream = null;
             try {
                 stream = new FileOutputStream(file);
                 stream.write(jsonObject.toString().getBytes());
             } catch (IOException e) {
                 e.printStackTrace();
+            }
+            if(stream != null) {
+                try {
+                    stream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
             dataSaved = true;
         }
@@ -218,6 +226,11 @@ public class DataManager {
             }
             return false;
         }
+    }
+
+    public void updateCamerasList(ArrayList<Camera> list) {
+        this.data.updateCamerasList(list);
+        this.notifyDataChange();
     }
 
     public boolean isDataSaved() {

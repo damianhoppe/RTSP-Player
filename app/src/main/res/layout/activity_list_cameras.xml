@@ -34,17 +34,6 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/include" />
-
-    <LinearLayout
-        android:id="@+id/adContainer"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingBottom="20dp"
-        android:paddingTop="5dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:background="@color/background"
-        android:orientation="vertical">
-    </LinearLayout>
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/addCameraFAButton"
         android:layout_width="wrap_content"
@@ -53,8 +42,20 @@
         android:layout_margin="20dp"
         app:fabSize="normal"
         app:maxImageSize="30dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/adContainer"
         app:layout_constraintEnd_toEndOf="parent"
         android:contentDescription="Add camera"
         app:srcCompat="@drawable/ic_add" />
+
+    <LinearLayout
+        android:id="@+id/adContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="5dp"
+        android:paddingTop="5dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:background="@color/background"
+        android:orientation="vertical"
+        android:visibility="gone">
+    </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

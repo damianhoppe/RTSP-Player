@@ -2,6 +2,9 @@ package pl.huczeq.rtspplayer.data;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Build;
+import android.os.Environment;
+import android.util.Log;
 
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.preference.PreferenceManager;
@@ -14,6 +17,8 @@ import pl.huczeq.rtspplayer.ui.fragments.SettingsFragment;
 import pl.huczeq.rtspplayer.utils.Utils;
 
 public class Settings {
+
+    private final static String TAG = "Settings";
 
     private static Settings instance;
 
@@ -94,22 +99,23 @@ public class Settings {
         return theme;
     }
 
-    public int getFullscreenAdsDelay() {
-        String delay = this.settingsPref.getString(KEY_FULLSCREAN_ADS_DELAY, null);
-        if(!Utils.isNumeric(delay)) return 1;
-        return Integer.parseInt(delay);
-    }
-
-    public int getAdsMode() {
-        String adsMode = this.settingsPref.getString(KEY_ADS_MODE, null);
-        if(!Utils.isNumeric(adsMode)) return ADS_MODE_FULLSCREEN;
-        return Integer.parseInt(adsMode);
-    }
-
     //END OF SETTINGS PREFERENCES
 
     public File getPreviewImagesDir() {
         return this.context.getCacheDir();
+    }
+    public File getBackupsDir() {
+        File dir;
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            dir = new File(context.getExternalFilesDir(null), "Backups");
+        }else {
+            String path = context.getExternalFilesDir(null).getAbsolutePath();
+            if(path.contains(File.separator + "Android")) {
+                path = path.split(File.separator + "Android")[0];
+            }
+            dir = new File(path, "RTSP Player" + File.separator + "Backups");
+        }
+        return dir;
     }
 
     public void setTheme() {
@@ -125,16 +131,10 @@ public class Settings {
         }
     }
 
-    public static final int ADS_MODE_BAR = 0;
-    public static final int ADS_MODE_FULLSCREEN = 1;
-    public static final int ADS_MODE_BAR_AND_FULLSCREEN = 2;
-
-    public static final String KEY_IMPORT_DATA = "importData";
-    public static final String KEY_EXPORT_DATA = "exportData";
+    public static final String KEY_RESTORE_BACKUP = "restoreBackup";
+    public static final String KEY_CREATE_BACKUP = "createBackup";
     public static final String KEY_ABOUT_APP = "appInformations";
     public static final String KEY_SHOW_LICENSE = "showLicense";
     public static final String KEY_THEME = "theme";
-    public static final String KEY_ADS_MODE = "adsMode";
-    public static final String KEY_FULLSCREAN_ADS_DELAY = "fullscreenAdsDelay";
-    public static final String KEY_OPEN_ADD_MODE_FORM = "openAddModelForm";
+    public static final String KEY_OPEN_ADD_MODEL_FORM = "openAddModelForm";
 }

@@ -5,15 +5,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 
-import androidx.appcompat.app.AppCompatActivity;
-
-import com.google.android.gms.ads.MobileAds;
-import com.google.android.gms.ads.initialization.InitializationStatus;
-import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
-
-import pl.huczeq.rtspplayer.data.Settings;
 import pl.huczeq.rtspplayer.ui.activities.MainActivity;
-import pl.huczeq.rtspplayer.data.DataManager;
 import pl.huczeq.rtspplayer.R;
 import pl.huczeq.rtspplayer.ui.activities.base.BaseActivity;
 
@@ -22,7 +14,6 @@ public class StartActivity extends BaseActivity {
     final String TAG = "StartActivity";
     boolean activityReady = false;
     boolean dataLoaded = false;
-    boolean adsInitialized = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,17 +31,6 @@ public class StartActivity extends BaseActivity {
                 tryStartNextActivity();
             }
         }, 50);
-
-        Log.d(TAG, String.valueOf(adsInitialized));
-        /* ADS INITIALIZE */
-        MobileAds.initialize(this, new OnInitializationCompleteListener() {
-            @Override
-            public void onInitializationComplete(InitializationStatus initializationStatus) {
-                Log.d(TAG, "AdsInitialized");
-                adsInitialized = true;
-                tryStartNextActivity();
-            }
-        });
     }
 
     @Override
@@ -64,8 +44,7 @@ public class StartActivity extends BaseActivity {
     public void tryStartNextActivity() {
         Log.d(TAG, "activityReady: " + activityReady);
         Log.d(TAG, "dataLoaded: " + dataLoaded);
-        Log.d(TAG, "adsInitialized: " + adsInitialized);
-        if(activityReady && dataLoaded && adsInitialized) {
+        if(activityReady && dataLoaded) {
             Log.d(TAG, "OK");
             startActivity(new Intent(getApplicationContext(), MainActivity.class));
         }

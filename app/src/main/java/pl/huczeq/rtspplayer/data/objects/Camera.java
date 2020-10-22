@@ -22,18 +22,18 @@ public class Camera {
     private String model;
     private String serverUrl;
 
-    private final String JSONName = "name";
-    private final String JSONUrl = "url";
-    private final String JSONPreviewImg = "previewImg";
-    private final String JSONUserName = "userName";
-    private final String JSONPassword = "password";
-    private final String JSONAddressIP = "addressIp";
-    private final String JSONPort = "port";
-    private final String JSONChannel = "channel";
-    private final String JSONStream = "stream";
-    private final String JSONProducer = "producer";
-    private final String JSONModel = "model";
-    private final String JSONServerUrl = "serverUrl";
+    public final static String JSONName = "name";
+    public final static String JSONUrl = "url";
+    public final static String JSONPreviewImg = "previewImg";
+    public final static String JSONUserName = "userName";
+    public final static String JSONPassword = "password";
+    public final static String JSONAddressIP = "addressIp";
+    public final static String JSONPort = "port";
+    public final static String JSONChannel = "channel";
+    public final static String JSONStream = "stream";
+    public final static String JSONProducer = "producer";
+    public final static String JSONModel = "model";
+    public final static String JSONServerUrl = "serverUrl";
 
     private final String emptyString = "";
 

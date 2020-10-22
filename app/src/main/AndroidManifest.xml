@@ -4,6 +4,8 @@
     package="pl.huczeq.rtspplayer">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
         android:name=".App"
@@ -13,10 +15,6 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:theme="@style/AppTheme"
         android:supportsRtl="true">
-        <meta-data
-            android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value=""/>
-
         <activity android:name=".ui.activities.main.StartActivity"
             android:noHistory="true">
             <intent-filter>
@@ -29,8 +27,8 @@
         <activity android:name=".ui.activities.MainActivity" />
         <activity android:name=".ui.activities.settings.info.AppInfoActivity" />
         <activity android:name=".ui.activities.settings.info.LicenseActivity" />
-        <activity android:name=".ui.activities.settings.ImportDataActivity" />
-        <activity android:name=".ui.activities.settings.ExportDataActivity" />
+        <activity android:name=".ui.activities.settings.RestoreBackupActivity" />
+        <activity android:name=".ui.activities.settings.CreateBackupActivity" />
         <activity android:name=".ui.activities.settings.SettingsActivity"
             android:theme="@style/AppTheme.Preferences"/>
         <activity android:name=".ui.activities.PreviewCameraActivity"

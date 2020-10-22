@@ -76,11 +76,13 @@ public class BaseActivity extends AbstractBaseActivity implements OnDataChanged 
      *called when data is changed and activity is active
      */
     protected void onDataChangedWAA() {
+        Log.d(TAG, "onDataChangedWAA");
         this.dataChanged = false;
     }
 
     @Override
     public void onDataChanged() {
+        Log.d(TAG, "onDataChanged");
         if(this.active) onDataChangedWAA(); else this.dataChanged = true;
     }
 

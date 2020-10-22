@@ -1,9 +1,6 @@
 package pl.huczeq.rtspplayer.ui.activities.settings;
 
 import android.os.Bundle;
-import android.view.ContextThemeWrapper;
-
-import androidx.appcompat.app.AppCompatDelegate;
 
 import pl.huczeq.rtspplayer.R;
 import pl.huczeq.rtspplayer.ui.activities.base.BaseActivity;
