@@ -57,8 +57,6 @@ public class CreateBackupActivity extends BaseActivity {
         setToolbarTitle(R.string.title_activity_create_backup);
 
         onCompleteCreating();
-        String nOfC = getString(R.string.number_of_cameras) + ": " + dataManager.getCameraList().size();
-        tvNumberOfCameras.setText(nOfC);
     }
 
     @Override
@@ -72,6 +70,14 @@ public class CreateBackupActivity extends BaseActivity {
         progressBar = findViewById(R.id.progressBar);
         tvPath = findViewById(R.id.tvPath);
 
+        buttonCreateBackup.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startCreateBackup();
+            }
+        });
+
+
         String path = settings.getBackupsDir().getPath();
         int i = -1;
         if((i = path.indexOf(File.separator + "Android")) > -1) {
@@ -81,12 +87,11 @@ public class CreateBackupActivity extends BaseActivity {
         }
         tvPath.setText(path);
 
-        buttonCreateBackup.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startCreateBackup();
-            }
-        });
+        String nOfC = getString(R.string.number_of_cameras) + ": " + dataManager.getCameraList().size();
+        tvNumberOfCameras.setText(nOfC);
+
+        if(dataManager.getCameraList().size() > 0)
+            cbCameras.setChecked(true);
     }
 
     private void startCreateBackup() {
@@ -120,7 +125,7 @@ public class CreateBackupActivity extends BaseActivity {
             @Override
             public void run() {
                 JSONObject json = new JSONObject();
-                if(cbCameras.isChecked() && cbCameras.isEnabled()) {
+                if(cbCameras.isChecked()) {
                     JSONArray jsonCameras = new JSONArray();
                     List<Camera> cameras = dataManager.getCameraList();
                     for (Camera c : cameras) {
@@ -175,11 +180,16 @@ public class CreateBackupActivity extends BaseActivity {
                 }
 
                 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                String fileName = df.format(new Date());
-                if(cbCameras.isChecked() && cbCameras.isEnabled())
-                    fileName += " -" + getString(R.string.cameras);
-                if(cbSettings.isChecked())
-                    fileName += " -" + getString(R.string.settings);
+                String fileName = df.format(new Date()) + " - ";
+                String exported = "";
+                if(cbCameras.isChecked())
+                    exported += getString(R.string.cameras);
+                if(cbSettings.isChecked()) {
+                    if(!exported.isEmpty())
+                        exported += ", ";
+                    exported += getString(R.string.settings);
+                }
+                fileName += exported;
                 File file = new File(settings.getBackupsDir(), fileName + ".json");
                 if(!file.getParentFile().exists()) {
                     file.getParentFile().mkdirs();

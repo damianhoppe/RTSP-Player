@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!--Common-->
     <string name="app_name">RTSP Player</string>
+    <string name="double_back_2_exit_info">Kliknij ponownie WSTECZ, aby wyjść</string>
+    <string name="dialog_alert_delete_title">Usuwanie kopii</string>
+    <string name="are_your_sure">Jesteś pewny?</string>
 
     <!--Incorrect-->
     <string name="incorrect_camera_url">Adres jest niepoprawny</string>

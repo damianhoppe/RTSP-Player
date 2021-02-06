@@ -3,6 +3,8 @@ package pl.huczeq.rtspplayer.ui.activities.mgmt;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
@@ -29,6 +31,7 @@ import pl.huczeq.rtspplayer.ui.activities.base.BaseActivity;
 import pl.huczeq.rtspplayer.adapters.ModelsSpinnerAdapter;
 import pl.huczeq.rtspplayer.adapters.ProducersSpinnerAdapter;
 import pl.huczeq.rtspplayer.interfaces.RightDrawableOnTouchListener;
+import pl.huczeq.rtspplayer.ui.views.OnItemSelectedListener;
 import pl.huczeq.rtspplayer.utils.Utils;
 import pl.huczeq.rtspplayer.data.DataManager;
 import pl.huczeq.rtspplayer.data.objects.Camera;
@@ -42,6 +45,9 @@ public class BaseCameraActivity extends BaseActivity implements UrlsTemplates.Ca
     private final String TAG = "BaseCameraActivity";
 
     public static String EXTRA_CAMERA_NAME = "camera_name";
+
+    boolean doubleBackToExitPressedOnce = false;
+    int doubleBackToExitDelay = 1500;
 
     EditText etCameraName, etCameraUrl, etUserName, etPassword, etIp, etPort, etChannel, etServerUrl;
     TextView tvProducers, tvModels;
@@ -70,6 +76,20 @@ public class BaseCameraActivity extends BaseActivity implements UrlsTemplates.Ca
         @Override public void afterTextChanged(Editable editable) { }
     };
 
+    OnItemSelectedListener producersOnItemSelected = new OnItemSelectedListener() {
+        public void onSelectedItem(AdapterView<?> adapterView, View view, int i, long l) {
+            Log.d(TAG, "producersOnItemSelected" + i);
+            onProducerSelected(producersAdapter.getItem(i));
+        }
+    };
+
+    OnItemSelectedListener modelsOnItemSelected = new OnItemSelectedListener() {
+        public void onSelectedItem(AdapterView<?> adapterView, View view, int i, long l) {
+            Log.d(TAG, "modelsOnItemSelected" + i);
+            onModelSelected(modelsAdapter.getItem(i));
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -77,6 +97,30 @@ public class BaseCameraActivity extends BaseActivity implements UrlsTemplates.Ca
 
         producersAdapter = new ProducersSpinnerAdapter(getBaseContext(), new ArrayList<Producer>());
         modelsAdapter = new ModelsSpinnerAdapter(getBaseContext(), new ArrayList<Model>());
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        producersAdapter.clear();
+        modelsAdapter.clear();
+    }
+
+    @Override
+    public void onBackPressed() {
+        if(this.doubleBackToExitPressedOnce) {
+            super.onBackPressed();
+            return;
+        }
+        this.doubleBackToExitPressedOnce = true;
+        Toast.makeText(this, getResources().getString(R.string.double_back_2_exit_info), Toast.LENGTH_SHORT).show();
+
+        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                BaseCameraActivity.this.doubleBackToExitPressedOnce = false;
+            }
+        }, this.doubleBackToExitDelay);
     }
 
     @Override
@@ -124,6 +168,12 @@ public class BaseCameraActivity extends BaseActivity implements UrlsTemplates.Ca
             }
         });
 
+        ////TODO REMOVE?
+        producersAdapter.setProducersList(new ArrayList<Producer>(), null);
+        modelsAdapter.setModelsList(new ArrayList<Model>(), null);
+        spinProducers.setAdapter(producersAdapter);
+        spinModel.setAdapter(modelsAdapter);
+
         etCameraUrl.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View view, boolean b) {
@@ -141,7 +191,7 @@ public class BaseCameraActivity extends BaseActivity implements UrlsTemplates.Ca
             public void afterTextChanged(Editable editable) {
                 if(urlTemplate != null && previousUrl != null) {
                     if(!previousUrl.equalsIgnoreCase(etCameraUrl.getText().toString())) {
-                        spinProducers.setSelection(0);
+                        spinProducers.setSelection(0, false);
                         onProducerSelected(producersAdapter.getItem(0));
                     }
                 }
@@ -155,25 +205,6 @@ public class BaseCameraActivity extends BaseActivity implements UrlsTemplates.Ca
         etServerUrl.addTextChangedListener(textWatcher);
         etPort.addTextChangedListener(textWatcher);
 
-        spinProducers.setAdapter(producersAdapter);
-        spinProducers.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                onProducerSelected(producersAdapter.getItem(i));
-                updateUrl();
-            }
-            @Override public void onNothingSelected(AdapterView<?> adapterView) { }
-        });
-
-        spinModel.setAdapter(modelsAdapter);
-        spinModel.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                onModelSelected(modelsAdapter.getItem(i));
-                updateUrl();
-            }
-            @Override public void onNothingSelected(AdapterView<?> adapterView) { }
-        });
         spinStreamType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
@@ -211,69 +242,116 @@ public class BaseCameraActivity extends BaseActivity implements UrlsTemplates.Ca
             pbLoadingProducers.setVisibility(View.VISIBLE);
             dataManager.loadUrlsTemplates(this);
         }else {
-            loadProducers();
+            this.onDataLoaded();
         }
     }
 
     @Override
     public void onDataLoaded() {
         pbLoadingProducers.setVisibility(View.GONE);
+        int producerIndex = -1, modelIndex = 0;
+
         if(this.cameraToLoad != null) {
-            pbLoadingProducers.setVisibility(View.GONE);
-            spinProducers.setVisibility(View.VISIBLE);
-            producersAdapter.setProducersList(dataManager.getProducersList());
-            if (this.cameraToLoad.getProducer().equalsIgnoreCase(ProducersSpinnerAdapter.emptyProducer.getName()) || this.cameraToLoad.getProducer().equals("") || this.cameraToLoad.getProducer() == null) {
-                spinProducers.setSelection(0);
-            } else {
-                int index = dataManager.getUrlTemplates().getProducerIndex(this.cameraToLoad.getProducer());
-                if (index == -1) {
-                    spinProducers.setSelection(0);
-                    return;
-                }
-                Producer producer = producersAdapter.getItem(index + 1);
-                if (producer == null) {
-                    spinProducers.setSelection(0);
-                    return;
-                }
-                spinProducers.setSelection(index + 1);
-                modelsAdapter.setModelsList(producer.getModelList());
-                spinModel.setSelection(0);
-                if (producer.getModelList().size() > 1) {
-                    spinProducers.setVisibility(View.VISIBLE);
+            if(this.cameraToLoad.getProducer() != null && !ProducersSpinnerAdapter.emptyProducer.getName().equalsIgnoreCase(this.cameraToLoad.getProducer()) && !this.cameraToLoad.getProducer().trim().isEmpty()) {
+                producerIndex = dataManager.getUrlTemplates().getProducerIndex(this.cameraToLoad.getProducer());
+                Log.d(TAG, "Load: " + this.cameraToLoad.getProducer() + " , index: " + producerIndex);
+                if (producerIndex > -1) {
+                    Producer producer = dataManager.getProducersList().get(producerIndex);
+                    if(this.cameraToLoad.getModel() != null && !this.cameraToLoad.getModel().trim().isEmpty()) {
+                        modelIndex = producer.getModelIndex(this.cameraToLoad.getModel());
+                        Log.d(TAG, "Model loading(model = " + this.cameraToLoad.getModel() + ":index = " + Integer.toString(modelIndex) + ")");
+                        if (modelIndex == -1) {
+                            modelIndex = 0;
+                        }
+                    }
                 }
             }
+        }
+
+        Log.d(TAG, "producerIndex: " + producerIndex);
+        Log.d(TAG, "modelIndex: " + modelIndex);
+
+        producersAdapter.setProducersList(dataManager.getProducersList(), null);
+
+        Log.d(TAG, "onDataLoaded.Producer: " + producersAdapter.getItem(producerIndex+1).getName());
+
+        if(this.cameraToLoad != null && producerIndex != -1)
+            modelsAdapter.setModelsList(dataManager.getProducersList().get(producerIndex).getModelList(), null);
+        else modelsAdapter.setModelsList(new ArrayList<Model>(), null);
+
+        spinProducers.setSelection(-1, true);
+        if(this.cameraToLoad != null) {
+            spinProducers.setSelection(producerIndex + 1, true);
         }else {
-            loadProducers();
+            spinProducers.setSelection(0, true);
         }
-    }
+        spinModel.setSelection(modelIndex, true);
 
-    private void loadProducers() {
-        if(dataManager.getProducersList().size() > 0) {
-            producersAdapter.setProducersList(dataManager.getProducersList());
-            spinProducers.setSelection(0);
+        spinProducers.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            boolean firstInit = true;
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                if(firstInit)
+                    onProducerSelected(producersAdapter.getItem(i));
+                else
+                    firstInit = true;
+                Log.d(TAG, "spinProducers.OnItemSelectedListener");
+            }
 
-            onProducerSelected(producersAdapter.getItem(spinProducers.getSelectedItemPosition()));
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
 
-            spinProducers.setVisibility(View.VISIBLE);
-            tvProducers.setVisibility(View.VISIBLE);
+            }
+        });
+        spinModel.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            boolean firstInit = true;
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                Log.d(TAG, "spinModel.OnItemSelectedListener");
+                if(firstInit)
+                    onModelSelected(modelsAdapter.getItem(i));
+                else
+                    firstInit = true;
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+        pbLoadingProducers.setVisibility(View.GONE);
+        spinProducers.setVisibility(View.VISIBLE);
+        if(modelsAdapter.getCount() > 1) {
+            spinModel.setVisibility(View.VISIBLE);
         }
+        if(modelsAdapter.getCount() > 0 && modelIndex < modelsAdapter.getCount()) {
+            if (modelsAdapter.getItem(modelIndex) == null) {
+                urlTemplate = null;
+            } else {
+                urlTemplate = modelsAdapter.getItem(modelIndex).getUrlTemplate();
+                updateUrl();
+            }
+            Log.d(TAG, "onDataLoaded.Model: " + modelsAdapter.getItem(modelIndex).getName());
+        }
+        updateVisibility();
     }
     public void onProducerSelected(Producer producer) {
         loadModels(producer);
     }
+
     private void loadModels(Producer producer) {
         if(producer == ProducersSpinnerAdapter.emptyProducer) {
-            modelsAdapter.setModelsList(new ArrayList<Model>());
-            onModelSelected(null);
+            modelsAdapter.setModelsList(new ArrayList<Model>(), spinModel);
+            spinModel.setSelection(-1, false);
 
             spinModel.setVisibility(View.GONE);
             tvModels.setVisibility(View.GONE);
+            onModelSelected(null);
             return;
         }
-
-        modelsAdapter.setModelsList(producer.getModelList());
+        modelsAdapter.setModelsList(producer.getModelList(), spinProducers);
         spinModel.setSelection(0);
-        onModelSelected(modelsAdapter.getItem(spinModel.getSelectedItemPosition()));
+        onModelSelected(modelsAdapter.getItem(0));
 
         if(producer.getModelList().size() > 1) {
             spinModel.setVisibility(View.VISIBLE);
@@ -283,6 +361,7 @@ public class BaseCameraActivity extends BaseActivity implements UrlsTemplates.Ca
             tvModels.setVisibility(View.GONE);
         }
     }
+
     public void onModelSelected(Model model) {
         if(model == null) {
             urlTemplate = null;
@@ -309,7 +388,6 @@ public class BaseCameraActivity extends BaseActivity implements UrlsTemplates.Ca
             setVisiblity(etPort, true);
             setVisiblity(etChannel, urlTemplate.useField(UrlsTemplates.AdditionalField.Channel));
             setVisiblity(spinStreamType, urlTemplate.useField(UrlsTemplates.AdditionalField.Stream));
-            Log.d(TAG, "W: " + urlTemplate.useField(UrlsTemplates.AdditionalField.ServerUrl));
             setVisiblity(etServerUrl, urlTemplate.useField(UrlsTemplates.AdditionalField.ServerUrl));
         }
     }
@@ -326,7 +404,7 @@ public class BaseCameraActivity extends BaseActivity implements UrlsTemplates.Ca
         cam.setUrl(etCameraUrl.getText().toString());
 
         Producer producer = null;
-        if(spinProducers.getSelectedItemPosition() > 0) {
+        if(spinProducers.getSelectedItemPosition() > 0 && spinProducers.getSelectedItemPosition() < producersAdapter.getCount()) {
             producer = producersAdapter.getItem(spinProducers.getSelectedItemPosition());
         }
         if(producer == null) {
@@ -334,13 +412,14 @@ public class BaseCameraActivity extends BaseActivity implements UrlsTemplates.Ca
         }else {
             cam.setProducer(producer.getName());
         }
+        Log.d(TAG, "getCamera():producer = " + cam.getProducer());
 
         Model model = null;
-        if(spinModel.getSelectedItemPosition() >= 0) {
+        Log.d(TAG, "getCamera():spinModel.getSelectedItemPosition() = " + Integer.toString(spinModel.getSelectedItemPosition()));
+        if(producer != null && spinModel.getSelectedItemPosition() >= 0 && spinModel.getSelectedItemPosition() < modelsAdapter.getCount()) {
             model = modelsAdapter.getItem(spinModel.getSelectedItemPosition());
         }
         if(model == null) {
-            cam.setProducer("");
             cam.setModel("");
         }else {
             cam.setModel(model.getName());
@@ -371,7 +450,15 @@ public class BaseCameraActivity extends BaseActivity implements UrlsTemplates.Ca
         return "";
     }
     protected boolean isUrlFormCorrect(boolean showMessage) {
-        if(this.urlTemplate == null) return true;
+        if(this.urlTemplate == null){
+            if(etCameraUrl.getText() == null || etCameraUrl.getText().toString().trim().isEmpty()) {
+                if(showMessage) {
+                    showMessageError(getResources().getString(R.string.incorrect_camera_url));
+                }
+                return false;
+            }
+            return true;
+        }
         String reason = isUrlFormCorrectGetReason();
         Log.d(TAG, "Reason: " + reason);
         if(!reason.equals("")) {
@@ -424,7 +511,7 @@ public class BaseCameraActivity extends BaseActivity implements UrlsTemplates.Ca
 
     protected void onClickButtonSaveCamera() {}
     protected void onClickButtonStartCameraPreview() {
-        if(etCameraUrl.getText().toString().length() == 0) {
+        if(!isUrlFormCorrect()) {
             Toast.makeText(this, getResources().getString(R.string.incorrect_camera_url), Toast.LENGTH_SHORT).show();
             return;
         }
@@ -439,17 +526,15 @@ public class BaseCameraActivity extends BaseActivity implements UrlsTemplates.Ca
         }
     }
 
-    public void loadToForm(Camera camera) {
-        this.cameraToLoad = camera;
-
-        etCameraName.setText(camera.getName());
-        etUserName.setText(camera.getUserName());
-        etPassword.setText(camera.getPassword());
-        etIp.setText(camera.getAddressIp());
-        etPort.setText(camera.getPort());
-        etChannel.setText(camera.getChannel());
+    public void loadCameraToForm() {
+        etCameraName.setText(this.cameraToLoad.getName());
+        etUserName.setText(this.cameraToLoad.getUserName());
+        etPassword.setText(this.cameraToLoad.getPassword());
+        etIp.setText(this.cameraToLoad.getAddressIp());
+        etPort.setText(this.cameraToLoad.getPort());
+        etChannel.setText(this.cameraToLoad.getChannel());
         try {
-            spinStreamType.setSelection(Integer.parseInt(camera.getStream()));
+            spinStreamType.setSelection(Integer.parseInt(this.cameraToLoad.getStream()));
         } catch (NumberFormatException e) {
             e.printStackTrace();
             spinStreamType.setSelection(0);
@@ -457,12 +542,12 @@ public class BaseCameraActivity extends BaseActivity implements UrlsTemplates.Ca
         Log.d(TAG, String.valueOf(dataManager.isUrlsTemplatesLoaded()));
         if(dataManager.isUrlsTemplatesLoaded()) this.onDataLoaded();
 
-        if(llMoreForm.getVisibility() != View.VISIBLE && camera.getProducer().length() > 0) {
+        if(llMoreForm.getVisibility() != View.VISIBLE && this.cameraToLoad.getProducer().length() > 0) {
             buttonShowMore.callOnClick();
         }
-        etServerUrl.setText(camera.getServerUrl());
+        etServerUrl.setText(this.cameraToLoad.getServerUrl());
 
-        etCameraUrl.setText(camera.getUrl());
+        etCameraUrl.setText(this.cameraToLoad.getUrl());
     }
 
     @Override

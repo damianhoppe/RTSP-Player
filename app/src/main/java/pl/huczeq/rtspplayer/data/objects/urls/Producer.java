@@ -60,4 +60,11 @@ public class Producer {
     public void setModelList(List<Model> modelList) {
         this.modelList = modelList;
     }
+
+    public int getModelIndex(String name) {
+        for(int i = 0; i<this.modelList.size(); i++) {
+            if(this.modelList.get(i).getName().equals(name)) return i;
+        }
+        return -1;
+    }
 }

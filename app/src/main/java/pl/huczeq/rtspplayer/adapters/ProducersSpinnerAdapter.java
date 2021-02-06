@@ -3,7 +3,9 @@ package pl.huczeq.rtspplayer.adapters;
 import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import java.util.List;
@@ -63,7 +65,7 @@ public class ProducersSpinnerAdapter extends ArrayAdapter<Producer> {
         return this.producerList.get(i-1);
     }
 
-    public void setProducersList(List<Producer> producerList) {
+    public void setProducersList(List<Producer> producerList, Spinner spinner) {
         this.producerList = producerList;
         notifyDataSetChanged();
     }

@@ -1,6 +1,7 @@
 package pl.huczeq.rtspplayer.ui.activities.mgmt;
 
 import android.os.Bundle;
+import android.util.Log;
 
 import pl.huczeq.rtspplayer.R;
 import pl.huczeq.rtspplayer.data.objects.Camera;
@@ -14,12 +15,15 @@ public class AddCameraActivity extends BaseCameraActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_addedit_camera);
 
-        setViewsWidgets();
 
         String cameraName = getIntent().getStringExtra(EXTRA_CAMERA_NAME);
         Camera camera = dataManager.getCamera(cameraName);
+        this.cameraToLoad = camera;
+
+        setViewsWidgets();
+
         if(camera != null) {
-            loadToForm(camera);
+            loadCameraToForm();
         }
     }
 
@@ -40,6 +44,7 @@ public class AddCameraActivity extends BaseCameraActivity {
     }
 
     protected void onClickButtonSaveCamera() {
+        Log.d(TAG, "SpinModel.selectedItemPosition: " + Integer.toString(spinModel.getSelectedItemPosition()));
         if(!isFormCorrect(true)) {
             return;
         }

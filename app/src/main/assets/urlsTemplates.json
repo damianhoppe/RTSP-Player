@@ -14,16 +14,93 @@
       ]
     },
     {
+      "name": "Ctronics",
+      "models":[
+        {
+          "name": "Default",
+          "urlTemplate": {
+            "urlAuth": "rtsp://{user}:{password}@{addressip}:{port}/user={user}_password={password}_channel={channel}_stream={stream}.sdp",
+            "urlNoneAuth": "rtsp://{addressip}:{port}/user={user}_password={password}_channel={channel}_stream={stream}.sdp",
+            "additionalFields": [1,2]
+          }
+        },
+        {
+          "name": "#1",
+          "urlTemplate": {
+            "urlAuth": "rtsp://{user}:{password}@{addressip}:{port}/11",
+            "urlNoneAuth": "rtsp://{addressip}:{port}/11",
+            "additionalFields": []
+          }
+        },
+        {
+          "name": "#2",
+          "urlTemplate": {
+            "urlAuth": "rtsp://{user}:{password}@{addressip}:{port}/ch01.264",
+            "urlNoneAuth": "rtsp://{addressip}:{port}/ch01.264",
+            "additionalFields": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "Gembird",
+      "models":[
+        {
+          "name": "Default",
+          "urlTemplate": {
+            "urlAuth": "http://{user}:{password}@{addressip}:{port}/cgi-bin/snapshot.cgi?loginuse={user}&loginpas={password}",
+            "urlNoneAuth": "http://{addressip}:{port}/cgi-bin/snapshot.cgi",
+            "additionalFields": []
+          }
+        },{
+          "name": "CAM78IP",
+          "urlTemplate": {
+            "urlAuth": "http://{user}:{password}@{addressip}:{port}/video/cam{channel}/2.0?audio=0&stream={stream}",
+            "urlNoneAuth": "http://{addressip}:{port}/video/cam{channel}/2.0?audio=0&stream={stream}",
+            "additionalFields": [1,2]
+          }
+        },{
+          "name": "ICAM-WHD-01",
+          "urlTemplate": {
+            "urlAuth": "http://{user}:{password}@{addressip}:{port}/live/ch0",
+            "urlNoneAuth": "http://{addressip}:{port}/live/ch0",
+            "additionalFields": []
+          }
+        }
+      ]
+    },
+    {
       "name": "Hikvision",
       "models":[
         {
           "name": "Default",
           "urlTemplate": {
             "urlAuth": "rtsp://{user}:{password}@{addressip}:{port}/Streaming/channels/{channel}0{stream}",
-            "urlNoneAuth": "{protocol}://{addressip}:{port}/Streaming/channels/{channel}0{stream}",
+            "urlNoneAuth": "rtsp://{addressip}:{port}/Streaming/channels/{channel}0{stream}",
             "additionalFields": [1,2],
             "mainStream": "1",
             "subStream": "2"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Jovision",
+      "models":[
+        {
+          "name": "Default",
+          "urlTemplate": {
+            "urlAuth": "rtsp://{user}:{password}@{addressip}:{port}/{channel}/{user}:{password}/main",
+            "urlNoneAuth": "rtsp://{addressip}:{port}/{channel}/main",
+            "additionalFields": [1]
+          }
+        },
+        {
+          "name": "JVS-N8",
+          "urlTemplate": {
+            "urlAuth": "rtsp://{user}:{password}@{addressip}:{port}/live0.264",
+            "urlNoneAuth": "rtsp://{addressip}:{port}/live0.264",
+            "additionalFields": []
           }
         }
       ]
@@ -35,8 +112,21 @@
           "name": "Default",
           "urlTemplate": {
             "urlAuth": "rtsp://{addressip}:{port}/user={user}&password={password}&channel={channel}&stream={stream}.sdp",
-            "urlNoneAuth": "{protocol}://{addressip}:{port}/user=&password=&channel={channel}&stream={stream}.sdp",
+            "urlNoneAuth": "rtsp://{addressip}:{port}/user=&password=&channel={channel}&stream={stream}.sdp",
             "additionalFields": [1,2]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TrendNet",
+      "models":[
+        {
+          "name": "TV-IP312",
+          "urlTemplate": {
+            "urlAuth": "rtsp://{user}:{password}@{addressip}:{port}/mpeg4",
+            "urlNoneAuth": "rtsp://{addressip}:{port}/mpeg4",
+            "additionalFields": []
           }
         }
       ]

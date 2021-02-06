@@ -3,7 +3,9 @@ package pl.huczeq.rtspplayer.adapters;
 import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import java.util.List;
@@ -52,7 +54,7 @@ public class ModelsSpinnerAdapter extends ArrayAdapter<Model> {
         return i;
     }
 
-    public void setModelsList(List<Model> modelLists) {
+    public void setModelsList(List<Model> modelLists, Spinner spinner) {
         this.modelList = modelLists;
         notifyDataSetChanged();
     }

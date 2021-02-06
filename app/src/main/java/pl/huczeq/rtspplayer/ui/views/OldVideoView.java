@@ -1,14 +1,18 @@
 package pl.huczeq.rtspplayer.ui.views;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.net.Uri;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.TextureView;
+import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
@@ -19,6 +23,8 @@ import org.videolan.libvlc.interfaces.IVLCVout;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+
+import pl.huczeq.rtspplayer.R;
 
 public class OldVideoView extends TextureView implements IVLCVout.OnNewVideoLayoutListener {
 
@@ -35,6 +41,7 @@ public class OldVideoView extends TextureView implements IVLCVout.OnNewVideoLayo
     public MediaPlayer player;
     Uri uri;
     Media media;
+    boolean urlSetted;
 
     Callback callback;
     public void setCallback(Callback callback) {
@@ -65,8 +72,12 @@ public class OldVideoView extends TextureView implements IVLCVout.OnNewVideoLayo
         lib = new LibVLC(context, args);
     }
 
-    public void setData(final Uri uri) {
-        this.uri = uri;
+    public void setData(String url) {
+        this.uri = Uri.parse(url);
+        if(this.uri.getPath() == null) {
+            Toast.makeText(getContext(), getResources().getString(R.string.incorrect_camera_url), Toast.LENGTH_SHORT).show();
+            return;
+        }
         if(player != null && !player.isReleased()) player.release();
         player = new MediaPlayer(lib);
 
@@ -181,27 +192,49 @@ public class OldVideoView extends TextureView implements IVLCVout.OnNewVideoLayo
             }
         });
         Log.d(TAG, "2");
+        urlSetted = true;
     }
 
     @Override
     protected void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
+        updateOutputSize(newConfig);
+    }
+
+    public void updateOutputSize() {
+        updateOutputSize(this.getResources().getConfiguration());
+    }
+
+    public void updateOutputSize(Configuration newConfig) {
         DisplayMetrics dMetrics = getContext().getResources().getDisplayMetrics();
+
+        View v = (View)getParent();
+        v.getWidth();
+        int pWidth = dMetrics.widthPixels;
+        int pHeight = dMetrics.heightPixels;
+
         ViewGroup.LayoutParams params = getLayoutParams();
+        Log.d(TAG, "onConfigurationChanged1: " + params.width + " x " + params.height);
         if(newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            params.height = dMetrics.heightPixels;
+            if(this.height == 0) return;
+            params.height = pHeight;
             params.width = params.height * this.width/this.height;
         } else if(newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
-            params.width = dMetrics.widthPixels;
+            if(this.width == 0) return;
+            params.width = pWidth;
             params.height = params.width * this.height/this.width;
         }
+        if(player == null || player.getVLCVout() == null)
+            return;
         player.getVLCVout().setWindowSize(params.width, params.height);
         this.setLayoutParams(params);
+
     }
 
     public void onConfigurationChanged(int degress) {
         DisplayMetrics dMetrics = getContext().getResources().getDisplayMetrics();
         ViewGroup.LayoutParams params = getLayoutParams();
+        Log.d(TAG, "onConfigurationChanged2: " + params.width + " x " + params.height);
         if(degress == 90 || degress == 270) {
             params.width = dMetrics.widthPixels*this.width/this.height;
             params.height = dMetrics.heightPixels;//TODO ASPECT RATION calulate
@@ -231,89 +264,28 @@ public class OldVideoView extends TextureView implements IVLCVout.OnNewVideoLayo
     public boolean canTakePicture() {
         return canTakePicture;
     }
-/*
-    private void changeMediaPlayerLayout(int displayW, int displayH) {
-        // Change the video placement using the MediaPlayer API
-        switch (CURRENT_SIZE) {
-            case SURFACE_BEST_FIT:
-                vlcPlayer.setAspectRatio(null);
-                vlcPlayer.setScale(0);
-                break;
-            case SURFACE_FIT_SCREEN:
-            case SURFACE_FILL: {
-                Media.VideoTrack vtrack = vlcPlayer.getCurrentVideoTrack();
-                if (vtrack == null)
-                    return;
-                final boolean videoSwapped = vtrack.orientation == Media.VideoTrack.Orientation.LeftBottom
-                        || vtrack.orientation == Media.VideoTrack.Orientation.RightTop;
-                if (CURRENT_SIZE == SURFACE_FIT_SCREEN) {
-                    int videoW = vtrack.width;
-                    int videoH = vtrack.height;
-
-                    if (videoSwapped) {
-                        int swap = videoW;
-                        videoW = videoH;
-                        videoH = swap;
-                    }
-                    if (vtrack.sarNum != vtrack.sarDen)
-                        videoW = videoW * vtrack.sarNum / vtrack.sarDen;
-
-                    float ar = videoW / (float) videoH;
-                    float dar = displayW / (float) displayH;
-
-                    float scale;
-                    if (dar >= ar)
-                        scale = displayW / (float) videoW; // horizontal
-                    else
-                        scale = displayH / (float) videoH; // vertical
-                    vlcPlayer.setScale(scale);
-                    vlcPlayer.setAspectRatio(null);
-                } else {
-                    vlcPlayer.setScale(0);
-                    vlcPlayer.setAspectRatio(!videoSwapped ? ""+displayW+":"+displayH
-                            : ""+displayH+":"+displayW);
-                }
-                break;
-            }
-            case SURFACE_16_9:
-                vlcPlayer.setAspectRatio("16:9");
-                vlcPlayer.setScale(0);
-                break;
-            case SURFACE_4_3:
-                vlcPlayer.setAspectRatio("4:3");
-                vlcPlayer.setScale(0);
-                break;
-            case SURFACE_ORIGINAL:
-                vlcPlayer.setAspectRatio(null);
-                vlcPlayer.setScale(1);
-                break;
-        }
-    }
-*/
 
     public void play() {
+        if(!urlSetted || this.uri == null) {
+            return;
+        }
         Log.d(TAG, "3");
         Log.d(TAG, String.valueOf(player.isReleased()));
         if(player != null) {
             if(!player.getVLCVout().areViewsAttached())
                 player.getVLCVout().attachViews(this);
-            Log.d(TAG, "4");
             if(player.isReleased()) {
-                Log.d(TAG, "5");
-                this.setData(this.uri);
+                this.setData(this.uri.getPath());
                 player.play();
             }else {
-                Log.d(TAG, this.uri.getPath());
                 player.play();
             }
         }
 
         Media.VideoTrack vtrack = player.getCurrentVideoTrack();
         if (vtrack == null) {
-            Log.d(TAG, "NULL");
             return;
         }
-        Log.d(TAG, "Width: " + String.valueOf(vtrack.width));
 
     }
 
@@ -329,10 +301,15 @@ public class OldVideoView extends TextureView implements IVLCVout.OnNewVideoLayo
     }
 
     public void release() {
-        //TODO
-        player.getMedia().release();
-        player.release();
+        if(player != null) {
+            player.release();
+            if (media != null)
+                media.release();
+        }
         lib.release();
+        lib = null;
+        player = null;
+        setKeepScreenOn(false);
     }
 
     public ArrayList<String> getArgs() {
@@ -356,16 +333,22 @@ public class OldVideoView extends TextureView implements IVLCVout.OnNewVideoLayo
         Log.d(TAG, String.valueOf(visibleWidth) + "x" + String.valueOf(visibleHeight));
         DisplayMetrics dMetrics = getContext().getResources().getDisplayMetrics();
         ViewGroup.LayoutParams params = getLayoutParams();
-        params.width = dMetrics.widthPixels;
-        params.height = (int)((float)params.width*((float)visibleHeight/(float)visibleWidth));
+        if(params.height < visibleHeight) {
+            params.height = dMetrics.heightPixels;
+            params.width = (int) (params.height * ((float) visibleWidth/(float)visibleHeight));
+            /*params.width = dMetrics.widthPixels;
+            params.height = (int) ((float) params.width * ((float) visibleHeight / (float) visibleWidth));*/
+        }else {
+            params.width = dMetrics.widthPixels;
+            params.height = (int) ((float) params.width * ((float) visibleHeight / (float) visibleWidth));
+        }
 
         Log.d(TAG, "Aspect ration: " + ((float)visibleHeight/(float)visibleWidth));
 
         this.width = width;
         this.height = height;
-        vlcVout.setWindowSize(params.height, params.width);//TODO ADDED
-        this.setLayoutParams(params);
-        //Toast.makeText(getContext(), "2", Toast.LENGTH_LONG).show();
+
+        updateOutputSize(this.getResources().getConfiguration());
 
         if(this.callback != null)
             callback.onVideoStart();

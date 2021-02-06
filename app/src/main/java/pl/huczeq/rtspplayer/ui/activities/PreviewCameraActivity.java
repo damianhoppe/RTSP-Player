@@ -3,6 +3,7 @@ package pl.huczeq.rtspplayer.ui.activities;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -10,35 +11,35 @@ import android.util.Log;
 import android.view.OrientationEventListener;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowInsets;
+import android.view.WindowInsetsController;
 import android.widget.ProgressBar;
 import android.widget.Toast;
+
+import androidx.constraintlayout.widget.ConstraintLayout;
 
 import pl.huczeq.rtspplayer.R;
 import pl.huczeq.rtspplayer.ui.activities.base.BaseActivity;
 import pl.huczeq.rtspplayer.data.objects.Camera;
 import pl.huczeq.rtspplayer.ui.views.OldVideoView;
 
-public class PreviewCameraActivity extends BaseActivity {
+public class PreviewCameraActivity extends BaseActivity implements OldVideoView.Callback {
 
     private static String TAG = "PreviewCameraActivity";
 
     public static String EXTRA_CAMERA_NAME = "cameraName";
     public static String EXTRA_URL = "cameraUrl";
 
+    private ConstraintLayout rootLayout;
     private OldVideoView videoView;
     private ProgressBar pBLoading;
 
     private Camera camera;
     private String url;
 
-    //OrientationListener orientationListener;
-    //TODO
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         setContentView(R.layout.activity_preview_camera);
 
         setViewsWidgets();
@@ -46,93 +47,65 @@ public class PreviewCameraActivity extends BaseActivity {
         camera = dataManager.getCamera(getIntent().getStringExtra(EXTRA_CAMERA_NAME));
         if(camera == null) {
             url = getIntent().getStringExtra(EXTRA_URL);
-            if(url == null) {
-                finish();
-                return;
-            }
-            videoView.setData(Uri.parse(url));
-            Log.d(TAG, "Url: " + url);
         }else {
-            videoView.setData(Uri.parse(camera.getUrl()));
-            Log.d(TAG, "Camera: " + camera.getUrl());
+            url = camera.getUrl();
+        }
+        if(url == null || url.trim().isEmpty()) {
+            finish();
+            return;
+        }else {
+            videoView.setData(url);
         }
 
-        videoView.setCallback(new OldVideoView.Callback() {
-            @Override
-            public void onVideoStart() {
-                pBLoading.setVisibility(View.INVISIBLE);
-            }
-
-            @Override
-            public void onVideError() {
-                pBLoading.setVisibility(View.INVISIBLE);
-                Toast.makeText(getApplicationContext(), getString(R.string.video_error), Toast.LENGTH_SHORT).show();
-            }
-        });
-        //orientationListener = new OrientationListener(this);
-
-        videoView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showUI();
-            }
-        });
-        showUI();
+        videoView.setCallback(this);
+        hideUI();
+        videoView.updateOutputSize();
     }
 
-    Thread thread;
+    @Override
+    public void onVideoStart() {
+        pBLoading.setVisibility(View.INVISIBLE);
+    }
+
+    @Override
+    public void onVideError() {
+        pBLoading.setVisibility(View.INVISIBLE);
+        Toast.makeText(getApplicationContext(), getString(R.string.video_error), Toast.LENGTH_SHORT).show();
+    }
 
     private void hideUI() {
-        View decorView = getWindow().getDecorView();
-        decorView.setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_IMMERSIVE
-                        | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                        | View.SYSTEM_UI_FLAG_FULLSCREEN);
-
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            getWindow().setDecorFitsSystemWindows(false);
+            WindowInsetsController controller = getWindow().getInsetsController();
+            if(controller != null) {
+                controller.hide(WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars());
+                controller.setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+            }
+        }else {
+            View decorView = getWindow().getDecorView();
+            decorView.setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                            | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                            | View.SYSTEM_UI_FLAG_FULLSCREEN);
+        }
     }
 
-    private void showUI() {
-        View decorView = getWindow().getDecorView();
-        decorView.setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
-
-        if(thread!=null) {
-            thread.interrupt();
-        }
-        thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                    return;
-                }
-                new Handler(Looper.getMainLooper()).post(new Runnable() {
-                    @Override
-                    public void run() {
-                        hideUI();
-                    }
-                });
-            }
-        });
-        thread.start();
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if(hasFocus) hideUI();
     }
 
     @Override
     protected void onStart() {
-        //orientationListener.enable();
         super.onStart();
     }
 
     @Override
     protected void onStop() {
-        //orientationListener.disable();
         super.onStop();
     }
 
@@ -152,11 +125,13 @@ public class PreviewCameraActivity extends BaseActivity {
 
     @Override
     protected void onDestroy() {
+        videoView.setCallback(null);
         super.onDestroy();
-        videoView.stop();
+        //videoView.pause();
         new Thread(new Runnable() {
             @Override
             public void run() {
+                videoView.stop();
                 videoView.release();
             }
         }).start();
@@ -168,61 +143,6 @@ public class PreviewCameraActivity extends BaseActivity {
 
         videoView = findViewById(R.id.cameraPreview);
         pBLoading = findViewById(R.id.pBLoading);
-    }
-
-    /*@Override
-    public void onConfigurationChanged(@NonNull Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        switch (newConfig.orientation) {
-            case Configuration.ORIENTATION_PORTRAIT:
-                Log.d(TAG, "ORIENTATION_PORTRAIT");
-                break;
-            case Configuration.ORIENTATION_LANDSCAPE:
-                Log.d(TAG, "ORIENTATION_LANDSCAPE");
-                break;
-        }
-        Log.d(TAG, String.valueOf(getWindowManager().getDefaultDisplay().getRotation()));
-    }*/
-
-    private class OrientationListener extends OrientationEventListener {
-        final int ROTATION_O    = 1;
-        final int ROTATION_90   = 2;
-        final int ROTATION_180  = 3;
-        final int ROTATION_270  = 4;
-
-        private int rotation = 0;
-        public OrientationListener(Context context) { super(context); }
-
-        boolean request = true;
-        @Override public void onOrientationChanged(int orientation) {
-            if( (orientation < 35 || orientation > 325) && rotation!= ROTATION_O){ // PORTRAIT
-                rotation = ROTATION_O;
-                if(request)
-                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-                else
-                    videoView.onConfigurationChanged(0);
-            }
-            else if( orientation > 145 && orientation < 215 && rotation!=ROTATION_180){ // REVERSE PORTRAIT
-                rotation = ROTATION_180;
-                if(request)
-                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT);
-                else
-                    videoView.onConfigurationChanged(90);
-            }
-            else if(orientation > 55 && orientation < 125 && rotation!=ROTATION_270){ // REVERSE LANDSCAPE
-                rotation = ROTATION_270;
-                if(request)
-                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE);
-                else
-                    videoView.onConfigurationChanged(270);
-            }
-            else if(orientation > 235 && orientation < 305 && rotation!=ROTATION_90){ //LANDSCAPE
-                rotation = ROTATION_90;
-                if(request)
-                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-                else
-                    videoView.onConfigurationChanged(90);
-            }
-        }
+        rootLayout = findViewById(R.id.rootLayout);
     }
 }

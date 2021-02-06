@@ -49,9 +49,12 @@ public class BackupsListAdapter extends ArrayAdapter<String> {
 
         final View view = inflater.inflate(R.layout.item_backup, parent, false);
         final TextView tvName = view.findViewById(R.id.tvName);
+        final TextView tvDetails = view.findViewById(R.id.tvDetails);
         String name = backups.get(position);
         name = name.substring(0, name.indexOf("."));
-        tvName.setText(name);
+
+        tvName.setText(name.substring(0, name.lastIndexOf('-')-1).trim());
+        tvDetails.setText(name.substring(name.lastIndexOf('-')+1).trim());
         return view;
     }
 
@@ -72,6 +75,11 @@ public class BackupsListAdapter extends ArrayAdapter<String> {
 
     public void setList(List<String> list) {
         this.backups = list;
+        notifyDataSetChanged();
+    }
+
+    public void remove(int index) {
+        this.backups.remove(index);
         notifyDataSetChanged();
     }
 }

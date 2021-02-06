@@ -130,11 +130,11 @@ public class Settings {
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
         }
     }
-
     public static final String KEY_RESTORE_BACKUP = "restoreBackup";
     public static final String KEY_CREATE_BACKUP = "createBackup";
     public static final String KEY_ABOUT_APP = "appInformations";
     public static final String KEY_SHOW_LICENSE = "showLicense";
     public static final String KEY_THEME = "theme";
     public static final String KEY_OPEN_ADD_MODEL_FORM = "openAddModelForm";
+    public static final String KEY_LISTENER_DELAY = "listenerDelay";
 }

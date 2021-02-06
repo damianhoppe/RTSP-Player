@@ -20,7 +20,7 @@
             <CheckBox
                 android:id="@+id/cbCameras"
                 android:text="@string/cameras"
-                android:checked="true"
+                android:checked="false"
                 android:enabled="false"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

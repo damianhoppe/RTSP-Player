@@ -17,7 +17,6 @@ public class EditCameraActivity extends BaseCameraActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_addedit_camera);
 
-        setViewsWidgets();
 
         cameraName = getIntent().getStringExtra(EXTRA_CAMERA_NAME);
         if((this.camera = dataManager.getCamera(cameraName)) == null) {
@@ -25,8 +24,11 @@ public class EditCameraActivity extends BaseCameraActivity {
             return;
         }
         this.camera = new Camera(this.camera);
+        this.cameraToLoad = this.camera;
 
-        loadToForm(this.camera);
+        setViewsWidgets();
+
+        loadCameraToForm();
     }
 
     @Override

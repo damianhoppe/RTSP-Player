@@ -1,5 +1,9 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
+    <!--Common-->
     <string name="app_name">RTSP Player</string>
+    <string name="double_back_2_exit_info">Please click BACK again to exit</string>
+    <string name="dialog_alert_delete_title">Delete backup</string>
+    <string name="are_your_sure">Are you sure?</string>
 
     <!--Incorrect-->
     <string name="incorrect_camera_url">The address is not correct</string>

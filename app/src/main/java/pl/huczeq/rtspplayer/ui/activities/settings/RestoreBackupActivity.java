@@ -3,6 +3,7 @@ package pl.huczeq.rtspplayer.ui.activities.settings;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -63,104 +64,30 @@ public class RestoreBackupActivity extends BaseActivity {
         lvBackups.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, final int i, long l) {
-                if(progressBar.getVisibility() != View.VISIBLE) {
-                    //Toast.makeText(getApplicationContext(), backupsListAdapter.getItem(i), Toast.LENGTH_SHORT).show();
-                    progressBar.setVisibility(View.VISIBLE);
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            File file = new File(settings.getBackupsDir(), backupsListAdapter.getItem(i));
-                            if(!file.exists()) {
-                                Log.d(TAG, "File not exists!");
-                                finish(false);
-                                return;
-                            }
-                            if(!file.canRead()){
-                                Log.d(TAG, "Data can not be loaded");
-                                finish(false);
-                                return;
-                            }
-
-                            StringBuilder text = new StringBuilder();
-                            try {
-                                BufferedReader br = new BufferedReader(new FileReader(file));
-                                String line;
-                                while ((line = br.readLine()) != null) {
-                                    text.append(line);
-                                    text.append('\n');
-                                }
-                                br.close();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                                finish(false);
-                                return;
-                            }
-                            JSONObject jsonObject;
-                            try {
-                                jsonObject = new JSONObject(text.toString());
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                                finish(false);
-                                return;
-                            }
-
-                            ArrayList<Camera> cameras = new ArrayList<>();
-                            JSONArray array;
-                            try {
-                                array = jsonObject.getJSONArray(DataManager.JSONCamerasDataArray);
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                                array = new JSONArray();
-                            }
-                            for (int i = 0; i < array.length(); i++) {
-                                Camera camera;
-                                try {
-                                    Log.d(TAG, array.get(i).toString());
-                                    camera = new Camera(array.getJSONObject(i));
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
-                                    continue;
-                                }
-                                if (camera.getPreviewImg() != null) {
-                                    File f = new File(settings.getPreviewImagesDir(), camera.getPreviewImg());
-                                    if (!f.exists()) {
-                                        camera.setPreviewImg(null);
-                                    }
-                                }
-                                cameras.add(camera);
-                            }
-                            if(!cameras.isEmpty())
-                                dataManager.updateCamerasList(cameras);
-                            JSONObject jsonSettings = null;
-                            try {
-                                jsonSettings = jsonObject.getJSONObject(DataManager.JSONSettings);
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-                            if(jsonSettings != null) {
-                                SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-                                SharedPreferences.Editor editor = pref.edit();
-                                if (!jsonSettings.optString(Settings.KEY_THEME, "").equals("")) editor.putString(Settings.KEY_THEME, jsonSettings.optString(Settings.KEY_THEME, "0"));
-                                editor.commit();
-                            }
-                            dataManager.saveData();
-                            finish(true);
-                        }
-
-                        private void finish(final boolean success) {
-                            new Handler(getMainLooper()).post(new Runnable() {
+                loadBackup(i);
+            }
+        });
+        lvBackups.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> adapterView, View view, final int index, long l) {
+                if(index > -1) {
+                    AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(RestoreBackupActivity.this)
+                            .setTitle(getResources().getString(R.string.dialog_alert_delete_title))
+                            .setMessage(getResources().getString(R.string.are_your_sure))
+                            .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
                                 @Override
-                                public void run() {
-                                    if(success)
-                                        Toast.makeText(getApplicationContext(), R.string.success_restore, Toast.LENGTH_SHORT).show();
-                                    else
-                                        Toast.makeText(getApplicationContext(), R.string.error_restore, Toast.LENGTH_SHORT).show();
-                                    progressBar.setVisibility(View.INVISIBLE);
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    if (!arePermissionsGranted())
+                                        return;
+                                    File file = new File(settings.getBackupsDir(), backupsListAdapter.getItem(index));
+                                    file.delete();
+                                    backupsListAdapter.remove(index);
                                 }
-                            });
-                        }
-                    }).start();
+                            })
+                            .setNegativeButton(R.string.cancel, null);
+                    alertDialogBuilder.create().show();
                 }
+                return true;
             }
         });
 
@@ -253,6 +180,107 @@ public class RestoreBackupActivity extends BaseActivity {
                 startActivity(intent);
             }
             Toast.makeText(this, R.string.permissions_storage_rationale, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void loadBackup(final int index) {
+        if(progressBar.getVisibility() != View.VISIBLE) {
+            //Toast.makeText(getApplicationContext(), backupsListAdapter.getItem(i), Toast.LENGTH_SHORT).show();
+            progressBar.setVisibility(View.VISIBLE);
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    File file = new File(settings.getBackupsDir(), backupsListAdapter.getItem(index));
+                    if(!file.exists()) {
+                        Log.d(TAG, "File not exists!");
+                        finish(false);
+                        return;
+                    }
+                    if(!file.canRead()){
+                        Log.d(TAG, "Data can not be loaded");
+                        finish(false);
+                        return;
+                    }
+
+                    StringBuilder text = new StringBuilder();
+                    try {
+                        BufferedReader br = new BufferedReader(new FileReader(file));
+                        String line;
+                        while ((line = br.readLine()) != null) {
+                            text.append(line);
+                            text.append('\n');
+                        }
+                        br.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        finish(false);
+                        return;
+                    }
+                    JSONObject jsonObject;
+                    try {
+                        jsonObject = new JSONObject(text.toString());
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        finish(false);
+                        return;
+                    }
+
+                    ArrayList<Camera> cameras = new ArrayList<>();
+                    JSONArray array;
+                    try {
+                        array = jsonObject.getJSONArray(DataManager.JSONCamerasDataArray);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        array = new JSONArray();
+                    }
+                    for (int i = 0; i < array.length(); i++) {
+                        Camera camera;
+                        try {
+                            Log.d(TAG, array.get(i).toString());
+                            camera = new Camera(array.getJSONObject(i));
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            continue;
+                        }
+                        if (camera.getPreviewImg() != null) {
+                            File f = new File(settings.getPreviewImagesDir(), camera.getPreviewImg());
+                            if (!f.exists()) {
+                                camera.setPreviewImg(null);
+                            }
+                        }
+                        cameras.add(camera);
+                    }
+                    if(!cameras.isEmpty())
+                        dataManager.updateCamerasList(cameras);
+                    JSONObject jsonSettings = null;
+                    try {
+                        jsonSettings = jsonObject.getJSONObject(DataManager.JSONSettings);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    if(jsonSettings != null) {
+                        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                        SharedPreferences.Editor editor = pref.edit();
+                        if (!jsonSettings.optString(Settings.KEY_THEME, "").equals("")) editor.putString(Settings.KEY_THEME, jsonSettings.optString(Settings.KEY_THEME, "0"));
+                        editor.commit();
+                    }
+                    dataManager.saveData();
+                    finish(true);
+                }
+
+                private void finish(final boolean success) {
+                    new Handler(getMainLooper()).post(new Runnable() {
+                        @Override
+                        public void run() {
+                            if(success)
+                                Toast.makeText(getApplicationContext(), R.string.success_restore, Toast.LENGTH_SHORT).show();
+                            else
+                                Toast.makeText(getApplicationContext(), R.string.error_restore, Toast.LENGTH_SHORT).show();
+                            progressBar.setVisibility(View.INVISIBLE);
+                        }
+                    });
+                }
+            }).start();
         }
     }
 }
