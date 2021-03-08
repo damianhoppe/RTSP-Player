@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
     app:iconSpaceReserved="false">
 
     <PreferenceCategory
@@ -10,10 +11,58 @@
             app:key="theme"
             app:entries="@array/pref_theme_labels"
             app:entryValues="@array/pref_theme_values"
-            app:title="@string/pref_theme_label"
-            app:summary="@string/pref_theme_summary"
+            app:title="@string/label_theme"
+            app:summary="@string/summary_theme"
             app:defaultValue="0"
             app:iconSpaceReserved="false"/>
+        <ListPreference
+            app:key="defaultOrientation"
+            app:entries="@array/pref_default_orientation_labels"
+            app:entryValues="@array/pref_default_orientation_values"
+            app:title="@string/label_default_orientation"
+            app:summary="@string/summary_default_orientation"
+            app:defaultValue="0"
+            app:iconSpaceReserved="false"/>
+        <ListPreference
+            app:key="orientationMode"
+            app:entries="@array/pref_orientation_mode_labels"
+            app:entryValues="@array/pref_orientation_mode_values"
+            app:title="@string/label_orientation_mode"
+            app:summary="@string/summary_orientation_mode"
+            app:defaultValue="0"
+            app:iconSpaceReserved="false"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        app:title="@string/label_player_settings"
+        app:iconSpaceReserved="false">
+        <CheckBoxPreference
+            app:key="useNewPlayer"
+            app:title="@string/label_use_new_player"
+            app:summary="@string/summary_use_new_player"
+            app:defaultValue="1"
+            app:iconSpaceReserved="false"/>
+        <SeekBarPreference
+            app:key="cachingBufferSize"
+            app:title="@string/label_caching_buffer_size"
+            app:summary="@string/summary_caching_buffer_size"
+            app:defaultValue="200"
+            app:min="10"
+            android:max="1000"
+            app:showSeekBarValue="true"
+            app:iconSpaceReserved="false"/>
+        <CheckBoxPreference
+            app:key="hardwareAcceleration"
+            app:title="@string/label_hardware_acceleration"
+            app:iconSpaceReserved="false"
+            app:summary="@string/summary_hardware_acceleration"
+            app:defaultValue="1"/>
+        <CheckBoxPreference
+            app:key="avcodesFast"
+            app:title="@string/label_avcodes_fast"
+            app:summary="@string/summary_avcodes_fast"
+            app:iconSpaceReserved="false"
+            app:defaultValue="0"/>
     </PreferenceCategory>
 
     <PreferenceCategory

@@ -169,6 +169,12 @@ public class CreateBackupActivity extends BaseActivity {
                     JSONObject jsonSettings = new JSONObject();
                     try {
                         jsonSettings.put(Settings.KEY_THEME, settings.getTheme());
+                        jsonSettings.put(Settings.KEY_DEFAULT_ORIENTATION, settings.getDefaultOrientationValue());
+                        jsonSettings.put(Settings.KEY_ORIENTATION_MODE, settings.getOrientationModeValue());
+                        jsonSettings.put(Settings.KEY_USE_NEW_PLAYER, settings.isEnabledNewPlayer());
+                        jsonSettings.put(Settings.KEY_CACHING_BUFFER_SIZE, settings.getCachingBufferSize());
+                        jsonSettings.put(Settings.KEY_HARDWARE_ACCELERATION, settings.isEnabledHardwareAcceleration());
+                        jsonSettings.put(Settings.KEY_AVCODES_FAST, settings.isEnabledAVCodes());
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }

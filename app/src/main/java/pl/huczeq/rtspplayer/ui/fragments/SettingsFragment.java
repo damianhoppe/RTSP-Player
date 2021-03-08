@@ -4,12 +4,16 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
+import androidx.preference.CheckBoxPreference;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
+import androidx.preference.SeekBarPreference;
 
 import pl.huczeq.rtspplayer.BuildConfig;
 import pl.huczeq.rtspplayer.R;
@@ -24,7 +28,76 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
     private static final String TAG = "SettingsFragment";
 
     Preference restoreBackup, createBackup, aboutApp, showLicense, openAddModelForm;
-    ListPreference theme;
+    ListPreference theme, orientationMode, defaultOrientation;
+    CheckBoxPreference useNewPlayer, useHardwareAcceleration, useAVCodesFast;
+    SeekBarPreference cachingBufferSize;
+
+    SharedPreferences.OnSharedPreferenceChangeListener onNewSettingsLoaded = new SharedPreferences.OnSharedPreferenceChangeListener() {
+        @Override
+        public void onSharedPreferenceChanged(final SharedPreferences sharedPreferences, final String s) {
+            Log.d(TAG, "onSharedPreferenceChanged1:" + s);
+            switch(s) {
+                case Settings.KEY_THEME:
+                    new Handler(Looper.getMainLooper()).post(new Runnable() {
+                        @Override
+                        public void run() {
+                            theme.setValue(sharedPreferences.getString(Settings.KEY_THEME, "1"));
+                        }
+                    });
+                    break;
+                case Settings.KEY_DEFAULT_ORIENTATION:
+                    new Handler(Looper.getMainLooper()).post(new Runnable() {
+                        @Override
+                        public void run() {
+                            defaultOrientation.setValue(sharedPreferences.getString(Settings.KEY_DEFAULT_ORIENTATION, "0"));
+                        }
+                    });
+                    break;
+                case Settings.KEY_ORIENTATION_MODE:
+                    new Handler(Looper.getMainLooper()).post(new Runnable() {
+                        @Override
+                        public void run() {
+                            orientationMode.setValue(sharedPreferences.getString(Settings.KEY_ORIENTATION_MODE, "0"));
+                        }
+                    });
+                    break;
+                case Settings.KEY_USE_NEW_PLAYER:
+                    new Handler(Looper.getMainLooper()).post(new Runnable() {
+                        @Override
+                        public void run() {
+                            useNewPlayer.setChecked(sharedPreferences.getBoolean(Settings.KEY_USE_NEW_PLAYER, true));
+                        }
+                    });
+                    break;
+                case Settings.KEY_HARDWARE_ACCELERATION:
+                    new Handler(Looper.getMainLooper()).post(new Runnable() {
+                        @Override
+                        public void run() {
+                            useHardwareAcceleration.setChecked(sharedPreferences.getBoolean(Settings.KEY_HARDWARE_ACCELERATION, true));
+                        }
+                    });
+                    break;
+                case Settings.KEY_AVCODES_FAST:
+                    new Handler(Looper.getMainLooper()).post(new Runnable() {
+                        @Override
+                        public void run() {
+                            useAVCodesFast.setChecked(sharedPreferences.getBoolean(Settings.KEY_AVCODES_FAST, false));
+                        }
+                    });
+                    break;
+                case Settings.KEY_CACHING_BUFFER_SIZE:
+                    new Handler(Looper.getMainLooper()).post(new Runnable() {
+                        @Override
+                        public void run() {
+                            cachingBufferSize.setValue(sharedPreferences.getInt(Settings.KEY_CACHING_BUFFER_SIZE, 200));
+                        }
+                    });
+                    break;
+                default:
+            }
+        }
+    };
+
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         setPreferencesFromResource(R.xml.preferences, rootKey);
@@ -35,6 +108,11 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
         showLicense = findPreference(Settings.KEY_SHOW_LICENSE);
         openAddModelForm = findPreference(Settings.KEY_OPEN_ADD_MODEL_FORM);
 
+        useNewPlayer = findPreference(Settings.KEY_USE_NEW_PLAYER);
+        useHardwareAcceleration = findPreference(Settings.KEY_HARDWARE_ACCELERATION);
+        useAVCodesFast = findPreference(Settings.KEY_AVCODES_FAST);
+        cachingBufferSize = findPreference(Settings.KEY_CACHING_BUFFER_SIZE);
+
         if(restoreBackup != null) restoreBackup.setOnPreferenceClickListener(this);
         if(createBackup != null) createBackup.setOnPreferenceClickListener(this);
         if(aboutApp != null) aboutApp.setOnPreferenceClickListener(this);
@@ -42,14 +120,18 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
         if(openAddModelForm != null) openAddModelForm.setOnPreferenceClickListener(this);
 
         theme = findPreference(Settings.KEY_THEME);
+        defaultOrientation = findPreference(Settings.KEY_DEFAULT_ORIENTATION);
+        orientationMode = findPreference(Settings.KEY_ORIENTATION_MODE);
 
         PreferenceManager.getDefaultSharedPreferences(getContext()).registerOnSharedPreferenceChangeListener(this);
+        Settings.getInstance(getContext()).setListener(this.onNewSettingsLoaded);
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         PreferenceManager.getDefaultSharedPreferences(getContext()).unregisterOnSharedPreferenceChangeListener(this);
+        Settings.getInstance(getContext()).setListener(null);
     }
 
     @Override
@@ -80,7 +162,6 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
         switch(s) {
             case Settings.KEY_THEME:
-                Log.d(TAG, s + " : " + sharedPreferences.getString(s, "-"));
                 Settings.getInstance(getContext()).setTheme();
                 break;
         }

@@ -83,10 +83,26 @@
     <string name="label_interface">Interfejs</string>
     <string name="label_ads">Reklamy</string>
     <string name="label_data">Dane</string>
+
+    <string name="label_theme">Motyw</string>
+    <string name="summary_theme">Wybierz motyw aplikacji</string>
+    <string name="label_default_orientation">Domyślna orientacja ekranu</string>
+    <string name="summary_default_orientation">Domyslna orientacja ekranu podczas odtwarzania ekranu</string>
+    <string name="label_orientation_mode">Tryb orientacji ekranu</string>
+    <string name="summary_orientation_mode">Wybierz tryb obrotu ekranu</string>
     <string name="label_restore_backup">Przywróć kopię zapasową</string>
     <string name="summary_restore_backup">Przywróć wcześniej utworzoną kopię zapasową</string>
     <string name="label_create_backup">Utwórz kopię zapasową</string>
     <string name="summary_create_backup">Utwórz kopię zapasową danych</string>
+    <string name="label_player_settings">Ustawienie odtwarzacza video</string>
+    <string name="label_use_new_player">Używaj nowego odtwarzacza</string>
+    <string name="summary_use_new_player">Zalecane wylączenie gdy odtwarzacz się nie uruchamia</string>
+    <string name="label_caching_buffer_size">Rozmiar bufora buforowania</string>
+    <string name="summary_caching_buffer_size">Rozmiar buforwa w ms - niższe wartości zmniejszą opóźnienie, ale mogą powodować zacinanie się obrazu</string>
+    <string name="label_hardware_acceleration">Akceleracja sprzętowa</string>
+    <string name="summary_hardware_acceleration">Użyj akceleracji sprzętowej dla uzyskania lepszej wydajności</string>
+    <string name="label_avcodes_fast">Sztuczki przyśpieszające</string>
+    <string name="summary_avcodes_fast">Pozwala na wykorzystanie sztuczek przyspieszających, ale jest podatne na błędy</string>
     <string name="label_others">Inne</string>
     <string name="label_url_add_model_form">Dodaj nowy model</string>
     <string name="summary_url_add_model_form">Zostaniesz przekierowany do formularza dodawania nowego modelu, formularz zostanie otworzony w twojej przeglądarce internetowej</string>
@@ -94,12 +110,21 @@
     <string name="label_app_information">Informacje</string>
     <string name="label_license">Licencja</string>
 
-    <string name="pref_theme_label">Motyw</string>
-    <string name="pref_theme_summary">Wybierz motyw aplikacji</string>
     <string-array name="pref_theme_labels">
         <item>Automatyczny (systemowy)</item>
         <item>Ciemny</item>
         <item>Jasny</item>
+    </string-array>
+
+    <string-array name="pref_default_orientation_labels">
+        <item>Automatyczna</item>
+        <item>Pozioma</item>
+    </string-array>
+
+    <string-array name="pref_orientation_mode_labels">
+        <item>Automatyczny - zawsze włączony</item>
+        <item>Automatyczny - zależnie od ustawień systemu</item>
+        <item>Zablokowany</item>
     </string-array>
 
     <string name="pref_ads_label">Tryb wyświetlania reklam</string>

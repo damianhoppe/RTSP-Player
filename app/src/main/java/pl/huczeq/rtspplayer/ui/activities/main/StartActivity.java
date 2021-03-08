@@ -34,6 +34,12 @@ public class StartActivity extends BaseActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        tryStartNextActivity();
+    }
+
+    @Override
     protected void onDataChangedWAA() {
         super.onDataChangedWAA();
         Log.d(TAG, "DataLoaded");
@@ -46,6 +52,7 @@ public class StartActivity extends BaseActivity {
         Log.d(TAG, "dataLoaded: " + dataLoaded);
         if(activityReady && dataLoaded) {
             Log.d(TAG, "OK");
+            //startActivity(new Intent(getApplicationContext(), MainActivity.class));
             startActivity(new Intent(getApplicationContext(), MainActivity.class));
         }
     }

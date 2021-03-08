@@ -82,10 +82,26 @@
     <string name="label_interface">Interface</string>
     <string name="label_ads">Ads</string>
     <string name="label_data">Data</string>
+
+    <string name="label_theme">Theme</string>
+    <string name="summary_theme">Select an application theme</string>
+    <string name="label_default_orientation">Default screen orientation</string>
+    <string name="summary_default_orientation">Default screen orientation when playing screen</string>
+    <string name="label_orientation_mode">Screen orientation mode</string>
+    <string name="summary_orientation_mode">Select a screen rotation mode </string>
     <string name="label_restore_backup">Restore backup</string>
     <string name="summary_restore_backup">Restore previously created backup</string>
     <string name="label_create_backup">Create backup</string>
     <string name="summary_create_backup">Create backup of data</string>
+    <string name="label_player_settings">Video player settings</string>
+    <string name="label_use_new_player">Use new player</string>
+    <string name="summary_use_new_player">It is recommended to disable when video player does not start</string>
+    <string name="label_caching_buffer_size">Caching buffer size</string>
+    <string name="summary_caching_buffer_size">Buffer size in ms - lower values will reduce latency but may cause stuttering</string>
+    <string name="label_hardware_acceleration">Hardware acceleration</string>
+    <string name="summary_hardware_acceleration">Use hardware acceleration for better performance</string>
+    <string name="label_avcodes_fast">Speed tricks</string>
+    <string name="summary_avcodes_fast">Allows you to use speed-up tricks, but is prone to errors</string>
     <string name="label_others">Others</string>
     <string name="label_url_add_model_form">Open add model form</string>
     <string name="summary_url_add_model_form">You will be redirected to the adding a new model form, the form will open in your web browser</string>
@@ -93,15 +109,30 @@
     <string name="label_app_information">Informations</string>
     <string name="label_license">License</string>
 
-
-    <string name="pref_theme_label">Theme</string>
-    <string name="pref_theme_summary">Select an application theme</string>
     <string-array name="pref_theme_labels">
         <item>Auto (system theme)</item>
         <item>Dark</item>
         <item>Light</item>
     </string-array>
     <string-array name="pref_theme_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+    <string-array name="pref_default_orientation_labels">
+        <item>Automatic</item>
+        <item>Horizontal</item>
+    </string-array>
+    <string-array name="pref_default_orientation_values">
+        <item>0</item>
+        <item>1</item>
+    </string-array>
+    <string-array name="pref_orientation_mode_labels">
+        <item>Automatic - always on</item>
+        <item>Automatic - depending on system settings</item>
+        <item>Locked</item>
+    </string-array>
+    <string-array name="pref_orientation_mode_values">
         <item>0</item>
         <item>1</item>
         <item>2</item>

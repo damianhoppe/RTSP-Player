@@ -43,6 +43,35 @@
       ]
     },
     {
+      "name": "Dahua",
+      "models":[
+        {
+          "name": "1",
+          "urlTemplate": {
+            "urlAuth": "rtsp://{user}:{password}@{addressip}:{port}/cam/realmonitor?channel={channel}&subtype=0",
+            "urlNoneAuth": "rtsp://{addressip}:{port}/cam/realmonitor?channel={channel}&subtype=0",
+            "additionalFields": [1]
+          }
+        },
+        {
+          "name": "2",
+          "urlTemplate": {
+            "urlAuth": "rtsp://{user}:{password}@{addressip}:{port}/cam/realmonitor?channel={channel}&subtype=0&unicast=true&proto=Onvif",
+            "urlNoneAuth": "rtsp://{addressip}:{port}/cam/realmonitor?channel={channel}&subtype=0&unicast=true&proto=Onvif",
+            "additionalFields": [1]
+          }
+        },
+        {
+          "name": "3",
+          "urlTemplate": {
+            "urlAuth": "rtsp://{user}:{password}@{addressip}:{port}/live",
+            "urlNoneAuth": "rtsp://{addressip}:{port}/live",
+            "additionalFields": []
+          }
+        }
+      ]
+    },
+    {
       "name": "Gembird",
       "models":[
         {
@@ -126,6 +155,45 @@
           "urlTemplate": {
             "urlAuth": "rtsp://{user}:{password}@{addressip}:{port}/mpeg4",
             "urlNoneAuth": "rtsp://{addressip}:{port}/mpeg4",
+            "additionalFields": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "Wanscam",
+      "models":[
+        {
+          "name": "HW0043",
+          "urlTemplate": {
+            "urlAuth": "http://{user}:{password}@{addressip}:{port}/videostream.cgi?rate=0",
+            "urlNoneAuth": "http://{addressip}:{port}/videostream.cgi?rate=0",
+            "additionalFields": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "Wansview",
+      "models":[
+        {
+          "name": "Q5, Q6",
+          "urlTemplate": {
+            "urlAuth": "http://{user}:{password}@{addressip}:{port}/live/ch{channel}",
+            "urlNoneAuth": "http://{addressip}:{port}/live/ch{channel}",
+            "additionalFields": [1]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Wyze Cam",
+      "models":[
+        {
+          "name": "v2",
+          "urlTemplate": {
+            "urlAuth": "http://{user}:{password}@{addressip}:{port}/live",
+            "urlNoneAuth": "http://{addressip}:{port}/live",
             "additionalFields": []
           }
         }

@@ -295,6 +295,7 @@ public class DataManager {
     public void savePreviewImg(final Camera camera, final Bitmap bitmap) {
         Log.d(TAG, "Save preview image");
 
+        if(bitmap == null) return;
         if(camera.getPreviewImg() == null || "".equals(camera.getPreviewImg())) {
             final String fileName = settings.getUniquePreviewImageName();
             camera.setPreviewImg(fileName);

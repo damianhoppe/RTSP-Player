@@ -2,26 +2,23 @@ package pl.huczeq.rtspplayer.ui.activities;
 
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.graphics.SurfaceTexture;
 import android.net.Uri;
 import android.os.Bundle;
-import android.view.TextureView;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
 
 import pl.huczeq.rtspplayer.R;
+import pl.huczeq.rtspplayer.ui.views.player.MyGLTextureView;
 import pl.huczeq.rtspplayer.ui.activities.base.BasePreviewcameraActivity;
-import pl.huczeq.rtspplayer.ui.views.player.ZoomableTextureView;
+import pl.huczeq.rtspplayer.ui.renderers.SurfaceTextureRenderer;
 
-public class PreviewCameraActivity extends BasePreviewcameraActivity {
+public class GLPreviewCameraActivity extends BasePreviewcameraActivity {
 
-    private final static String TAG = "PreviewCameraActivity";
+    private final static String TAG = "GLPreviewCameraActivity";
 
-    private ZoomableTextureView videoView;
-    private boolean canTakePicture = false;
-    private Thread canTakePictureDelayThread;
+    private MyGLTextureView videoView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,8 +26,14 @@ public class PreviewCameraActivity extends BasePreviewcameraActivity {
         setContentView(R.layout.activity_preview_camera_gl);
 
         setViewsWidgets();
-        vlcLibrary.prepare(videoView);
-        vlcLibrary.loadData(Uri.parse(url));
+        videoView.initRenderer(new SurfaceTextureRenderer.Callback() {
+            @Override
+            public void onReady(SurfaceTexture surfaceTexture) {
+                vlcLibrary.prepare(videoView.getMySurfaceTexture());
+                vlcLibrary.loadData(Uri.parse(url));
+                vlcLibrary.play();
+            }
+        });
     }
 
     @Override
@@ -48,18 +51,6 @@ public class PreviewCameraActivity extends BasePreviewcameraActivity {
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
-        if(canTakePictureDelayThread != null) {
-            if(canTakePictureDelayThread.isAlive()) {
-                canTakePictureDelayThread.interrupt();
-            }
-            canTakePictureDelayThread = null;
-        }
-        canTakePicture = false;
-    }
-
-    @Override
     protected void onPause() {
         super.onPause();
         vlcLibrary.pause();
@@ -68,26 +59,9 @@ public class PreviewCameraActivity extends BasePreviewcameraActivity {
     @Override
     public void onVideoStart(int width, int height) {
         super.onVideoStart(width, height);
+
         videoView.onNewVideoSize(width, height);
-        if(camera != null) {
-            if (canTakePictureDelayThread != null) {
-                canTakePictureDelayThread.interrupt();
-                canTakePictureDelayThread = null;
-            }
-            canTakePictureDelayThread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        Thread.sleep(100);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    canTakePicture = true;
-                    canTakePictureDelayThread = null;
-                }
-            });
-            canTakePictureDelayThread.start();
-        }
+        videoView.getMyRenderer().getSurfaceTexture().setDefaultBufferSize(width, height);
     }
 
     @Override
@@ -98,7 +72,7 @@ public class PreviewCameraActivity extends BasePreviewcameraActivity {
 
     @Override
     protected boolean canTakePicture() {
-        return this.canTakePicture;
+        return videoView.getMyRenderer().isTextureRendered();
     }
 
     @Override

@@ -261,8 +261,19 @@ public class RestoreBackupActivity extends BaseActivity {
                     if(jsonSettings != null) {
                         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
                         SharedPreferences.Editor editor = pref.edit();
-                        if (!jsonSettings.optString(Settings.KEY_THEME, "").equals("")) editor.putString(Settings.KEY_THEME, jsonSettings.optString(Settings.KEY_THEME, "0"));
+                        if (jsonSettings.has(Settings.KEY_THEME)) editor.putString(Settings.KEY_THEME, jsonSettings.optString(Settings.KEY_THEME, "0"));
+                        if (jsonSettings.has(Settings.KEY_DEFAULT_ORIENTATION)) editor.putString(Settings.KEY_DEFAULT_ORIENTATION, jsonSettings.optString(Settings.KEY_DEFAULT_ORIENTATION, "0"));
+                        if (jsonSettings.has(Settings.KEY_ORIENTATION_MODE)) editor.putString(Settings.KEY_ORIENTATION_MODE, jsonSettings.optString(Settings.KEY_ORIENTATION_MODE, "0"));
+                        if (jsonSettings.has(Settings.KEY_USE_NEW_PLAYER)) editor.putBoolean(Settings.KEY_USE_NEW_PLAYER, jsonSettings.optBoolean(Settings.KEY_USE_NEW_PLAYER, true));
+                        if (jsonSettings.has(Settings.KEY_CACHING_BUFFER_SIZE)) editor.putInt(Settings.KEY_CACHING_BUFFER_SIZE, jsonSettings.optInt(Settings.KEY_CACHING_BUFFER_SIZE, 10));
+                        if (jsonSettings.has(Settings.KEY_HARDWARE_ACCELERATION)) editor.putBoolean(Settings.KEY_HARDWARE_ACCELERATION, jsonSettings.optBoolean(Settings.KEY_HARDWARE_ACCELERATION, true));
+                        if (jsonSettings.has(Settings.KEY_AVCODES_FAST)) editor.putBoolean(Settings.KEY_AVCODES_FAST, jsonSettings.optBoolean(Settings.KEY_AVCODES_FAST, false));
                         editor.commit();
+                        settings.callListener(Settings.KEY_THEME);
+                        settings.callListener(Settings.KEY_USE_NEW_PLAYER);
+                        settings.callListener(Settings.KEY_CACHING_BUFFER_SIZE);
+                        settings.callListener(Settings.KEY_HARDWARE_ACCELERATION);
+                        settings.callListener(Settings.KEY_AVCODES_FAST);
                     }
                     dataManager.saveData();
                     finish(true);

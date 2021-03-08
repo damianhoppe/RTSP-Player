@@ -189,6 +189,7 @@ public class BaseCameraActivity extends BaseActivity implements UrlsTemplates.Ca
             @Override public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
             @Override
             public void afterTextChanged(Editable editable) {
+                Log.d(TAG, "afterTextChanged");
                 if(urlTemplate != null && previousUrl != null) {
                     if(!previousUrl.equalsIgnoreCase(etCameraUrl.getText().toString())) {
                         spinProducers.setSelection(0, false);
@@ -521,8 +522,8 @@ public class BaseCameraActivity extends BaseActivity implements UrlsTemplates.Ca
     }
 
     public void updateUrl() {
-        if(isUrlFormCorrect() && urlTemplate!=null && previousUrl==null) {
-            etCameraUrl.setText(urlTemplate.getFullUrl(this));
+        if(urlTemplate != null && isUrlFormCorrect() && previousUrl==null) {
+                etCameraUrl.setText(urlTemplate.getFullUrl(this));
         }
     }
 

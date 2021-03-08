@@ -36,15 +36,25 @@ public class Settings {
     private SharedPreferences.Editor appEditor;
 
     private SharedPreferences settingsPref;
+    private SharedPreferences.Editor settingsEditor;
 
     private final String KEY_FIRST_LAUNCH = "first_launch";
 
-    private final String KEY_LAST_ADD_TIME = "last_add_time";
+    private SharedPreferences.OnSharedPreferenceChangeListener listener;
 
     public Settings(Context context) {
         this.context = context;
         this.appPref = this.context.getSharedPreferences(preferencesName, Context.MODE_PRIVATE);
         this.settingsPref = PreferenceManager.getDefaultSharedPreferences(this.context);
+    }
+
+    public void setListener(SharedPreferences.OnSharedPreferenceChangeListener listener) {
+        this.listener = listener;
+    }
+
+    public void callListener(String key) {
+        if(this.listener == null) return;
+        this.listener.onSharedPreferenceChanged(this.settingsPref, key);
     }
 
     // APP PREFERENCES
@@ -66,16 +76,6 @@ public class Settings {
         commit();
     }
 
-    public long getLastAddTime() {
-        return this.appPref.getLong(KEY_LAST_ADD_TIME, 0);
-    }
-
-    public void setLastAddTime(long time) {
-        edit();
-        this.appEditor.putLong(KEY_LAST_ADD_TIME, time);
-        commit();
-    }
-
     //END OF APP PREFERENCES
 
     public static String getFullVersion() {
@@ -94,11 +94,100 @@ public class Settings {
 
     //SETTINGS PREFERENCES
 
+    private void editSettings() {
+        this.settingsEditor = this.settingsPref.edit();
+    }
+    private void commitSettings() {
+        this.settingsEditor.commit();
+    }
+
     public String getTheme() {
         String theme = this.settingsPref.getString(KEY_THEME, "0");
         return theme;
     }
 
+    public void setTheme() {
+        switch(getTheme()) {
+            case "1":
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                break;
+            case "2":
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                break;
+            default:
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+        }
+    }
+
+    public String getDefaultOrientationValue() {
+        return this.settingsPref.getString(KEY_DEFAULT_ORIENTATION, "0");
+    }
+
+    public String getOrientationModeValue() {
+        return this.settingsPref.getString(KEY_ORIENTATION_MODE,"0");
+    }
+
+    public ORIENTATION getDefaultOrientation() {
+        switch(getDefaultOrientationValue()) {
+            case "0":
+                return ORIENTATION.AUTOMATIC;
+            default:
+                return ORIENTATION.HORIZONTAL;
+        }
+    }
+
+    public ORIENTATION_MODE getOrientationMode() {
+        switch(getOrientationModeValue()) {
+            case "1":
+                return ORIENTATION_MODE.AUTO_SYS;
+            case "2":
+                return ORIENTATION_MODE.LOCKED;
+            default:
+                return ORIENTATION_MODE.AUTO_SENSOR;
+        }
+    }
+
+    public int getCachingBufferSize() {
+        return this.settingsPref.getInt(KEY_CACHING_BUFFER_SIZE, 100);
+    }
+
+    public void setCachinBufferSize(int bufferSize) {
+        if(bufferSize < 10) bufferSize = 10;
+        if(bufferSize > 5000) bufferSize = 5000;
+        editSettings();
+        this.settingsEditor.putInt(KEY_CACHING_BUFFER_SIZE, bufferSize);
+        commitSettings();
+    }
+
+    public boolean isEnabledHardwareAcceleration() {
+        return this.settingsPref.getBoolean(KEY_HARDWARE_ACCELERATION, true);
+    }
+
+    public void setEnabledHardwareAcceleration(boolean enabled) {
+        editSettings();
+        this.settingsEditor.putBoolean(KEY_HARDWARE_ACCELERATION, enabled);
+        commitSettings();
+    }
+
+    public boolean isEnabledAVCodes() {
+        return this.settingsPref.getBoolean(KEY_AVCODES_FAST, false);
+    }
+
+    public void setEnabledAVCodes(boolean enabled) {
+        editSettings();
+        this.settingsEditor.putBoolean(KEY_AVCODES_FAST, enabled);
+        commitSettings();
+    }
+
+    public boolean isEnabledNewPlayer() {
+        return this.settingsPref.getBoolean(KEY_USE_NEW_PLAYER, true);
+    }
+
+    public void setEnabledNewPlayer(boolean enabled) {
+        editSettings();
+        this.settingsEditor.putBoolean(KEY_USE_NEW_PLAYER, enabled);
+        commitSettings();
+    }
     //END OF SETTINGS PREFERENCES
 
     public File getPreviewImagesDir() {
@@ -118,23 +207,31 @@ public class Settings {
         return dir;
     }
 
-    public void setTheme() {
-        switch(getTheme()) {
-            case "1":
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-                break;
-            case "2":
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-                break;
-            default:
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
-        }
+    public SharedPreferences getAppPref() {
+        return this.appPref;
     }
+
+    public SharedPreferences getSettingsPref() {
+        return this.appPref;
+    }
+
     public static final String KEY_RESTORE_BACKUP = "restoreBackup";
     public static final String KEY_CREATE_BACKUP = "createBackup";
     public static final String KEY_ABOUT_APP = "appInformations";
     public static final String KEY_SHOW_LICENSE = "showLicense";
     public static final String KEY_THEME = "theme";
+    public static final String KEY_DEFAULT_ORIENTATION = "defaultOrientation";
+    public static final String KEY_ORIENTATION_MODE = "orientationMode";
     public static final String KEY_OPEN_ADD_MODEL_FORM = "openAddModelForm";
-    public static final String KEY_LISTENER_DELAY = "listenerDelay";
+    public static final String KEY_USE_NEW_PLAYER = "useNewPlayer";
+    public static final String KEY_CACHING_BUFFER_SIZE = "cachingBufferSize";
+    public static final String KEY_HARDWARE_ACCELERATION = "hardwareAcceleration";
+    public static final String KEY_AVCODES_FAST = "avcodesFast";
+
+    public enum ORIENTATION_MODE {
+        AUTO_SYS, AUTO_SENSOR, LOCKED;
+    }
+    public enum ORIENTATION {
+        AUTOMATIC, HORIZONTAL;
+    }
 }

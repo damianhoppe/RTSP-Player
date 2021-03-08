@@ -3,7 +3,6 @@ package pl.huczeq.rtspplayer.ui.activities;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -16,9 +15,9 @@ import pl.huczeq.rtspplayer.ui.activities.mgmt.AddCameraActivity;
 import pl.huczeq.rtspplayer.ui.activities.base.BaseActivity;
 import pl.huczeq.rtspplayer.ui.activities.mgmt.BaseCameraActivity;
 import pl.huczeq.rtspplayer.ui.activities.mgmt.EditCameraActivity;
+import pl.huczeq.rtspplayer.ui.activities.base.BasePreviewcameraActivity;
 import pl.huczeq.rtspplayer.ui.activities.settings.SettingsActivity;
 import pl.huczeq.rtspplayer.interfaces.OnMenuItemSelected;
-import pl.huczeq.rtspplayer.data.Settings;
 import pl.huczeq.rtspplayer.data.objects.Camera;
 import pl.huczeq.rtspplayer.adapters.ListAdapter;
 import pl.huczeq.rtspplayer.R;
@@ -123,8 +122,13 @@ public class MainActivity extends BaseActivity implements OnListItemSelected, On
 
     @Override
     public void onListItemSelected(Camera camera) {
-        Intent intent = new Intent(getApplicationContext(), PreviewCameraActivity.class);
-        intent.putExtra(PreviewCameraActivity.EXTRA_CAMERA_NAME, camera.getName());
+        Intent intent;
+        if(settings.isEnabledNewPlayer()) {
+            intent = new Intent(getApplicationContext(), GLPreviewCameraActivity.class);
+        }else {
+            intent = new Intent(getApplicationContext(), PreviewCameraActivity.class);
+        }
+        intent.putExtra(BasePreviewcameraActivity.EXTRA_CAMERA_NAME, camera.getName());
         startActivity(intent);
     }
 
