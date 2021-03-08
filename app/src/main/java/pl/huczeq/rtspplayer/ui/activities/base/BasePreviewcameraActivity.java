@@ -51,9 +51,11 @@ public class BasePreviewcameraActivity extends BaseActivity implements VlcLibrar
         if(settings.getDefaultOrientation() == Settings.ORIENTATION.HORIZONTAL) {
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
             if(orientationMode != Settings.ORIENTATION_MODE.LOCKED) {
+                Log.d(TAG, "OrientationListener init");
                 orientationListener = new OrientationListener(this);
             }
         }else {
+            Log.d(TAG, "OrientationListener not");
             switch(orientationMode) {
                 case AUTO_SYS:
                     setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_USER);

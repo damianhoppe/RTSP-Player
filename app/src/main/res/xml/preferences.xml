@@ -14,7 +14,8 @@
             app:title="@string/label_theme"
             app:summary="@string/summary_theme"
             app:defaultValue="0"
-            app:iconSpaceReserved="false"/>
+            app:iconSpaceReserved="false"
+            android:negativeButtonText="@string/cancel"/>
         <ListPreference
             app:key="defaultOrientation"
             app:entries="@array/pref_default_orientation_labels"
@@ -22,7 +23,8 @@
             app:title="@string/label_default_orientation"
             app:summary="@string/summary_default_orientation"
             app:defaultValue="0"
-            app:iconSpaceReserved="false"/>
+            app:iconSpaceReserved="false"
+            android:negativeButtonText="@string/cancel"/>
         <ListPreference
             app:key="orientationMode"
             app:entries="@array/pref_orientation_mode_labels"
@@ -30,7 +32,8 @@
             app:title="@string/label_orientation_mode"
             app:summary="@string/summary_orientation_mode"
             app:defaultValue="0"
-            app:iconSpaceReserved="false"/>
+            app:iconSpaceReserved="false"
+            android:negativeButtonText="@string/cancel"/>
     </PreferenceCategory>
 
     <PreferenceCategory

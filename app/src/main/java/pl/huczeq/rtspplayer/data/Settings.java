@@ -195,7 +195,7 @@ public class Settings {
     }
     public File getBackupsDir() {
         File dir;
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !Environment.isExternalStorageManager()) {
             dir = new File(context.getExternalFilesDir(null), "Backups");
         }else {
             String path = context.getExternalFilesDir(null).getAbsolutePath();

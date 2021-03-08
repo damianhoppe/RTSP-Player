@@ -78,14 +78,7 @@ public class CreateBackupActivity extends BaseActivity {
         });
 
 
-        String path = settings.getBackupsDir().getPath();
-        int i = -1;
-        if((i = path.indexOf(File.separator + "Android")) > -1) {
-            path = path.substring(i);
-        }else if((i = path.indexOf(File.separator + "RTSP")) > -1) {
-            path = path.substring(i);
-        }
-        tvPath.setText(path);
+        updatePathTextView();
 
         String nOfC = getString(R.string.number_of_cameras) + ": " + dataManager.getCameraList().size();
         tvNumberOfCameras.setText(nOfC);
@@ -94,17 +87,8 @@ public class CreateBackupActivity extends BaseActivity {
             cbCameras.setChecked(true);
     }
 
-    private void startCreateBackup() {
-        if(!cbCameras.isChecked() && !cbSettings.isChecked()) return;
-        /*if(Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
-            if(!Environment.isExternalStorageManager()) {
-                Intent intent = new Intent(android.provider.Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
-                startActivity(intent);
-                Toast.makeText(this, R.string.permissions_storage_rationale, Toast.LENGTH_SHORT).show();
-                return;
-            }
-        }else */
-        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+    private boolean arePermissionsGranted() {
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                 if (shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
                     Toast.makeText(this, R.string.permissions_storage_rationale, Toast.LENGTH_SHORT).show();
@@ -112,14 +96,27 @@ public class CreateBackupActivity extends BaseActivity {
                     Uri uri = Uri.fromParts("package", getPackageName(), null);
                     intent.setData(uri);
                     startActivity(intent);
-                    return;
+                    return false;
                 }
                 String[] p = new String[1];
                 p[0] = Manifest.permission.WRITE_EXTERNAL_STORAGE;
                 requestPermissions(p, 1);
-                return;
+                return false;
             }
-        }
+        }/*else {
+            if(!Environment.isExternalStorageManager()) {
+                Intent intent = new Intent(android.provider.Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                startActivity(intent);
+                Toast.makeText(this, R.string.permissions_storage_rationale, Toast.LENGTH_SHORT).show();
+                return false;
+            }
+        }*/
+        return true;
+    }
+
+    private void startCreateBackup() {
+        if(!cbCameras.isChecked() && !cbSettings.isChecked()) return;
+        if(!arePermissionsGranted()) return;
         onStartCreating();
         new Thread(new Runnable() {
             @Override
@@ -236,6 +233,7 @@ public class CreateBackupActivity extends BaseActivity {
     boolean showSettingsPermissions = false;
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        updatePathTextView();
         boolean granted = false;
         for(int i = 0; i < grantResults.length; i++) {
             if(permissions[i] == Manifest.permission.WRITE_EXTERNAL_STORAGE && grantResults[i] == PackageManager.PERMISSION_GRANTED) {
@@ -272,5 +270,16 @@ public class CreateBackupActivity extends BaseActivity {
         cbSettings.setEnabled(false);
         buttonCreateBackup.setEnabled(false);
         progressBar.setVisibility(View.VISIBLE);
+    }
+
+    private void updatePathTextView() {
+        String path = settings.getBackupsDir().getPath();
+        int i = -1;
+        if((i = path.indexOf(File.separator + "Android")) > -1) {
+            path = path.substring(i);
+        }else if((i = path.indexOf(File.separator + "RTSP")) > -1) {
+            path = path.substring(i);
+        }
+        tvPath.setText(path);
     }
 }

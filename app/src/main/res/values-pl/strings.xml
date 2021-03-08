@@ -76,7 +76,7 @@
     <string name="success_restore">Przywracanie powiodło się</string>
     <string name="success_created">Utworzono kopię pomyślnie</string>
     <string name="error_restore">Wystapił błąd</string>
-    <string name="backup_cameras_summary">Exportuje wszystkie kamery, zaierając ich wszystkie dane, takie jak adres ip, port, nazwa użytkownika oraz hasło.</string>
+    <string name="backup_cameras_summary">Eksportuje wszystkie kamery, zawierając ich wszystkie dane, takie jak adres ip, port, nazwa użytkownika oraz hasło.</string>
     <string name="backup_settings_summary">Wszystkie ustawienia aplikacji.</string>
 
     <!--Preferences-->
@@ -86,8 +86,8 @@
 
     <string name="label_theme">Motyw</string>
     <string name="summary_theme">Wybierz motyw aplikacji</string>
-    <string name="label_default_orientation">Domyślna orientacja ekranu</string>
-    <string name="summary_default_orientation">Domyslna orientacja ekranu podczas odtwarzania ekranu</string>
+    <string name="label_default_orientation">Startowa orientacja ekranu</string>
+    <string name="summary_default_orientation">Startowa orientacja ekranu odtwarzacza</string>
     <string name="label_orientation_mode">Tryb orientacji ekranu</string>
     <string name="summary_orientation_mode">Wybierz tryb obrotu ekranu</string>
     <string name="label_restore_backup">Przywróć kopię zapasową</string>

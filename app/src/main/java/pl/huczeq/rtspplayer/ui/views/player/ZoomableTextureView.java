@@ -157,6 +157,7 @@ public class ZoomableTextureView extends TextureView {
     private int width = 1, height = 1;
     private float scaleX = 1, scaleY = 1;
     private Matrix myMatrix;
+
     public void onNewVideoSize(int width, int height) {
         if(width == 0 || height == 0) return;
         this.width = width;
@@ -173,19 +174,24 @@ public class ZoomableTextureView extends TextureView {
     }
 
     private void updateScaleValues() {
+        Log.d("TEST", "W: " + width + ", H: " + height);
         DisplayMetrics dMetrics = getContext().getResources().getDisplayMetrics();
         int pWidth = dMetrics.widthPixels;
         int pHeight = dMetrics.heightPixels;
 
         float mVideoWidth = width;
         float mVideoHeight = height;
+        float screenAspectRatio = pHeight/pWidth;
+        float videoAspectRatio = mVideoHeight/mVideoWidth;
 
-        if(pHeight < mVideoHeight) {
-            scaleX = (pHeight / mVideoHeight) / (pWidth / mVideoWidth);
-            scaleY = 1;
-        }else if(pWidth < mVideoWidth){
+        Log.d("TEST", "pW: " + pWidth + ", pH: " + pHeight);
+
+        if(screenAspectRatio > videoAspectRatio) {
             scaleY = (pWidth / mVideoWidth) / (pHeight / mVideoHeight);
             scaleX = 1;
+        }else {
+            scaleX = (pHeight / mVideoHeight) / (pWidth / mVideoWidth);
+            scaleY = 1;
         }
 
         ViewGroup.LayoutParams params = getLayoutParams();

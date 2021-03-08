@@ -2,10 +2,10 @@ import java.text.SimpleDateFormat
 
 apply plugin: 'com.android.application'
 
-def appVersionCode = 7
+def appVersionCode = 8
 def appSiteUrl = "https://github.com/Huczeq/RTSP-Player"
 def urlAddModelForm = "https://docs.google.com/forms/d/e/1FAIpQLSdIlcGRIdQSlwCDhrjd2s62ZVPadYcQDpa2At543e9urx2VyQ/viewform?usp=sf_link"
-def appVersionName = "1.5"
+def appVersionName = "1.5.1"
 def buildTime(String format = "yyyy-MM-dd") {
     def df = new SimpleDateFormat(format)
     df.setTimeZone(TimeZone.getTimeZone("UTC"))

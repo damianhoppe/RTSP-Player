@@ -85,10 +85,10 @@
 
     <string name="label_theme">Theme</string>
     <string name="summary_theme">Select an application theme</string>
-    <string name="label_default_orientation">Default screen orientation</string>
-    <string name="summary_default_orientation">Default screen orientation when playing screen</string>
+    <string name="label_default_orientation">Initial screen orientation</string>
+    <string name="summary_default_orientation">Initial screen orientation of the player</string>
     <string name="label_orientation_mode">Screen orientation mode</string>
-    <string name="summary_orientation_mode">Select a screen rotation mode </string>
+    <string name="summary_orientation_mode">Select a screen rotation mode</string>
     <string name="label_restore_backup">Restore backup</string>
     <string name="summary_restore_backup">Restore previously created backup</string>
     <string name="label_create_backup">Create backup</string>
