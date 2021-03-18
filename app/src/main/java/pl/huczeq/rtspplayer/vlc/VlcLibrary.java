@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.SurfaceTexture;
 import android.net.Uri;
 import android.util.Log;
+import android.view.Surface;
 import android.view.SurfaceView;
 import android.view.TextureView;
 
@@ -24,7 +25,7 @@ public class VlcLibrary implements IVLCVout.OnNewVideoLayoutListener {
     private static final String TAG = "VlcLibrary";
     private Context context;
     private LibVLC libVLC;
-    private MediaPlayer mediaPlayer;
+    public MediaPlayer mediaPlayer;
     private IVLCVout vlcVout;
 
     private SurfaceTexture outputSurface;
@@ -37,23 +38,25 @@ public class VlcLibrary implements IVLCVout.OnNewVideoLayoutListener {
 
     private boolean initialized;
     private boolean prepared;
+    private boolean released;
     private ArrayList<String> args;
 
     private Settings settings;
 
     private Thread stopPlayerThread;
-    private Thread releaseLibThread;
 
     public VlcLibrary(Context context) {
         this.context = context;
         this.initialized = false;
         this.prepared = false;
+        this.released = true;
         this.settings = Settings.getInstance(context);
         int caching = settings.getCachingBufferSize();
         this.args = new ArrayList<String>(Arrays.asList("--vout=android-display", "--file-caching="+caching, "--network-caching="+caching, "--live-caching="+caching, "-vvv"));//TODO CHANGED
     }
 
     public void init() {
+        Log.d(TAG, "init");
         if(initialized) return;
         this.libVLC = new LibVLC(context, args);
         this.mediaPlayer = new MediaPlayer(libVLC);
@@ -63,67 +66,23 @@ public class VlcLibrary implements IVLCVout.OnNewVideoLayoutListener {
             public void onEvent(MediaPlayer.Event event) {
                 switch (event.type) {
                     case MediaPlayer.Event.Buffering:
-                        Log.d(TAG, "Buffering");
                         if(callbackListener != null)
                             callbackListener.onVideoBuffering(event.getBuffering());
                         break;
                     case MediaPlayer.Event.EncounteredError:
-                        Log.d(TAG, "EncounteredError");
                         if(callbackListener != null) {
                             callbackListener.onVideError();
                         }
                         break;
                     case MediaPlayer.Event.EndReached:
-                        Log.d(TAG, "EndReached");
-                        break;
-                    case MediaPlayer.Event.ESAdded:
-                        Log.d(TAG, "ESAdded");
-                        break;
-                    case MediaPlayer.Event.ESDeleted:
-                        Log.d(TAG, "ESDeleted");
-                        break;
-                    case MediaPlayer.Event.ESSelected:
-                        Log.d(TAG, "ESSelected");
-                        break;
-                    case MediaPlayer.Event.LengthChanged:
-                        Log.d(TAG, "LengthChanged");
-                        break;
-                    case MediaPlayer.Event.MediaChanged:
-                        Log.d(TAG, "MediaChanged");
-                        break;
-                    case MediaPlayer.Event.Opening:
-                        Log.d(TAG, "Opening");
-                        break;
-                    case MediaPlayer.Event.PausableChanged:
-                        Log.d(TAG, "PausableChanged");
-                        break;
-                    case MediaPlayer.Event.Paused:
-                        Log.d(TAG, "Paused");
-                        break;
-                    case MediaPlayer.Event.Playing:
-                        Log.d(TAG, "Playing");
-                        break;
-                    case MediaPlayer.Event.PositionChanged:
-                        Log.d(TAG, "PositionChanged");
-                        //Log.d(TAG, String.valueOf(event.getPositionChanged()));
-                        break;
-                    case MediaPlayer.Event.RecordChanged:
-                        Log.d(TAG, "RecordChanged");
-                        break;
-                    case MediaPlayer.Event.SeekableChanged:
-                        Log.d(TAG, "SeekableChanged");
+                        if(callbackListener != null)
+                            callbackListener.onEndReached();
                         break;
                     case MediaPlayer.Event.Stopped:
                         Log.d(TAG, "Stopped");
                         if(callbackListener != null) {
                             callbackListener.onVideStop();
                         }
-                        break;
-                    case MediaPlayer.Event.TimeChanged:
-                        Log.d(TAG, "TimeChanged");
-                        break;
-                    case MediaPlayer.Event.Vout:
-                        Log.d(TAG, "Vout");
                         break;
                 }
             }
@@ -151,11 +110,14 @@ public class VlcLibrary implements IVLCVout.OnNewVideoLayoutListener {
                 libVLC = null;
                 initialized = false;
                 prepared = false;
+                released = true;
+                Log.d(TAG, "released in Thread");
             }
         }).start();
     }
 
     public void prepare(SurfaceTexture outputSurface) {
+        Log.d(TAG, "prepare");
         if(!this.initialized) throw new IllegalStateException("VlcLibrary is not initialized!");
 
         this.outputType = OutputType.SURFACE_TEXTURE;
@@ -169,6 +131,7 @@ public class VlcLibrary implements IVLCVout.OnNewVideoLayoutListener {
     }
 
     public void prepare(TextureView outputView) {
+        Log.d(TAG, "prepare");
         if(!this.initialized) throw new IllegalStateException("VlcLibrary is not initialized!");
 
         this.outputType = OutputType.TEXTURE_VIEW;
@@ -182,6 +145,7 @@ public class VlcLibrary implements IVLCVout.OnNewVideoLayoutListener {
     }
 
     public void play() {
+        Log.d(TAG, "play");
        /* if(!this.initialized) throw new IllegalStateException("VlcLibrary is not initialized!");
         if(!this.prepared) throw new IllegalStateException("VlcLibrary is not prepared!");
         if(this.uri == null) throw new IllegalStateException("No data to play!");*/
@@ -196,7 +160,8 @@ public class VlcLibrary implements IVLCVout.OnNewVideoLayoutListener {
         mediaPlayer.play();
     }
 
-    public void pause() {/*
+    public void pause() {
+        Log.d(TAG, "pause");/*
         if(!this.initialized) throw new IllegalStateException("VlcLibrary is not initialized!");
         if(!this.prepared) throw new IllegalStateException("VlcLibrary is not prepared!");*/
         if(mediaPlayer == null) return;
@@ -204,7 +169,7 @@ public class VlcLibrary implements IVLCVout.OnNewVideoLayoutListener {
     }
 
     public void stop() {
-        Log.d(TAG, "onStop");
+        Log.d(TAG, "stop");
         /*
         if(!this.initialized) throw new IllegalStateException("VlcLibrary is not initialized!");
         if(!this.prepared) throw new IllegalStateException("VlcLibrary is not prepared!");*/
@@ -223,8 +188,10 @@ public class VlcLibrary implements IVLCVout.OnNewVideoLayoutListener {
     }
 
     public void loadData(Uri uri) {
+        Log.d(TAG, "loadData");
         if(!this.initialized) throw new IllegalStateException("VlcLibrary is not initialized!");
         if(!this.prepared) throw new IllegalStateException("VlcLibrary is not prepared!");
+        if(!this.released) throw new IllegalStateException("VlcLibrary is not released!");
 
         this.uri = uri;
         Media media = new Media(libVLC, uri);
@@ -242,6 +209,7 @@ public class VlcLibrary implements IVLCVout.OnNewVideoLayoutListener {
         media.setHWDecoderEnabled(settings.isEnabledHardwareAcceleration(), false);
         mediaPlayer.setMedia(media);
         media.release();
+        this.released = false;
     }
 
     public void setCallbackListener(Callback callbackListener) {
@@ -254,8 +222,29 @@ public class VlcLibrary implements IVLCVout.OnNewVideoLayoutListener {
             callbackListener.onVideoStart(width, height);
     }
 
+    public void releaseMediaPlayer() {
+        vlcVout.detachViews();
+        mediaPlayer.detachViews();
+        mediaPlayer.setEventListener(null);
+        mediaPlayer.release();
+        libVLC.release();
+    }
+
     public boolean canPlay() {
         return this.initialized && this.prepared;
+    }
+
+    public boolean isReleased() {
+        return this.released;
+    }
+
+    public boolean isInitialized() {
+        return this.initialized;
+    }
+
+    public boolean isPlaying() {
+        if(this.mediaPlayer == null) return false;
+        return this.mediaPlayer.isPlaying();
     }
 
     public enum OutputType {
@@ -267,5 +256,6 @@ public class VlcLibrary implements IVLCVout.OnNewVideoLayoutListener {
         void onVideError();
         void onVideStop();
         void onVideoBuffering(float buffering);
+        void onEndReached();
     }
 }

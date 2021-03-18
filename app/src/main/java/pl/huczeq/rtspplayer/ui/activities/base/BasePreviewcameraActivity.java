@@ -4,10 +4,12 @@ import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkRequest;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.view.OrientationEventListener;
 import android.view.View;
@@ -26,7 +28,7 @@ import pl.huczeq.rtspplayer.data.objects.Camera;
 import pl.huczeq.rtspplayer.utils.Utils;
 import pl.huczeq.rtspplayer.vlc.VlcLibrary;
 
-public class BasePreviewcameraActivity extends BaseActivity implements VlcLibrary.Callback{
+public class BasePreviewcameraActivity extends BaseActivity implements VlcLibrary.Callback {
 
     private final static String TAG = "BasePreviewcameraActiv";
 
@@ -37,10 +39,51 @@ public class BasePreviewcameraActivity extends BaseActivity implements VlcLibrar
     protected ProgressBar pBLoading;
 
     protected Camera camera;
+    protected String cameraName;
     protected String url;
     protected VlcLibrary vlcLibrary;
 
+    protected boolean connectionError = false;
+    private boolean connectionChanged = false;
+    private boolean connectionAvailable = false;
+    private boolean active = false;
+
     private OrientationListener orientationListener;
+
+    ConnectivityManager.NetworkCallback networkCallback = new ConnectivityManager.NetworkCallback(){
+        @Override
+        public void onAvailable(@NonNull Network network) {
+            super.onAvailable(network);
+            connectionAvailable = true;
+            connectionChanged = true;
+            if(active) {
+                onStateChanged();
+                Toast.makeText(getApplicationContext(), getString(R.string.online_status), Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        @Override
+        public void onLost(@NonNull Network network) {
+            super.onLost(network);
+            connectionAvailable = false;
+            connectionChanged = true;
+            if(active)
+                Toast.makeText(getApplicationContext(), getString(R.string.offline_status), Toast.LENGTH_SHORT).show();
+        }
+    };
+
+    private void onStateChanged() {
+        Log.d(TAG, connectionChanged + " / " + connectionAvailable + " / " + connectionError + " / " + active);
+        if(connectionChanged && connectionAvailable && connectionError && active) {
+            if (!vlcLibrary.isInitialized()) {
+                createVlcLibraryObject();
+            }
+            prepareSurface();
+            loadVideo();
+            connectionChanged = false;
+            connectionError = false;
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,19 +112,29 @@ public class BasePreviewcameraActivity extends BaseActivity implements VlcLibrar
             }
         }
 
-        camera = dataManager.getCamera(getIntent().getStringExtra(EXTRA_CAMERA_NAME));
-        if(camera == null) {
-            url = getIntent().getStringExtra(EXTRA_URL);
-        }else {
-            url = camera.getUrl();
-        }
-        if(url == null || url.trim().isEmpty()) {
+        this.cameraName = getIntent().getStringExtra(EXTRA_CAMERA_NAME);
+        this.url = getIntent().getStringExtra(EXTRA_URL);
+        if(url == null || url.trim().isEmpty())
+        {
+            this.url = null;
             finish();
-            return;
         }
         vlcLibrary = new VlcLibrary(this);
         vlcLibrary.init();
         vlcLibrary.setCallbackListener(this);
+        if(this.dataManager.isDataLoaded())
+            this.onDataChangedWAA();
+
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkRequest.Builder builder = new NetworkRequest.Builder();
+        connectivityManager.registerNetworkCallback(builder.build(), this.networkCallback);
+    }
+
+    @Override
+    protected void onDataChangedWAA() {
+        super.onDataChangedWAA();
+        if(this.cameraName != null && !this.cameraName.trim().isEmpty())
+            camera = dataManager.getCamera(this.cameraName);
     }
 
     @Override
@@ -97,9 +150,10 @@ public class BasePreviewcameraActivity extends BaseActivity implements VlcLibrar
         super.onStart();
         pBLoading.setVisibility(View.VISIBLE);
         vlcLibrary.setCallbackListener(this);
-        vlcLibrary.play();
         if(orientationListener != null)
             orientationListener.enable();
+        active = true;
+        onStateChanged();
     }
 
     @Override
@@ -109,6 +163,7 @@ public class BasePreviewcameraActivity extends BaseActivity implements VlcLibrar
         vlcLibrary.stop();
         if(orientationListener != null)
             orientationListener.disable();
+        active = false;
     }
 
     @Override
@@ -120,7 +175,7 @@ public class BasePreviewcameraActivity extends BaseActivity implements VlcLibrar
     @Override
     protected void onPause() {
         super.onPause();
-        if(this.canTakePicture()) {
+        if(this.canTakePicture() && this.camera != null) {
             dataManager.savePreviewImg(this.camera, this.takePicture());
         }
         vlcLibrary.pause();
@@ -130,6 +185,8 @@ public class BasePreviewcameraActivity extends BaseActivity implements VlcLibrar
     protected void onDestroy() {
         super.onDestroy();
         vlcLibrary.release();
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        connectivityManager.unregisterNetworkCallback(this.networkCallback);
     }
 
     @Override
@@ -139,8 +196,13 @@ public class BasePreviewcameraActivity extends BaseActivity implements VlcLibrar
 
     @Override
     public void onVideError() {
-        pBLoading.setVisibility(View.INVISIBLE);
-        Toast.makeText(getApplicationContext(), getString(R.string.video_error), Toast.LENGTH_SHORT).show();
+        Log.d(TAG, "ONVIDEOERROR");
+        pBLoading.setVisibility(View.VISIBLE);
+        if(active && !connectionChanged)
+            Toast.makeText(getApplicationContext(), getString(R.string.video_error), Toast.LENGTH_SHORT).show();
+        destroyVlcLibraryObject();
+        connectionError = true;
+        onStateChanged();
     }
 
     @Override
@@ -151,6 +213,48 @@ public class BasePreviewcameraActivity extends BaseActivity implements VlcLibrar
     @Override
     public void onVideoBuffering(float buffering) {
     }
+
+    @Override
+    public void onEndReached() {
+        onVideError();
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if(hasFocus) hideUI();
+    }
+
+    @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        Log.d(TAG, "onConfigurationChanged");
+    }
+
+    protected void loadVideo()
+    {
+        Log.d(TAG, "LOADVIDEO");
+        pBLoading.setVisibility(View.VISIBLE);
+        vlcLibrary.loadData(Uri.parse(url));
+        vlcLibrary.play();
+    }
+
+    protected void destroyVlcLibraryObject() {
+        Log.d(TAG, "DESTROY VLC");
+        vlcLibrary.setCallbackListener(null);
+        vlcLibrary.stop();
+        vlcLibrary.release();
+        vlcLibrary = new VlcLibrary(this);
+    }
+
+    protected void createVlcLibraryObject() {
+        Log.d(TAG, "CREATE VLC");
+        vlcLibrary.init();
+        vlcLibrary.setCallbackListener(this);
+    }
+
+    protected void prepareSurface() {
+        Log.d(TAG, "PREPARE SURFACE");}
 
     protected void hideUI() {
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -172,20 +276,8 @@ public class BasePreviewcameraActivity extends BaseActivity implements VlcLibrar
         }
     }
 
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        if(hasFocus) hideUI();
-    }
-
-    @Override
-    public void onConfigurationChanged(@NonNull Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        Log.d(TAG, "onConfigurationChanged");
-    }
-
     protected boolean canTakePicture() {
-        return false;
+        return vlcLibrary.isPlaying();
     }
 
     protected Bitmap takePicture() {
@@ -195,23 +287,7 @@ public class BasePreviewcameraActivity extends BaseActivity implements VlcLibrar
     private class OrientationListener extends OrientationEventListener {
         public OrientationListener(Context context) { super(context); }
 
-        @Override public void onOrientationChanged(int orientation) {/*
-            int localRotation = 0;
-            if( (orientation < 35 || orientation > 325) && rotation!= ROTATION_O){
-                rotation = ROTATION_O;
-            }
-            else if( orientation > 145 && orientation < 215 && rotation!=ROTATION_180){
-                rotation = ROTATION_180;
-                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT);
-            }
-            else if(orientation > 55 && orientation < 125 && rotation!=ROTATION_270){
-                rotation = ROTATION_270;
-                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE);
-            }
-            else if(orientation > 235 && orientation < 305 && rotation!=ROTATION_90){
-                rotation = ROTATION_90;
-                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-            }*/
+        @Override public void onOrientationChanged(int orientation) {
             Log.d(TAG, "Orientation:" + orientation);
             if(orientation > 75 && orientation < 105 || orientation > 255 && orientation < 285) {
                 if(!Utils.isSystemOrientationLocked(BasePreviewcameraActivity.this)) {

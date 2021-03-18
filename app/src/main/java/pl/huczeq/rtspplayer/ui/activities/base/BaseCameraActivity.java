@@ -1,4 +1,4 @@
-package pl.huczeq.rtspplayer.ui.activities.mgmt;
+package pl.huczeq.rtspplayer.ui.activities.base;
 
 import android.content.Intent;
 import android.graphics.Typeface;
@@ -27,7 +27,6 @@ import java.util.ArrayList;
 
 import pl.huczeq.rtspplayer.R;
 import pl.huczeq.rtspplayer.ui.activities.PreviewCameraActivity;
-import pl.huczeq.rtspplayer.ui.activities.base.BaseActivity;
 import pl.huczeq.rtspplayer.adapters.ModelsSpinnerAdapter;
 import pl.huczeq.rtspplayer.adapters.ProducersSpinnerAdapter;
 import pl.huczeq.rtspplayer.interfaces.RightDrawableOnTouchListener;
@@ -49,23 +48,23 @@ public class BaseCameraActivity extends BaseActivity implements UrlsTemplates.Ca
     boolean doubleBackToExitPressedOnce = false;
     int doubleBackToExitDelay = 1500;
 
-    EditText etCameraName, etCameraUrl, etUserName, etPassword, etIp, etPort, etChannel, etServerUrl;
-    TextView tvProducers, tvModels;
-    Spinner spinStreamType, spinProducers, spinModel;
-    LinearLayout llMoreForm;
-    ProgressBar pbLoadingProducers;
+    protected EditText etCameraName, etCameraUrl, etUserName, etPassword, etIp, etPort, etChannel, etServerUrl;
+    protected TextView tvProducers, tvModels;
+    protected Spinner spinStreamType, spinProducers, spinModel;
+    protected LinearLayout llMoreForm;
+    protected ProgressBar pbLoadingProducers;
 
-    ProducersSpinnerAdapter producersAdapter;
-    ModelsSpinnerAdapter modelsAdapter;
+    protected ProducersSpinnerAdapter producersAdapter;
+    protected ModelsSpinnerAdapter modelsAdapter;
 
-    Button buttonShowMore;
-    FloatingActionButton buttonAddCamera;
-    FloatingActionButton buttonStartCameraPreview;
+    protected Button buttonShowMore;
+    protected FloatingActionButton buttonAddCamera;
+    protected FloatingActionButton buttonStartCameraPreview;
 
-    UrlTemplate urlTemplate;
-    String previousUrl;
+    protected UrlTemplate urlTemplate;
+    protected String previousUrl;
 
-    Camera cameraToLoad;
+    protected Camera cameraToLoad;
 
     TextWatcher textWatcher = new TextWatcher() {
         @Override public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) { }

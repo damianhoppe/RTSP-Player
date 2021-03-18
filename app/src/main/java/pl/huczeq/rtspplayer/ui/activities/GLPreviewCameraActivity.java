@@ -27,14 +27,15 @@ public class GLPreviewCameraActivity extends BasePreviewcameraActivity {
         setContentView(R.layout.activity_preview_camera_gl);
 
         setViewsWidgets();
-        videoView.initRenderer(new SurfaceTextureRenderer.Callback() {
-            @Override
-            public void onReady(SurfaceTexture surfaceTexture) {
-                vlcLibrary.prepare(videoView.getMySurfaceTexture());
-                vlcLibrary.loadData(Uri.parse(url));
-                vlcLibrary.play();
-            }
-        });
+        if(this.url != null) {
+            videoView.initRenderer(new SurfaceTextureRenderer.Callback() {
+                @Override
+                public void onReady(SurfaceTexture surfaceTexture) {
+                    prepareSurface();
+                    loadVideo();
+                }
+            });
+        }
     }
 
     @Override
@@ -58,6 +59,12 @@ public class GLPreviewCameraActivity extends BasePreviewcameraActivity {
     }
 
     @Override
+    public void onVideStop() {
+        super.onVideStop();
+        videoView.getMyRenderer().resetTextureRendered();
+    }
+
+    @Override
     public void onVideoStart(int width, int height) {
         super.onVideoStart(width, height);
 
@@ -73,6 +80,8 @@ public class GLPreviewCameraActivity extends BasePreviewcameraActivity {
 
     @Override
     protected boolean canTakePicture() {
+        if(!super.canTakePicture())
+            return false;
         return videoView.getMyRenderer().isTextureRendered();
     }
 
@@ -82,5 +91,22 @@ public class GLPreviewCameraActivity extends BasePreviewcameraActivity {
         Bitmap bitmap = this.videoView.getMyBitmap();
         videoView.setVisibility(View.VISIBLE);
         return bitmap;
+    }
+
+    @Override
+    protected void prepareSurface() {
+        super.prepareSurface();
+        vlcLibrary.prepare(videoView.getMySurfaceTexture());
+    }
+
+    @Override
+    public void onVideError() {
+        super.onVideError();
+    }
+
+    @Override
+    protected void destroyVlcLibraryObject() {
+        super.destroyVlcLibraryObject();
+        videoView.getMyRenderer().recreateSurface();
     }
 }

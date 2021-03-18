@@ -179,4 +179,19 @@ public class SurfaceTextureRenderer implements GLTextureView.Renderer {
         return this.textureRendered;
     }
 
+    public void resetTextureRendered() {
+        this.textureRendered = false;
+    }
+
+    public void recreateSurface() {
+        surfaceTexture.release();
+        surfaceTexture = new SurfaceTexture(getTxtId());
+        surfaceTexture.setDefaultBufferSize(1920,1080);
+        surfaceTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
+            @Override
+            public void onFrameAvailable(SurfaceTexture surfaceTexture) {
+                textureIsAvailable = true;
+            }
+        });
+    }
 }

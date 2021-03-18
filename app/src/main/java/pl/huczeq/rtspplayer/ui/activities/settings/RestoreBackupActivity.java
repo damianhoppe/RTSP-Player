@@ -132,8 +132,8 @@ public class RestoreBackupActivity extends BaseActivity {
 
     private boolean arePermissionsGranted() {
         if(Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                if (shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                if (shouldShowRequestPermissionRationale(Manifest.permission.READ_EXTERNAL_STORAGE)) {
                     Toast.makeText(this, R.string.permissions_storage_rationale, Toast.LENGTH_SHORT).show();
                     Intent intent = new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
                     Uri uri = Uri.fromParts("package", getPackageName(), null);
@@ -142,7 +142,7 @@ public class RestoreBackupActivity extends BaseActivity {
                     return false;
                 }
                 String[] p = new String[1];
-                p[0] = Manifest.permission.WRITE_EXTERNAL_STORAGE;
+                p[0] = Manifest.permission.READ_EXTERNAL_STORAGE;
                 requestPermissions(p, 1);
                 return false;
             }
@@ -162,7 +162,7 @@ public class RestoreBackupActivity extends BaseActivity {
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         boolean granted = false;
         for(int i = 0; i < grantResults.length; i++) {
-            if(permissions[i] == Manifest.permission.READ_EXTERNAL_STORAGE && grantResults[i] == PackageManager.PERMISSION_GRANTED) {
+            if(Manifest.permission.READ_EXTERNAL_STORAGE.equals(permissions[i]) && grantResults[i] == PackageManager.PERMISSION_GRANTED) {
                 granted = true;
                 break;
             }

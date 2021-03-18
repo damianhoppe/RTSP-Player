@@ -52,7 +52,9 @@
     <string name="none">Żaden</string>
 
     <!--Activity Preview Camera-->
-    <string name="video_error">Napotkano błąd</string>
+    <string name="video_error">Wystąpił błąd podczas odtwarzania</string>
+    <string name="offline_status">Jesteś teraz offline</string>
+    <string name="online_status">Jesteś znowu online</string>
 
     <!--Activity App Info-->
     <string name="app_info">RTSP Player pozwala na odtwarzanie strumieni sieciowych wykorzystując bibliotekę libVLC. Aplikacja jest objęta licencją LGPL 3.0 oraz oferuje otwarty kod źródłowy.</string>
@@ -96,7 +98,7 @@
     <string name="summary_create_backup">Utwórz kopię zapasową danych</string>
     <string name="label_player_settings">Ustawienie odtwarzacza video</string>
     <string name="label_use_new_player">Używaj nowego odtwarzacza</string>
-    <string name="summary_use_new_player">Zalecane wylączenie gdy odtwarzacz się nie uruchamia</string>
+    <string name="summary_use_new_player">Wykorzystuje OpenGL - oferuje lepszą wydajność, gdy odtwarzanie się nie uruchamia/powoduje awarię, zalecane jest wyłączenie tej opcji</string>
     <string name="label_caching_buffer_size">Rozmiar bufora buforowania</string>
     <string name="summary_caching_buffer_size">Rozmiar buforwa w ms - niższe wartości zmniejszą opóźnienie, ale mogą powodować zacinanie się obrazu</string>
     <string name="label_hardware_acceleration">Akceleracja sprzętowa</string>

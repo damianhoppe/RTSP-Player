@@ -11,9 +11,9 @@ import android.widget.ListView;
 import androidx.appcompat.app.AlertDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import pl.huczeq.rtspplayer.ui.activities.base.BaseCameraActivity;
 import pl.huczeq.rtspplayer.ui.activities.mgmt.AddCameraActivity;
 import pl.huczeq.rtspplayer.ui.activities.base.BaseActivity;
-import pl.huczeq.rtspplayer.ui.activities.mgmt.BaseCameraActivity;
 import pl.huczeq.rtspplayer.ui.activities.mgmt.EditCameraActivity;
 import pl.huczeq.rtspplayer.ui.activities.base.BasePreviewcameraActivity;
 import pl.huczeq.rtspplayer.ui.activities.settings.SettingsActivity;
@@ -129,6 +129,7 @@ public class MainActivity extends BaseActivity implements OnListItemSelected, On
             intent = new Intent(getApplicationContext(), PreviewCameraActivity.class);
         }
         intent.putExtra(BasePreviewcameraActivity.EXTRA_CAMERA_NAME, camera.getName());
+        intent.putExtra(BasePreviewcameraActivity.EXTRA_URL, camera.getUrl());
         startActivity(intent);
     }
 

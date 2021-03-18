@@ -4,6 +4,8 @@ import android.os.Bundle;
 
 import pl.huczeq.rtspplayer.data.objects.Camera;
 import pl.huczeq.rtspplayer.R;
+import pl.huczeq.rtspplayer.ui.activities.base.BaseCameraActivity;
+import pl.huczeq.rtspplayer.ui.activities.base.BasePreviewcameraActivity;
 
 public class EditCameraActivity extends BaseCameraActivity {
 

@@ -236,7 +236,7 @@ public class CreateBackupActivity extends BaseActivity {
         updatePathTextView();
         boolean granted = false;
         for(int i = 0; i < grantResults.length; i++) {
-            if(permissions[i] == Manifest.permission.WRITE_EXTERNAL_STORAGE && grantResults[i] == PackageManager.PERMISSION_GRANTED) {
+            if(Manifest.permission.WRITE_EXTERNAL_STORAGE.equals(permissions[i]) && grantResults[i] == PackageManager.PERMISSION_GRANTED) {
                 granted = true;
                 break;
             }

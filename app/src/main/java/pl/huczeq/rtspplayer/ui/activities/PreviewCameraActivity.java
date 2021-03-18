@@ -2,12 +2,9 @@ package pl.huczeq.rtspplayer.ui.activities;
 
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
-import android.net.Uri;
+import android.graphics.SurfaceTexture;
 import android.os.Bundle;
-import android.view.TextureView;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
 
@@ -29,14 +26,15 @@ public class PreviewCameraActivity extends BasePreviewcameraActivity {
         setContentView(R.layout.activity_preview_camera_gl);
 
         setViewsWidgets();
-        vlcLibrary.prepare(videoView);
-        vlcLibrary.loadData(Uri.parse(url));
+        if(this.url != null) {
+            prepareSurface();
+            loadVideo();
+        }
     }
 
     @Override
     protected void setViewsWidgets() {
         super.setViewsWidgets();
-
         videoView = findViewById(R.id.cameraPreview);
     }
 
@@ -98,6 +96,8 @@ public class PreviewCameraActivity extends BasePreviewcameraActivity {
 
     @Override
     protected boolean canTakePicture() {
+        if(!super.canTakePicture())
+            return false;
         return this.canTakePicture;
     }
 
@@ -107,5 +107,16 @@ public class PreviewCameraActivity extends BasePreviewcameraActivity {
         Bitmap bitmap = this.videoView.getMyBitmap();
         videoView.setVisibility(View.VISIBLE);
         return bitmap;
+    }
+
+    @Override
+    protected void prepareSurface() {
+        vlcLibrary.prepare(videoView);
+    }
+
+    @Override
+    protected void destroyVlcLibraryObject() {
+        super.destroyVlcLibraryObject();
+        finish();
     }
 }
