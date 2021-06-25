@@ -32,6 +32,9 @@ public class MyGLSurfaceView extends GLSurfaceView implements BaseSurfaceView{
     private float mScaleFactor = 1.f;
     private float mFocusX = 0.f;
     private float mFocusY = 0.f;
+    private boolean canCallClick;
+    private float startTouchX;
+    private float startTouchY;
 
     public MyGLSurfaceView(Context context) {
         super(context);
@@ -83,7 +86,17 @@ public class MyGLSurfaceView extends GLSurfaceView implements BaseSurfaceView{
     public boolean onTouchEvent(MotionEvent motionEvent) {
         super.onTouchEvent(motionEvent);
         long deltaTime = motionEvent.getEventTime() - motionEvent.getDownTime();
-        if(deltaTime <= Settings.CLICK_MIN_DELTA_TIME && motionEvent.getAction() == MotionEvent.ACTION_UP && this.onClickListener != null) {
+        if(motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
+            this.canCallClick = true;
+            this.startTouchX = motionEvent.getX();
+            this.startTouchY = motionEvent.getY();
+        }
+        if(canCallClick && motionEvent.getAction() == MotionEvent.ACTION_MOVE) {
+            float distance = (float)Math.sqrt(Math.pow(motionEvent.getX() - this.startTouchX,2) + Math.pow(motionEvent.getY() - this.startTouchY, 2));
+            if(distance >= 5)
+                canCallClick = false;
+        }
+        if(canCallClick && deltaTime <= Settings.CLICK_MIN_DELTA_TIME && motionEvent.getAction() == MotionEvent.ACTION_UP && this.onClickListener != null) {
             this.onClickListener.onClick(this);
             return true;
         }
