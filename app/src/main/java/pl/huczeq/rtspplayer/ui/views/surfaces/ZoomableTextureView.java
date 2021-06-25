@@ -1,23 +1,18 @@
-package pl.huczeq.rtspplayer.ui.views.player;
+package pl.huczeq.rtspplayer.ui.views.surfaces;
 
 import android.content.Context;
-import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.graphics.PointF;
-import android.os.Bundle;
-import android.os.Parcelable;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.TextureView;
-import android.view.View;
 import android.view.ViewGroup;
 
-import pl.huczeq.rtspplayer.R;
-import pl.huczeq.rtspplayer.ui.views.player.gestures.MoveGestureDetector;
+import pl.huczeq.rtspplayer.ui.views.surfaces.gestures.MoveGestureDetector;
 
 /*
 Modified class from https://github.com/devlucem/ZoomableVideo
@@ -69,6 +64,7 @@ public class ZoomableTextureView extends TextureView {
 
     @Override
     public boolean onTouchEvent(MotionEvent motionEvent) {
+        super.onTouchEvent(motionEvent);
 
         mScaleDetector.onTouchEvent(motionEvent);
 
@@ -127,7 +123,7 @@ public class ZoomableTextureView extends TextureView {
 
     }
 
-    private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
+    public class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
         @Override
         public boolean onScale(ScaleGestureDetector detector) {
 
@@ -140,7 +136,7 @@ public class ZoomableTextureView extends TextureView {
         }
     }
 
-    private class MoveListener extends MoveGestureDetector.SimpleOnMoveGestureListener {
+    public class MoveListener extends MoveGestureDetector.SimpleOnMoveGestureListener {
         @Override
         public boolean onMove(MoveGestureDetector detector) {
 
@@ -158,7 +154,7 @@ public class ZoomableTextureView extends TextureView {
     private float scaleX = 1, scaleY = 1;
     private Matrix myMatrix;
 
-    public void onNewVideoSize(int width, int height) {
+    public void onNewVideoSize(int width, int height, int videoWidth, int videoHeight) {
         if(width == 0 || height == 0) return;
         this.width = width;
         this.height = height;

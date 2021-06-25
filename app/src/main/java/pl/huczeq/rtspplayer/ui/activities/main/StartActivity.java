@@ -22,6 +22,7 @@ public class StartActivity extends BaseActivity {
 
         if(dataManager.isDataLoaded())
             onDataChangedWAA();
+
         /* MIN ACTIVITY TIME FOR TEST */
         new Handler(getMainLooper()).postDelayed(new Runnable() {
             @Override
@@ -52,7 +53,6 @@ public class StartActivity extends BaseActivity {
         Log.d(TAG, "dataLoaded: " + dataLoaded);
         if(activityReady && dataLoaded) {
             Log.d(TAG, "OK");
-            //startActivity(new Intent(getApplicationContext(), MainActivity.class));
             startActivity(new Intent(getApplicationContext(), MainActivity.class));
         }
     }

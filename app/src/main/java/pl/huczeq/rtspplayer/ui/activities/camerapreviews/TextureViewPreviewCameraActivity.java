@@ -1,18 +1,17 @@
-package pl.huczeq.rtspplayer.ui.activities;
+package pl.huczeq.rtspplayer.ui.activities.camerapreviews;
 
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
-import android.graphics.SurfaceTexture;
 import android.os.Bundle;
 import android.view.View;
 
 import androidx.annotation.NonNull;
 
 import pl.huczeq.rtspplayer.R;
-import pl.huczeq.rtspplayer.ui.activities.base.BasePreviewcameraActivity;
-import pl.huczeq.rtspplayer.ui.views.player.ZoomableTextureView;
+import pl.huczeq.rtspplayer.ui.activities.base.BasePreviewCameraActivity;
+import pl.huczeq.rtspplayer.ui.views.surfaces.ZoomableTextureView;
 
-public class PreviewCameraActivity extends BasePreviewcameraActivity {
+public class TextureViewPreviewCameraActivity extends BasePreviewCameraActivity {
 
     private final static String TAG = "PreviewCameraActivity";
 
@@ -23,7 +22,7 @@ public class PreviewCameraActivity extends BasePreviewcameraActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_preview_camera_gl);
+        setContentView(R.layout.activity_preview_camera_textureview);
 
         setViewsWidgets();
         if(this.url != null) {
@@ -64,9 +63,9 @@ public class PreviewCameraActivity extends BasePreviewcameraActivity {
     }
 
     @Override
-    public void onVideoStart(int width, int height) {
-        super.onVideoStart(width, height);
-        videoView.onNewVideoSize(width, height);
+    public void onVideoStart(int width, int height, int videoWidth, int videoHeight) {
+        super.onVideoStart(width, height, videoWidth, videoHeight);
+        videoView.onNewVideoSize(width, height, videoWidth, videoHeight);
         if(camera != null) {
             if (canTakePictureDelayThread != null) {
                 canTakePictureDelayThread.interrupt();

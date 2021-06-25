@@ -24,8 +24,8 @@ import java.util.Arrays;
 
 import pl.huczeq.rtspplayer.R;
 import pl.huczeq.rtspplayer.data.Settings;
-import pl.huczeq.rtspplayer.ui.renderers.SurfaceTextureRenderer;
-import pl.huczeq.rtspplayer.ui.views.player.MyGLTextureView;
+import pl.huczeq.rtspplayer.ui.renderers.GLTextureViewRenderer;
+import pl.huczeq.rtspplayer.ui.views.surfaces.MyGLTextureView;
 
 public class OldVideoView extends MyGLTextureView implements IVLCVout.OnNewVideoLayoutListener, IVLCVout.Callback {
 
@@ -53,7 +53,7 @@ public class OldVideoView extends MyGLTextureView implements IVLCVout.OnNewVideo
     int width = 1;
     int height = 1;
 
-    SurfaceTextureRenderer renderer;
+    GLTextureViewRenderer renderer;
 
     public OldVideoView(Context context) {
         super(context);
@@ -285,7 +285,6 @@ public class OldVideoView extends MyGLTextureView implements IVLCVout.OnNewVideo
         Matrix matrix = new Matrix();
         matrix.postScale(scaleX,scaleY,viewWidth/2,viewHeight/2);
         setTransform(matrix);
-        this.customMatrix = matrix;
         //setDisplayMetrics(width, height);
         //player.getVLCVout().setWindowSize(width, height);
         //this.invalidate();

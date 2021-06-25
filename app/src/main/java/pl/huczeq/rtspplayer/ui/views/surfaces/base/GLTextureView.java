@@ -1,4 +1,4 @@
-package pl.huczeq.rtspplayer.ui.views.player;
+package pl.huczeq.rtspplayer.ui.views.surfaces.base;
 
 import java.io.Writer;
 import java.lang.ref.WeakReference;
@@ -19,6 +19,8 @@ import android.util.Log;
 import android.view.TextureView;
 import android.view.View;
 
+import pl.huczeq.rtspplayer.ui.views.surfaces.ZoomableTextureView;
+
 public class GLTextureView
         extends ZoomableTextureView
         implements TextureView.SurfaceTextureListener,
@@ -30,7 +32,7 @@ public class GLTextureView
     private final static boolean LOG_PAUSE_RESUME = true;
     private final static boolean LOG_SURFACE = true;
     private final static boolean LOG_RENDERER = true;
-    private final static boolean LOG_RENDERER_DRAW_FRAME = false;
+    private final static boolean LOG_RENDERER_DRAW_FRAME = true;
     private final static boolean LOG_EGL = true;
     /**
      * The renderer only renders
@@ -58,7 +60,7 @@ public class GLTextureView
      * @see #getDebugFlags
      * @see #setDebugFlags
      */
-    public final static int DEBUG_CHECK_GL_ERROR = 0;
+    public final static int DEBUG_CHECK_GL_ERROR = 1;
 
     /**
      * Log GL calls to the system log at "verbose" level with tag "GLTextureView".

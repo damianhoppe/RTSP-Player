@@ -92,13 +92,16 @@
     <string name="summary_default_orientation">Startowa orientacja ekranu odtwarzacza</string>
     <string name="label_orientation_mode">Tryb orientacji ekranu</string>
     <string name="summary_orientation_mode">Wybierz tryb obrotu ekranu</string>
+    <string name="label_generate_camera_thumbnail_once">Generuj miniaturkę kamery tylko raz</string>
+    <string name="summary_generate_camera_thumbnail_once">Wybierz, czy chcesz wygenerować miniaturkę tylko raz, przy pierwszym uruchomieniu, czy przy każdym uruchomieniu podglądu kamery.</string>
     <string name="label_restore_backup">Przywróć kopię zapasową</string>
     <string name="summary_restore_backup">Przywróć wcześniej utworzoną kopię zapasową</string>
     <string name="label_create_backup">Utwórz kopię zapasową</string>
     <string name="summary_create_backup">Utwórz kopię zapasową danych</string>
     <string name="label_player_settings">Ustawienie odtwarzacza video</string>
-    <string name="label_use_new_player">Używaj nowego odtwarzacza</string>
-    <string name="summary_use_new_player">Wykorzystuje OpenGL - oferuje lepszą wydajność, gdy odtwarzanie się nie uruchamia/powoduje awarię, zalecane jest wyłączenie tej opcji</string>
+    <string name="label_player_surface">Powierzchnia odtwarzacza</string>
+    <string name="summary_player_surface">Wybierz sposób wyświetlania obrazu, wydajny OpenGL z limitem klatek dla urządzenia (zalecane, mniejsze zużycie baterii), bez limitu klatek (większe zużycie baterii), lub bez wykorzystaniu OpenGL (korzystać w przypadku problemów z pozostałymi) - częstotliwość odświeżania zależna jest od liczby klatek video.</string>
+
     <string name="label_caching_buffer_size">Rozmiar bufora buforowania</string>
     <string name="summary_caching_buffer_size">Rozmiar buforwa w ms - niższe wartości zmniejszą opóźnienie, ale mogą powodować zacinanie się obrazu</string>
     <string name="label_hardware_acceleration">Akceleracja sprzętowa</string>
@@ -127,6 +130,12 @@
         <item>Automatyczny - zawsze włączony</item>
         <item>Automatyczny - zależnie od ustawień systemu</item>
         <item>Zablokowany</item>
+    </string-array>
+
+    <string-array name="pref_player_surface_labels">
+        <item>OpenGL - limit klatek urządzenia</item>
+        <item>OpenGL - brak limitu klatek</item>
+        <item>No OpenGL - zależna od źródła</item>
     </string-array>
 
     <string name="pref_ads_label">Tryb wyświetlania reklam</string>

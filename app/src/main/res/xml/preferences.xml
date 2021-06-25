@@ -34,16 +34,24 @@
             app:defaultValue="0"
             app:iconSpaceReserved="false"
             android:negativeButtonText="@string/cancel"/>
+        <CheckBoxPreference
+            app:key="generateCameratTumbnailOnce"
+            app:title="@string/label_generate_camera_thumbnail_once"
+            app:iconSpaceReserved="false"
+            app:summary="@string/summary_generate_camera_thumbnail_once"
+            app:defaultValue="1"/>
     </PreferenceCategory>
 
     <PreferenceCategory
         app:title="@string/label_player_settings"
         app:iconSpaceReserved="false">
-        <CheckBoxPreference
-            app:key="useNewPlayer"
-            app:title="@string/label_use_new_player"
-            app:summary="@string/summary_use_new_player"
-            app:defaultValue="1"
+        <ListPreference
+            app:key="playerSurface"
+            app:entries="@array/pref_player_surface_labels"
+            app:entryValues="@array/pref_player_surface_values"
+            app:title="@string/label_player_surface"
+            app:summary="@string/summary_player_surface"
+            app:defaultValue="0"
             app:iconSpaceReserved="false"/>
         <SeekBarPreference
             app:key="cachingBufferSize"
@@ -59,7 +67,7 @@
             app:title="@string/label_hardware_acceleration"
             app:iconSpaceReserved="false"
             app:summary="@string/summary_hardware_acceleration"
-            app:defaultValue="1"/>
+            app:defaultValue="0"/>
         <CheckBoxPreference
             app:key="avcodesFast"
             app:title="@string/label_avcodes_fast"

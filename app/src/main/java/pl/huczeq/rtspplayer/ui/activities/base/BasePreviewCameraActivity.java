@@ -1,9 +1,11 @@
 package pl.huczeq.rtspplayer.ui.activities.base;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.media.Image;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkRequest;
@@ -13,24 +15,57 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.OrientationEventListener;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
 import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.transition.Fade;
+import androidx.transition.Transition;
+import androidx.transition.TransitionManager;
 
 import pl.huczeq.rtspplayer.R;
 import pl.huczeq.rtspplayer.data.Settings;
 import pl.huczeq.rtspplayer.data.objects.Camera;
+import pl.huczeq.rtspplayer.ui.activities.camerapreviews.GLSurfaceViewPreviewCameraActivity;
+import pl.huczeq.rtspplayer.ui.activities.camerapreviews.GLTextureViewPreviewCameraActivity;
+import pl.huczeq.rtspplayer.ui.activities.camerapreviews.TextureViewPreviewCameraActivity;
 import pl.huczeq.rtspplayer.utils.Utils;
 import pl.huczeq.rtspplayer.vlc.VlcLibrary;
 
-public class BasePreviewcameraActivity extends BaseActivity implements VlcLibrary.Callback {
+public class BasePreviewCameraActivity extends BaseActivity implements VlcLibrary.Callback {
 
-    private final static String TAG = "BasePreviewcameraActiv";
+    private final static String TAG = "BasePreviewCameraActiv";
+
+    public static Intent getPreviewCameraIntent(Context context, Camera camera) {
+        Intent intent = getPreviewCameraIntent(context, camera.getUrl());
+        intent.putExtra(BasePreviewCameraActivity.EXTRA_CAMERA_NAME, camera.getName());
+        return intent;
+    }
+
+    public static Intent getPreviewCameraIntent(Context context, String url) {
+        Intent intent;
+        switch(Settings.getInstance(context).getPlayerSurfaceEnum()) {
+            case GLTEXTUREVIEW:
+                intent = new Intent(context, GLTextureViewPreviewCameraActivity.class);
+                break;
+            case TEXTUREVIEW:
+                intent = new Intent(context, TextureViewPreviewCameraActivity.class);
+                break;
+            default:
+                intent = new Intent(context, GLSurfaceViewPreviewCameraActivity.class);
+                break;
+        }
+        intent.putExtra(BasePreviewCameraActivity.EXTRA_URL, url);
+        return intent;
+    }
 
     public static String EXTRA_CAMERA_NAME = "cameraName";
     public static String EXTRA_URL = "cameraUrl";
@@ -116,7 +151,6 @@ public class BasePreviewcameraActivity extends BaseActivity implements VlcLibrar
         this.url = getIntent().getStringExtra(EXTRA_URL);
         if(url == null || url.trim().isEmpty())
         {
-            this.url = null;
             finish();
         }
         vlcLibrary = new VlcLibrary(this);
@@ -190,7 +224,7 @@ public class BasePreviewcameraActivity extends BaseActivity implements VlcLibrar
     }
 
     @Override
-    public void onVideoStart(int width, int height) {
+    public void onVideoStart(int width, int height, int videoWidth, int videoHeight) {
         pBLoading.setVisibility(View.INVISIBLE);
     }
 
@@ -290,9 +324,9 @@ public class BasePreviewcameraActivity extends BaseActivity implements VlcLibrar
         @Override public void onOrientationChanged(int orientation) {
             Log.d(TAG, "Orientation:" + orientation);
             if(orientation > 75 && orientation < 105 || orientation > 255 && orientation < 285) {
-                if(!Utils.isSystemOrientationLocked(BasePreviewcameraActivity.this)) {
+                if(!Utils.isSystemOrientationLocked(BasePreviewCameraActivity.this)) {
                     this.disable();
-                    BasePreviewcameraActivity.this.orientationListener = null;
+                    BasePreviewCameraActivity.this.orientationListener = null;
                     if(settings.getOrientationMode() == Settings.ORIENTATION_MODE.AUTO_SENSOR) {
                         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
                     }else if(settings.getOrientationMode() == Settings.ORIENTATION_MODE.AUTO_SYS) {

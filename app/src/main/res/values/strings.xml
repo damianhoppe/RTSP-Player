@@ -90,14 +90,17 @@
     <string name="label_default_orientation">Initial screen orientation</string>
     <string name="summary_default_orientation">Initial screen orientation of the player</string>
     <string name="label_orientation_mode">Screen orientation mode</string>
+    <string name="label_generate_camera_thumbnail_once">Generate camera thumbnail only once</string>
+    <string name="summary_generate_camera_thumbnail_once">Select if you want to generate the thumbnail only once, on first start or every time camera preview starts.</string>
     <string name="summary_orientation_mode">Select a screen rotation mode</string>
     <string name="label_restore_backup">Restore backup</string>
     <string name="summary_restore_backup">Restore previously created backup</string>
     <string name="label_create_backup">Create backup</string>
     <string name="summary_create_backup">Create backup of data</string>
     <string name="label_player_settings">Video player settings</string>
-    <string name="label_use_new_player">Use new player</string>
-    <string name="summary_use_new_player">Uses OpenGL - offers better performance, when recovery does not start/causes a crash, it is recommended to disable this option</string>
+    <string name="label_player_surface">Surface of player</string>
+    <string name="summary_player_surface">Choose surface of player, efficient OpenGL with a frame limit for the device (recommended, less battery consumption), no frame limit (higher battery consumption), or without using OpenGL (use in case of problems with others) - refresh rate depends on the number of video frames.</string>
+
     <string name="label_caching_buffer_size">Caching buffer size</string>
     <string name="summary_caching_buffer_size">Buffer size in ms - lower values will reduce latency but may cause stuttering</string>
     <string name="label_hardware_acceleration">Hardware acceleration</string>
@@ -135,6 +138,16 @@
         <item>Locked</item>
     </string-array>
     <string-array name="pref_orientation_mode_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+    <string-array name="pref_player_surface_labels">
+        <item>OpenGL - device frames limit</item>
+        <item>OpenGL - no frames limit</item>
+        <item>No OpenGL - frames of source video</item>
+    </string-array>
+    <string-array name="pref_player_surface_values">
         <item>0</item>
         <item>1</item>
         <item>2</item>

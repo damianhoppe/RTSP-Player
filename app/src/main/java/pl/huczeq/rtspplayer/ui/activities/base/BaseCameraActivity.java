@@ -26,7 +26,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.util.ArrayList;
 
 import pl.huczeq.rtspplayer.R;
-import pl.huczeq.rtspplayer.ui.activities.PreviewCameraActivity;
+import pl.huczeq.rtspplayer.ui.activities.camerapreviews.TextureViewPreviewCameraActivity;
 import pl.huczeq.rtspplayer.adapters.ModelsSpinnerAdapter;
 import pl.huczeq.rtspplayer.adapters.ProducersSpinnerAdapter;
 import pl.huczeq.rtspplayer.interfaces.RightDrawableOnTouchListener;
@@ -515,9 +515,7 @@ public class BaseCameraActivity extends BaseActivity implements UrlsTemplates.Ca
             Toast.makeText(this, getResources().getString(R.string.incorrect_camera_url), Toast.LENGTH_SHORT).show();
             return;
         }
-        Intent intent = new Intent(getApplicationContext(), PreviewCameraActivity.class);
-        intent.putExtra(PreviewCameraActivity.EXTRA_URL, etCameraUrl.getText().toString());
-        startActivity(intent);
+        startActivity(BasePreviewCameraActivity.getPreviewCameraIntent(getApplicationContext(), etCameraUrl.getText().toString()));
     }
 
     public void updateUrl() {

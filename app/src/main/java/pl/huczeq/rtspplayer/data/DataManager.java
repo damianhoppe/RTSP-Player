@@ -188,7 +188,6 @@ public class DataManager {
             try {
                 JSONArray array = jsonObject.getJSONArray(JSONCamerasDataArray);
                 for (int i = 0; i < array.length(); i++) {
-                    Log.d(TAG, array.get(i).toString());
                     Camera camera = new Camera(array.getJSONObject(i));
                     if(camera.getPreviewImg() != null) {
                         File f = new File(this.settings.getPreviewImagesDir(), camera.getPreviewImg());
@@ -315,10 +314,10 @@ public class DataManager {
     }
     public void loadPreviewImg(ImageLoadingThread.Data data) {
         if(data.getCamera().getPreviewImg() == null || "".equals(data.getCamera().getPreviewImg())) {
-            Log.d(TAG, data.getCamera().getName());
+            //Log.d(TAG, data.getCamera().getName() + " - preview image is null");
             return;
         }
-        Log.d(TAG, "Loading: " + data.getCamera().getPreviewImg());
+        //Log.d(TAG, "Loading: " + data.getCamera().getName() + " - "+ data.getCamera().getPreviewImg());
         Bitmap bitmap = CachedImages.getCachedBitmap(data.getCamera());
         if(bitmap != null) {
             data.getCallback().onImageLoaded(data, bitmap);

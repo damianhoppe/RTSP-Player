@@ -36,10 +36,13 @@
         <activity android:name=".ui.activities.settings.CreateBackupActivity" />
         <activity android:name=".ui.activities.settings.SettingsActivity"
             android:theme="@style/AppTheme.Preferences"/>
-        <activity android:name=".ui.activities.PreviewCameraActivity"
+        <activity android:name=".ui.activities.camerapreviews.TextureViewPreviewCameraActivity"
             android:theme="@style/AppTheme.Player"
             android:configChanges="orientation|screenSize"/>
-        <activity android:name=".ui.activities.GLPreviewCameraActivity"
+        <activity android:name=".ui.activities.camerapreviews.GLTextureViewPreviewCameraActivity"
+            android:theme="@style/AppTheme.Player"
+            android:configChanges="orientation|screenSize"/>
+        <activity android:name=".ui.activities.camerapreviews.GLSurfaceViewPreviewCameraActivity"
             android:theme="@style/AppTheme.Player"
             android:configChanges="orientation|screenSize"/>
     </application>

@@ -29,7 +29,7 @@
         android:paddingBottom="150dp"
         android:scrollbarStyle="outsideOverlay"
         android:scrollbars="none"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="0dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"

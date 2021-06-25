@@ -177,7 +177,6 @@ public class ListAdapter extends ArrayAdapter<Camera> {
         int maxTextWidth = Resources.getSystem().getDisplayMetrics().widthPixels;
         maxTextWidth = maxTextWidth/2-maxTextWidth/5;
 
-        Log.d(TAG, "maxTextWidth: " + maxTextWidth);
         if(textView.getMeasuredWidth() > maxTextWidth) {
             StringBuilder newText = new StringBuilder();
             char[] textA = text.toCharArray();
@@ -187,7 +186,6 @@ public class ListAdapter extends ArrayAdapter<Camera> {
                 textView.setText(newText+".");
                 textView.measure(0, 0);
                 i++;
-                Log.d(TAG, "MeasuredWidth: " + textView.getMeasuredWidth());
             }while(textView.getMeasuredWidth() < maxTextWidth);
             newText.deleteCharAt(newText.length()-1);
             text = newText.toString() + "...";

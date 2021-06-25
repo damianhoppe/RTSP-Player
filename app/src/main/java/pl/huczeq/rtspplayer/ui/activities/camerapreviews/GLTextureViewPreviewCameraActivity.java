@@ -1,21 +1,20 @@
-package pl.huczeq.rtspplayer.ui.activities;
+package pl.huczeq.rtspplayer.ui.activities.camerapreviews;
 
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.SurfaceTexture;
-import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.NonNull;
 
 import pl.huczeq.rtspplayer.R;
-import pl.huczeq.rtspplayer.ui.views.player.MyGLTextureView;
-import pl.huczeq.rtspplayer.ui.activities.base.BasePreviewcameraActivity;
-import pl.huczeq.rtspplayer.ui.renderers.SurfaceTextureRenderer;
+import pl.huczeq.rtspplayer.ui.renderers.OnTakeImageCallback;
+import pl.huczeq.rtspplayer.ui.renderers.base.RendererCallback;
+import pl.huczeq.rtspplayer.ui.views.surfaces.MyGLTextureView;
+import pl.huczeq.rtspplayer.ui.activities.base.BasePreviewCameraActivity;
 
-public class GLPreviewCameraActivity extends BasePreviewcameraActivity {
+public class GLTextureViewPreviewCameraActivity extends BasePreviewCameraActivity implements OnTakeImageCallback{
 
     private final static String TAG = "GLPreviewCameraActivity";
 
@@ -24,17 +23,26 @@ public class GLPreviewCameraActivity extends BasePreviewcameraActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_preview_camera_gl);
+        setContentView(R.layout.activity_preview_camera_textureview_gl);
 
         setViewsWidgets();
         if(this.url != null) {
-            videoView.initRenderer(new SurfaceTextureRenderer.Callback() {
+            if(this.camera != null) {
+                if (settings.isEnabledGenerateCameraTumbnailOnce()) {
+                    if (this.camera.getPreviewImg() == null || this.camera.getPreviewImg().trim().isEmpty()) {
+                        videoView.takePicture();
+                    }
+                } else {
+                    videoView.takePicture();
+                }
+            }
+            videoView.initRenderer(new RendererCallback() {
                 @Override
                 public void onReady(SurfaceTexture surfaceTexture) {
                     prepareSurface();
                     loadVideo();
                 }
-            });
+            }, this);
         }
     }
 
@@ -61,15 +69,13 @@ public class GLPreviewCameraActivity extends BasePreviewcameraActivity {
     @Override
     public void onVideStop() {
         super.onVideStop();
-        videoView.getMyRenderer().resetTextureRendered();
+        videoView.getSurfaceRenderer().resetTextureRendered();
     }
 
     @Override
-    public void onVideoStart(int width, int height) {
-        super.onVideoStart(width, height);
-
-        videoView.onNewVideoSize(width, height);
-        videoView.getMyRenderer().getSurfaceTexture().setDefaultBufferSize(width, height);
+    public void onVideoStart(int width, int height, int videoWidth, int videoHeight) {
+        super.onVideoStart(width, height, videoWidth, videoHeight);
+        videoView.onNewVideoSize(width, height, videoWidth, videoHeight);
     }
 
     @Override
@@ -80,9 +86,7 @@ public class GLPreviewCameraActivity extends BasePreviewcameraActivity {
 
     @Override
     protected boolean canTakePicture() {
-        if(!super.canTakePicture())
-            return false;
-        return videoView.getMyRenderer().isTextureRendered();
+        return false;
     }
 
     @Override
@@ -96,7 +100,7 @@ public class GLPreviewCameraActivity extends BasePreviewcameraActivity {
     @Override
     protected void prepareSurface() {
         super.prepareSurface();
-        vlcLibrary.prepare(videoView.getMySurfaceTexture());
+        vlcLibrary.prepare(videoView.getSurfaceRenderer().getSurfaceTexture());
     }
 
     @Override
@@ -107,6 +111,11 @@ public class GLPreviewCameraActivity extends BasePreviewcameraActivity {
     @Override
     protected void destroyVlcLibraryObject() {
         super.destroyVlcLibraryObject();
-        videoView.getMyRenderer().recreateSurface();
+        videoView.getSurfaceRenderer().recreateSurface();
+    }
+
+    @Override
+    public void onSaveImg(Bitmap bitmap) {
+        dataManager.savePreviewImg(this.camera, bitmap);
     }
 }

@@ -8,9 +8,9 @@
     app:titleTextColor="@color/textColorPrimary"
     android:title="@string/app_name"
     android:elevation="0dp"
-    app:titleMarginTop="30dp"
+    app:titleMarginTop="0dp"
     app:titleMarginStart="10dp"
-    android:paddingBottom="10dp">
+    android:paddingBottom="@dimen/appbar_padding_bottom">
     <ImageView
         android:id="@+id/iconToolbar"
         android:layout_width="60dp"

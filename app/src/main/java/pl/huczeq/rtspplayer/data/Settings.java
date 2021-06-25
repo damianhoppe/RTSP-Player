@@ -160,7 +160,7 @@ public class Settings {
     }
 
     public boolean isEnabledHardwareAcceleration() {
-        return this.settingsPref.getBoolean(KEY_HARDWARE_ACCELERATION, true);
+        return this.settingsPref.getBoolean(KEY_HARDWARE_ACCELERATION, false);
     }
 
     public void setEnabledHardwareAcceleration(boolean enabled) {
@@ -173,25 +173,31 @@ public class Settings {
         return this.settingsPref.getBoolean(KEY_AVCODES_FAST, false);
     }
 
-    public void setEnabledAVCodes(boolean enabled) {
-        editSettings();
-        this.settingsEditor.putBoolean(KEY_AVCODES_FAST, enabled);
-        commitSettings();
+    public PLAYER_SURFACE getPlayerSurfaceEnum() {
+        switch(getPlayerSurface()) {
+            case "0":
+                return PLAYER_SURFACE.SURFACEVIEW;
+            case "1":
+                return PLAYER_SURFACE.GLTEXTUREVIEW;
+            case "2":
+                return PLAYER_SURFACE.TEXTUREVIEW;
+            default:
+                return PLAYER_SURFACE.SURFACEVIEW;
+        }
     }
 
-    public boolean isEnabledNewPlayer() {
-        return this.settingsPref.getBoolean(KEY_USE_NEW_PLAYER, true);
+    public String getPlayerSurface() {
+        return this.settingsPref.getString(KEY_PLAYER_SURFACE, "0");
     }
 
-    public void setEnabledNewPlayer(boolean enabled) {
-        editSettings();
-        this.settingsEditor.putBoolean(KEY_USE_NEW_PLAYER, enabled);
-        commitSettings();
+    public boolean isEnabledGenerateCameraTumbnailOnce() {
+        return this.settingsPref.getBoolean(KEY_GENERATE_CAMERA_TUMBNAIL_ONCE,true);
     }
     //END OF SETTINGS PREFERENCES
 
     public File getPreviewImagesDir() {
         return this.context.getCacheDir();
+        //return this.context.getExternalCacheDir();
     }
     public File getBackupsDir() {
         File dir;
@@ -221,9 +227,10 @@ public class Settings {
     public static final String KEY_SHOW_LICENSE = "showLicense";
     public static final String KEY_THEME = "theme";
     public static final String KEY_DEFAULT_ORIENTATION = "defaultOrientation";
+    public static final String KEY_GENERATE_CAMERA_TUMBNAIL_ONCE = "generateCameratTumbnailOnce";
     public static final String KEY_ORIENTATION_MODE = "orientationMode";
     public static final String KEY_OPEN_ADD_MODEL_FORM = "openAddModelForm";
-    public static final String KEY_USE_NEW_PLAYER = "useNewPlayer";
+    public static final String KEY_PLAYER_SURFACE = "playerSurface";
     public static final String KEY_CACHING_BUFFER_SIZE = "cachingBufferSize";
     public static final String KEY_HARDWARE_ACCELERATION = "hardwareAcceleration";
     public static final String KEY_AVCODES_FAST = "avcodesFast";
@@ -233,5 +240,8 @@ public class Settings {
     }
     public enum ORIENTATION {
         AUTOMATIC, HORIZONTAL;
+    }
+    public enum PLAYER_SURFACE {
+        SURFACEVIEW, TEXTUREVIEW, GLTEXTUREVIEW;
     }
 }

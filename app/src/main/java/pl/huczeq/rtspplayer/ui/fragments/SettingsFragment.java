@@ -28,14 +28,13 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
     private static final String TAG = "SettingsFragment";
 
     Preference restoreBackup, createBackup, aboutApp, showLicense, openAddModelForm;
-    ListPreference theme, orientationMode, defaultOrientation;
-    CheckBoxPreference useNewPlayer, useHardwareAcceleration, useAVCodesFast;
+    ListPreference theme, orientationMode, defaultOrientation, playerSurface;
+    CheckBoxPreference useHardwareAcceleration, useAVCodesFast, generateCameraTumbnailOnce;
     SeekBarPreference cachingBufferSize;
 
     SharedPreferences.OnSharedPreferenceChangeListener onNewSettingsLoaded = new SharedPreferences.OnSharedPreferenceChangeListener() {
         @Override
         public void onSharedPreferenceChanged(final SharedPreferences sharedPreferences, final String s) {
-            Log.d(TAG, "onSharedPreferenceChanged1:" + s);
             switch(s) {
                 case Settings.KEY_THEME:
                     new Handler(Looper.getMainLooper()).post(new Runnable() {
@@ -61,11 +60,11 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
                         }
                     });
                     break;
-                case Settings.KEY_USE_NEW_PLAYER:
+                case Settings.KEY_PLAYER_SURFACE:
                     new Handler(Looper.getMainLooper()).post(new Runnable() {
                         @Override
                         public void run() {
-                            useNewPlayer.setChecked(sharedPreferences.getBoolean(Settings.KEY_USE_NEW_PLAYER, true));
+                            playerSurface.setValue(sharedPreferences.getString(Settings.KEY_PLAYER_SURFACE, "0"));
                         }
                     });
                     break;
@@ -73,7 +72,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
                     new Handler(Looper.getMainLooper()).post(new Runnable() {
                         @Override
                         public void run() {
-                            useHardwareAcceleration.setChecked(sharedPreferences.getBoolean(Settings.KEY_HARDWARE_ACCELERATION, true));
+                            useHardwareAcceleration.setChecked(sharedPreferences.getBoolean(Settings.KEY_HARDWARE_ACCELERATION, false));
                         }
                     });
                     break;
@@ -82,6 +81,13 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
                         @Override
                         public void run() {
                             useAVCodesFast.setChecked(sharedPreferences.getBoolean(Settings.KEY_AVCODES_FAST, false));
+                        }
+                    });
+                case Settings.KEY_GENERATE_CAMERA_TUMBNAIL_ONCE:
+                    new Handler(Looper.getMainLooper()).post(new Runnable() {
+                        @Override
+                        public void run() {
+                            generateCameraTumbnailOnce.setChecked(sharedPreferences.getBoolean(Settings.KEY_GENERATE_CAMERA_TUMBNAIL_ONCE, true));
                         }
                     });
                     break;
@@ -108,9 +114,10 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
         showLicense = findPreference(Settings.KEY_SHOW_LICENSE);
         openAddModelForm = findPreference(Settings.KEY_OPEN_ADD_MODEL_FORM);
 
-        useNewPlayer = findPreference(Settings.KEY_USE_NEW_PLAYER);
+        playerSurface = findPreference(Settings.KEY_PLAYER_SURFACE);
         useHardwareAcceleration = findPreference(Settings.KEY_HARDWARE_ACCELERATION);
         useAVCodesFast = findPreference(Settings.KEY_AVCODES_FAST);
+        generateCameraTumbnailOnce = findPreference(Settings.KEY_GENERATE_CAMERA_TUMBNAIL_ONCE);
         cachingBufferSize = findPreference(Settings.KEY_CACHING_BUFFER_SIZE);
 
         if(restoreBackup != null) restoreBackup.setOnPreferenceClickListener(this);

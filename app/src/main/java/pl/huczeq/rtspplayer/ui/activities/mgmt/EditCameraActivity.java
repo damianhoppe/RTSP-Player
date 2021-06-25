@@ -1,11 +1,12 @@
 package pl.huczeq.rtspplayer.ui.activities.mgmt;
 
 import android.os.Bundle;
+import android.widget.Toast;
 
 import pl.huczeq.rtspplayer.data.objects.Camera;
 import pl.huczeq.rtspplayer.R;
 import pl.huczeq.rtspplayer.ui.activities.base.BaseCameraActivity;
-import pl.huczeq.rtspplayer.ui.activities.base.BasePreviewcameraActivity;
+import pl.huczeq.rtspplayer.ui.activities.base.BasePreviewCameraActivity;
 
 public class EditCameraActivity extends BaseCameraActivity {
 
@@ -53,5 +54,14 @@ public class EditCameraActivity extends BaseCameraActivity {
         if(!isFormCorrect(true)) return;
         dataManager.updateCamera(this.cameraName, getCamera());
         finish();
+    }
+
+    @Override
+    protected void onClickButtonStartCameraPreview() {
+        if(!isUrlFormCorrect()) {
+            Toast.makeText(this, getResources().getString(R.string.incorrect_camera_url), Toast.LENGTH_SHORT).show();
+            return;
+        }
+        startActivity(BasePreviewCameraActivity.getPreviewCameraIntent(getApplicationContext(), this.camera));
     }
 }

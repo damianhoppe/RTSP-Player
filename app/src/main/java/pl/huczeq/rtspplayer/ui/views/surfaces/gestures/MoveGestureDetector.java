@@ -1,4 +1,4 @@
-package pl.huczeq.rtspplayer.ui.views.player.gestures;
+package pl.huczeq.rtspplayer.ui.views.surfaces.gestures;
 
 import android.content.Context;
 import android.graphics.PointF;

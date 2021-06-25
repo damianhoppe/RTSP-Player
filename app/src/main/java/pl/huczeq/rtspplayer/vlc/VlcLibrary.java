@@ -22,6 +22,8 @@ import pl.huczeq.rtspplayer.ui.views.OldVideoView;
 
 public class VlcLibrary implements IVLCVout.OnNewVideoLayoutListener {
 
+    private static final boolean ASYNC = true;
+
     private static final String TAG = "VlcLibrary";
     private Context context;
     private LibVLC libVLC;
@@ -30,6 +32,7 @@ public class VlcLibrary implements IVLCVout.OnNewVideoLayoutListener {
 
     private SurfaceTexture outputSurface;
     private TextureView outputView;
+    private SurfaceView outputSurfaceView;
     private OutputType outputType;
 
     private Uri uri;
@@ -93,27 +96,52 @@ public class VlcLibrary implements IVLCVout.OnNewVideoLayoutListener {
     public void release() {
         if(!initialized) return;
         if(vlcVout.areViewsAttached()) vlcVout.detachViews();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                if (stopPlayerThread != null && stopPlayerThread.isAlive()) {
-                    try {
-                        stopPlayerThread.join();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+        if(ASYNC) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    if (stopPlayerThread != null && stopPlayerThread.isAlive()) {
+                        try {
+                            stopPlayerThread.join();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
+                    mediaPlayer.setEventListener(null);
+                    mediaPlayer.release();
+                    mediaPlayer = null;
+                    libVLC.release();
+                    libVLC = null;
+                    initialized = false;
+                    prepared = false;
+                    released = true;
+                    Log.d(TAG, "released in Thread");
                 }
-                mediaPlayer.setEventListener(null);
-                mediaPlayer.release();
-                mediaPlayer = null;
-                libVLC.release();
-                libVLC = null;
-                initialized = false;
-                prepared = false;
-                released = true;
-                Log.d(TAG, "released in Thread");
-            }
-        }).start();
+            }).start();
+        }else {
+            mediaPlayer.setEventListener(null);
+            mediaPlayer.release();
+            mediaPlayer = null;
+            libVLC.release();
+            libVLC = null;
+            initialized = false;
+            prepared = false;
+            released = true;
+        }
+    }
+
+    public void prepare(SurfaceView outputSurface) {
+        Log.d(TAG, "prepare");
+        if(!this.initialized) throw new IllegalStateException("VlcLibrary is not initialized!");
+
+        this.outputType = OutputType.SURFACE_VIEW;
+        this.outputSurfaceView = outputSurface;
+
+        if(!vlcVout.areViewsAttached()) {
+            vlcVout.setVideoView(this.outputSurfaceView);
+            vlcVout.attachViews(this);
+        }
+        this.prepared = true;
     }
 
     public void prepare(SurfaceTexture outputSurface) {
@@ -150,11 +178,13 @@ public class VlcLibrary implements IVLCVout.OnNewVideoLayoutListener {
         if(!this.prepared) throw new IllegalStateException("VlcLibrary is not prepared!");
         if(this.uri == null) throw new IllegalStateException("No data to play!");*/
         if(this.uri == null || mediaPlayer == null) return;
-        if (stopPlayerThread != null && stopPlayerThread.isAlive()) {
-            try {
-                stopPlayerThread.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+        if(ASYNC) {
+            if (stopPlayerThread != null && stopPlayerThread.isAlive()) {
+                try {
+                    stopPlayerThread.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         }
         mediaPlayer.play();
@@ -174,16 +204,20 @@ public class VlcLibrary implements IVLCVout.OnNewVideoLayoutListener {
         if(!this.initialized) throw new IllegalStateException("VlcLibrary is not initialized!");
         if(!this.prepared) throw new IllegalStateException("VlcLibrary is not prepared!");*/
         if(mediaPlayer == null) return;
-        if (stopPlayerThread == null || stopPlayerThread.isAlive()) {
-            stopPlayerThread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    Log.d(TAG, "onStop in Thread");
-                    mediaPlayer.stop();
-                    Log.d(TAG, "onStop end in Thread");
-                }
-            });
-            stopPlayerThread.start();
+        if(ASYNC) {
+            if (stopPlayerThread == null || stopPlayerThread.isAlive()) {
+                stopPlayerThread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.d(TAG, "onStop in Thread");
+                        mediaPlayer.stop();
+                        Log.d(TAG, "onStop end in Thread");
+                    }
+                });
+                stopPlayerThread.start();
+            }
+        }else {
+            mediaPlayer.stop();
         }
     }
 
@@ -218,8 +252,9 @@ public class VlcLibrary implements IVLCVout.OnNewVideoLayoutListener {
 
     @Override
     public void onNewVideoLayout(IVLCVout vlcVout, int width, int height, int visibleWidth, int visibleHeight, int sarNum, int sarDen) {
+        //Log.d(TAG, "" + width + "x" + height + " / " + visibleWidth + "x" + visibleHeight + " / " + sarNum + " / " + sarDen);
         if(callbackListener != null)
-            callbackListener.onVideoStart(width, height);
+            callbackListener.onVideoStart(width, height, visibleWidth, visibleHeight);
     }
 
     public void releaseMediaPlayer() {
@@ -248,11 +283,11 @@ public class VlcLibrary implements IVLCVout.OnNewVideoLayoutListener {
     }
 
     public enum OutputType {
-        SURFACE_TEXTURE, TEXTURE_VIEW;
+        SURFACE_TEXTURE, TEXTURE_VIEW, SURFACE_VIEW;
     }
 
     public interface Callback{
-        void onVideoStart(int width, int height);
+        void onVideoStart(int width, int height, int videoWidth, int videoHeight);
         void onVideError();
         void onVideStop();
         void onVideoBuffering(float buffering);

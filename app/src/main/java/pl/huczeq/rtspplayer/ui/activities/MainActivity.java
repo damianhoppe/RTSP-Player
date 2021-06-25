@@ -3,6 +3,7 @@ package pl.huczeq.rtspplayer.ui.activities;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -12,10 +13,10 @@ import androidx.appcompat.app.AlertDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import pl.huczeq.rtspplayer.ui.activities.base.BaseCameraActivity;
+import pl.huczeq.rtspplayer.ui.activities.base.BasePreviewCameraActivity;
 import pl.huczeq.rtspplayer.ui.activities.mgmt.AddCameraActivity;
 import pl.huczeq.rtspplayer.ui.activities.base.BaseActivity;
 import pl.huczeq.rtspplayer.ui.activities.mgmt.EditCameraActivity;
-import pl.huczeq.rtspplayer.ui.activities.base.BasePreviewcameraActivity;
 import pl.huczeq.rtspplayer.ui.activities.settings.SettingsActivity;
 import pl.huczeq.rtspplayer.interfaces.OnMenuItemSelected;
 import pl.huczeq.rtspplayer.data.objects.Camera;
@@ -31,7 +32,6 @@ public class MainActivity extends BaseActivity implements OnListItemSelected, On
     private FloatingActionButton fABaddNewCamera;
 
     private ListAdapter listAdapter;
-    private LinearLayout adContainer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,52 +45,8 @@ public class MainActivity extends BaseActivity implements OnListItemSelected, On
         listAdapter.setOnItemSelectedListener(this);
         listAdapter.setOnMenuItemClick(this);
 
-        adContainer = findViewById(R.id.adContainer);
-
         enableOnDataChangeListener();
     }
-/*
-    public void enableBarAds() {
-        Log.d(TAG, "enableBarAds");
-        if(adView != null) {
-            disableBarAds();
-        }
-        adView = new AdView(this);
-        adView.setAdSize(AdSize.SMART_BANNER);
-        adView.setAdUnitId("ca-app-pub-8191844178329148/8504824792");
-        AdRequest adRequest = new AdRequest.Builder().build();
-        adView.loadAd(adRequest);
-        adContainer.setVisibility(View.VISIBLE);
-        adContainer.addView(adView);
-    }
-    public void disableBarAds() {
-        Log.d(TAG, "disableBarAds");
-        if(adView == null) return;
-        adContainer.removeView(adView);
-        adContainer.setVisibility(View.GONE);
-        adView.destroy();
-        adView = null;
-    }
-
-    public void showFullscreenAd() {
-        Log.d(TAG, "showFullscreenAd");
-        if(interstitialAd == null) {
-            MobileAds.setRequestConfiguration(
-                    new RequestConfiguration.Builder().build());
-            interstitialAd = new InterstitialAd(this);
-            interstitialAd.setAdUnitId("ca-app-pub-8191844178329148/6089047466");
-            interstitialAd.setAdListener(new AdListener() {
-                @Override
-                public void onAdOpened() {
-                    super.onAdLoaded();
-                    settings.setLastAddTime(System.currentTimeMillis());
-                }
-            });
-        }
-
-        interstitialAd.loadAd(new AdRequest.Builder().build());
-        interstitialAd.show();
-    }*/
 
     @Override
     protected void onDestroy() {
@@ -122,15 +78,7 @@ public class MainActivity extends BaseActivity implements OnListItemSelected, On
 
     @Override
     public void onListItemSelected(Camera camera) {
-        Intent intent;
-        if(settings.isEnabledNewPlayer()) {
-            intent = new Intent(getApplicationContext(), GLPreviewCameraActivity.class);
-        }else {
-            intent = new Intent(getApplicationContext(), PreviewCameraActivity.class);
-        }
-        intent.putExtra(BasePreviewcameraActivity.EXTRA_CAMERA_NAME, camera.getName());
-        intent.putExtra(BasePreviewcameraActivity.EXTRA_URL, camera.getUrl());
-        startActivity(intent);
+        startActivity(BasePreviewCameraActivity.getPreviewCameraIntent(getApplicationContext(), camera));
     }
 
     @Override
