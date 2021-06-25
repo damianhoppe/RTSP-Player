@@ -12,6 +12,7 @@ import android.view.ScaleGestureDetector;
 import android.view.TextureView;
 import android.view.ViewGroup;
 
+import pl.huczeq.rtspplayer.data.Settings;
 import pl.huczeq.rtspplayer.ui.views.surfaces.gestures.MoveGestureDetector;
 
 /*
@@ -30,6 +31,8 @@ public class ZoomableTextureView extends TextureView {
     private float mFocusX = 0.f;
 
     private float mFocusY = 0.f;
+
+    private OnClickListener onClickListener;
 
     public ZoomableTextureView(Context context) {
         super(context);
@@ -65,6 +68,11 @@ public class ZoomableTextureView extends TextureView {
     @Override
     public boolean onTouchEvent(MotionEvent motionEvent) {
         super.onTouchEvent(motionEvent);
+        long deltaTime = motionEvent.getEventTime() - motionEvent.getDownTime();
+        if(deltaTime <= Settings.CLICK_MIN_DELTA_TIME && motionEvent.getAction() == MotionEvent.ACTION_UP && this.onClickListener != null) {
+            this.onClickListener.onClick(this);
+            return true;
+        }
 
         mScaleDetector.onTouchEvent(motionEvent);
 
@@ -156,8 +164,8 @@ public class ZoomableTextureView extends TextureView {
 
     public void onNewVideoSize(int width, int height, int videoWidth, int videoHeight) {
         if(width == 0 || height == 0) return;
-        this.width = width;
-        this.height = height;
+        this.width = videoWidth;
+        this.height = videoHeight;
         updateScaleValues();
     }
 
@@ -205,4 +213,8 @@ public class ZoomableTextureView extends TextureView {
         return bitmap;
     }
 
+    @Override
+    public void setOnClickListener(OnClickListener onClickListener) {
+        this.onClickListener = onClickListener;
+    }
 }

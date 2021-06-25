@@ -269,8 +269,18 @@ public class GLSurfaceViewRenderer implements GLSurfaceView.Renderer, SurfaceRen
 
     @Override
     public void onNewVideoSize(int width, int height, int videoWidth, int videoHeight) {
-        this.width = width;
-        this.height = height;
+        float scaleX = (float)videoWidth/width;
+        float scaleY = (float)videoHeight/height;
+        Log.d(TAG, "Correction scale: " + scaleX + " x " + scaleY);
+        ttmp[2] = scaleX;
+        ttmp[5] = scaleY;
+        ttmp[6] = scaleX;
+        ttmp[7] = scaleY;
+        verticesTxt.put(ttmp);
+        verticesTxt.position(0);
+
+        this.width = videoWidth;
+        this.height = videoHeight;
         this.getSurfaceTexture().setDefaultBufferSize(width, height);
         this.updateScaleValues();
     }

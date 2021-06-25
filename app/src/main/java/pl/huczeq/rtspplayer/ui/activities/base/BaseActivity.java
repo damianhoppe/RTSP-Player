@@ -40,6 +40,7 @@ public class BaseActivity extends AbstractBaseActivity implements OnDataChanged 
             }
         });
         settings = Settings.getInstance(this);
+        this.dataChanged = true;
     }
 
     @Override
@@ -90,7 +91,6 @@ public class BaseActivity extends AbstractBaseActivity implements OnDataChanged 
     }
 
     public void enableToolbarIcon(Drawable icon, View.OnClickListener onClickListener) {
-        Log.d(TAG, "2");
         toolbarIcon.setVisibility(View.VISIBLE);
         toolbarIcon.setImageDrawable(icon);
         if(onClickListener != null)

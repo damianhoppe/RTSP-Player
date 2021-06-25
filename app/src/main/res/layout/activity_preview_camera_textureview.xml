@@ -27,4 +27,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"/>
 
+    <include
+        layout="@layout/player_control_interface"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

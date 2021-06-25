@@ -23,6 +23,9 @@
     <string name="yes">Yes</string>
     <string name="cancel">Cancel</string>
 
+    <!--Activity Main-->
+    <string name="empty_camera_list_message">"List is empty.\nAdd camera preview."</string>
+
     <!--Activity Add/Edit Camera-->
     <string name="label_producers">Select producer:</string>
     <string name="label_models">Select model:</string>

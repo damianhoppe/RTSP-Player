@@ -24,6 +24,9 @@
     <string name="yes">Tak</string>
     <string name="cancel">Anuluj</string>
 
+    <!--Activity Main-->
+    <string name="empty_camera_list_message">"Lista jest pusta.\nDodaj podgląd kamery."</string>
+
     <!--Activity Add/Edit Camera-->
     <string name="label_producers">Wyberz producenta:</string>
     <string name="label_models">Wyberz model:</string>

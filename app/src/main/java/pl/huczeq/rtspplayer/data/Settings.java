@@ -31,6 +31,7 @@ public class Settings {
     private Context context;
     private final String preferencesName = "Settings";
     public static final long adFullscreenDelay = 1000*60*60;
+    public static final long CLICK_MIN_DELTA_TIME = 150;
 
     private SharedPreferences appPref;
     private SharedPreferences.Editor appEditor;

@@ -14,14 +14,12 @@ public class StartActivity extends BaseActivity {
     final String TAG = "StartActivity";
     boolean activityReady = false;
     boolean dataLoaded = false;
+    boolean activityMainStarted = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
-
-        if(dataManager.isDataLoaded())
-            onDataChangedWAA();
 
         /* MIN ACTIVITY TIME FOR TEST */
         new Handler(getMainLooper()).postDelayed(new Runnable() {
@@ -31,7 +29,7 @@ public class StartActivity extends BaseActivity {
                 activityReady = true;
                 tryStartNextActivity();
             }
-        }, 50);
+        }, 30);
     }
 
     @Override
@@ -52,8 +50,11 @@ public class StartActivity extends BaseActivity {
         Log.d(TAG, "activityReady: " + activityReady);
         Log.d(TAG, "dataLoaded: " + dataLoaded);
         if(activityReady && dataLoaded) {
+            if(activityMainStarted)
+                return;
             Log.d(TAG, "OK");
             startActivity(new Intent(getApplicationContext(), MainActivity.class));
+            activityMainStarted = true;
         }
     }
 }

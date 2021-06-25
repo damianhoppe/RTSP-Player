@@ -14,6 +14,19 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="parent"/>
 
+    <TextView
+        android:id="@+id/tvEmptyCameraListMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/empty_camera_list_message"
+        android:textAlignment="center"
+        android:textSize="16dp"
+        android:visibility="invisible"
+        app:layout_constraintTop_toBottomOf="@+id/include"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"/>
+
     <ListView
         android:id="@+id/listCameras"
         android:layout_width="match_parent"

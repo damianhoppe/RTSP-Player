@@ -8,6 +8,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -32,6 +33,7 @@ public class MainActivity extends BaseActivity implements OnListItemSelected, On
     private FloatingActionButton fABaddNewCamera;
 
     private ListAdapter listAdapter;
+    private TextView tvEmptyCameraListMessage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +71,14 @@ public class MainActivity extends BaseActivity implements OnListItemSelected, On
         this.listView = findViewById(R.id.listCameras);
         this.fABaddNewCamera = findViewById(R.id.addCameraFAButton);
         fABaddNewCamera.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(getApplicationContext(), AddCameraActivity.class));
+            }
+        });
+
+        tvEmptyCameraListMessage = findViewById(R.id.tvEmptyCameraListMessage);
+        tvEmptyCameraListMessage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 startActivity(new Intent(getApplicationContext(), AddCameraActivity.class));
@@ -121,5 +131,6 @@ public class MainActivity extends BaseActivity implements OnListItemSelected, On
     protected void onDataChangedWAA() {
         super.onDataChangedWAA();
         listAdapter.notifyDataSetChanged();
+        this.tvEmptyCameraListMessage.setVisibility((dataManager.getCameraList().size()==0? View.VISIBLE : View.INVISIBLE));
     }
 }

@@ -72,11 +72,16 @@ public class BasePreviewCameraActivity extends BaseActivity implements VlcLibrar
 
     protected ConstraintLayout rootLayout;
     protected ProgressBar pBLoading;
+    protected ConstraintLayout rootPlayerControl;
+    protected ImageView buttonVolumeChange;
 
     protected Camera camera;
     protected String cameraName;
     protected String url;
     protected VlcLibrary vlcLibrary;
+
+    private Thread threadPlayerControlHide;
+    private Runnable runnablePlayerControlHide;
 
     protected boolean connectionError = false;
     private boolean connectionChanged = false;
@@ -162,6 +167,24 @@ public class BasePreviewCameraActivity extends BaseActivity implements VlcLibrar
         ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkRequest.Builder builder = new NetworkRequest.Builder();
         connectivityManager.registerNetworkCallback(builder.build(), this.networkCallback);
+
+        this.runnablePlayerControlHide = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(1800);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    return;
+                }
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        rootPlayerControl.setVisibility(View.INVISIBLE);
+                    }
+                });
+            }
+        };
     }
 
     @Override
@@ -177,6 +200,50 @@ public class BasePreviewCameraActivity extends BaseActivity implements VlcLibrar
 
         pBLoading = findViewById(R.id.pBLoading);
         rootLayout = findViewById(R.id.rootLayout);
+
+        rootPlayerControl = findViewById(R.id.rootPlayerControl);
+
+        View cameraPreviewView = findViewById(R.id.cameraPreview);
+        cameraPreviewView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(vlcLibrary.mediaPlayer == null || !vlcLibrary.mediaPlayer.hasMedia()) {
+                    if(rootPlayerControl.getVisibility() == View.VISIBLE)
+                        rootPlayerControl.setVisibility(View.INVISIBLE);
+                    return;
+                }
+                if(rootPlayerControl.getVisibility() == View.VISIBLE) {
+                    rootPlayerControl.setVisibility(View.INVISIBLE);
+                    if(threadPlayerControlHide != null) {
+                        if (threadPlayerControlHide.isAlive())
+                            threadPlayerControlHide.interrupt();
+                    }
+                }else {
+                    rootPlayerControl.setVisibility(View.VISIBLE);
+                    startThreadPlayerControlHide();
+                }
+            }
+        });
+
+        buttonVolumeChange = findViewById(R.id.buttonVolumeChange);
+        vlcLibrary.mediaPlayer.setVolume(100);
+        buttonVolumeChange.setImageResource(R.drawable.ic_volume_on);
+
+        buttonVolumeChange.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(vlcLibrary.mediaPlayer == null)
+                    return;
+                if(vlcLibrary.mediaPlayer.getVolume() == 0) {
+                    vlcLibrary.mediaPlayer.setVolume(100);
+                    buttonVolumeChange.setImageResource(R.drawable.ic_volume_on);
+                }else {
+                    vlcLibrary.mediaPlayer.setVolume(0);
+                    buttonVolumeChange.setImageResource(R.drawable.ic_volume_off);
+                }
+                startThreadPlayerControlHide();
+            }
+        });
     }
 
     @Override
@@ -316,6 +383,18 @@ public class BasePreviewCameraActivity extends BaseActivity implements VlcLibrar
 
     protected Bitmap takePicture() {
         return null;
+    }
+
+    private void startThreadPlayerControlHide() {
+        if(threadPlayerControlHide == null) {
+            threadPlayerControlHide = new Thread(runnablePlayerControlHide);
+        }else {
+            if (threadPlayerControlHide.isAlive()) {
+                threadPlayerControlHide.interrupt();
+            }
+            threadPlayerControlHide = new Thread(runnablePlayerControlHide);
+        }
+        threadPlayerControlHide.start();
     }
 
     private class OrientationListener extends OrientationEventListener {

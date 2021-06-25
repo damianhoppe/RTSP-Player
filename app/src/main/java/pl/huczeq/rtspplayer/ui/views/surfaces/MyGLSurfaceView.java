@@ -12,6 +12,7 @@ import android.view.ScaleGestureDetector;
 import android.view.ViewConfiguration;
 
 import pl.huczeq.rtspplayer.data.DataManager;
+import pl.huczeq.rtspplayer.data.Settings;
 import pl.huczeq.rtspplayer.data.objects.Camera;
 import pl.huczeq.rtspplayer.ui.renderers.GLSurfaceViewRenderer;
 import pl.huczeq.rtspplayer.ui.renderers.OnTakeImageCallback;
@@ -27,11 +28,10 @@ public class MyGLSurfaceView extends GLSurfaceView implements BaseSurfaceView{
 
     private ScaleGestureDetector mScaleDetector;
     private MoveGestureDetector mMoveDetector;
+    private OnClickListener onClickListener;
     private float mScaleFactor = 1.f;
     private float mFocusX = 0.f;
     private float mFocusY = 0.f;
-
-    private OnClickListener onClickListener;
 
     public MyGLSurfaceView(Context context) {
         super(context);
@@ -82,6 +82,11 @@ public class MyGLSurfaceView extends GLSurfaceView implements BaseSurfaceView{
     @Override
     public boolean onTouchEvent(MotionEvent motionEvent) {
         super.onTouchEvent(motionEvent);
+        long deltaTime = motionEvent.getEventTime() - motionEvent.getDownTime();
+        if(deltaTime <= Settings.CLICK_MIN_DELTA_TIME && motionEvent.getAction() == MotionEvent.ACTION_UP && this.onClickListener != null) {
+            this.onClickListener.onClick(this);
+            return true;
+        }
 
         android.graphics.Matrix matrix = new android.graphics.Matrix();
 
@@ -135,5 +140,10 @@ public class MyGLSurfaceView extends GLSurfaceView implements BaseSurfaceView{
             mFocusY += d.y * 0.0007;
             return true;
         }
+    }
+
+    @Override
+    public void setOnClickListener(OnClickListener onClickListener) {
+        this.onClickListener = onClickListener;
     }
 }
