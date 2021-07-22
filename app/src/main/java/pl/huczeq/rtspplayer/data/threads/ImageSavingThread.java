@@ -15,8 +15,7 @@ import java.io.IOException;
 import java.util.Objects;
 
 import pl.huczeq.rtspplayer.data.Settings;
-import pl.huczeq.rtspplayer.data.objects.Camera;
-import pl.huczeq.rtspplayer.data.DataManager;
+import pl.huczeq.rtspplayer.data.objects.CameraInstance;
 
 public class ImageSavingThread extends Thread{
 
@@ -44,18 +43,8 @@ public class ImageSavingThread extends Thread{
             @Override
             public boolean handleMessage(@NonNull Message message) {
                 final ImageSavingThread.Data data = (ImageSavingThread.Data)message.obj;
-                if(!saveBitmapToFile(data.camera, data.bitmap)) {
+                if(!saveBitmapToFile(data.cameraInstance, data.bitmap)) {
                     returnMessageToQueue(message);
-                    return false;
-                }
-                DataManager.getInstance(context).saveData();
-                if(data.callback != null) {
-                    new Handler(Looper.getMainLooper()).post(new Runnable() {
-                        @Override
-                        public void run() {
-                            data.callback.onImageSaved(data);
-                        }
-                    });
                 }
                 return false;
             }
@@ -81,9 +70,9 @@ public class ImageSavingThread extends Thread{
         if(!this.handler.hasMessages(1, message.obj)) this.handler.sendMessage(message);
     }
 
-    public boolean saveBitmapToFile(Camera camera, Bitmap bitmap) {
+    public boolean saveBitmapToFile(CameraInstance cameraInstance, Bitmap bitmap) {
         Settings settings = Settings.getInstance(context);
-        File f = new File(settings.getPreviewImagesDir(), camera.getPreviewImg());
+        File f = new File(settings.getPreviewImagesDir(), cameraInstance.getPreviewImg());
         try {
             FileOutputStream fouts = new FileOutputStream(f);
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, fouts);
@@ -97,24 +86,22 @@ public class ImageSavingThread extends Thread{
     }
 
     public static class Data {
-        Camera camera;
+        CameraInstance cameraInstance;
         Bitmap bitmap;
-        Callback callback;
         int returns;
 
-        public Data(Camera camera, Bitmap bitmap, Callback callback) {
-            this.camera = camera;
+        public Data(CameraInstance cameraInstance, Bitmap bitmap) {
+            this.cameraInstance = cameraInstance;
             this.bitmap = bitmap;
-            this.callback = callback;
             this.returns = 0;
         }
 
-        public Camera getCamera() {
-            return camera;
+        public CameraInstance getCamera() {
+            return cameraInstance;
         }
 
-        public void setCamera(Camera camera) {
-            this.camera = camera;
+        public void setCamera(CameraInstance cameraInstance) {
+            this.cameraInstance = cameraInstance;
         }
 
         public Bitmap getBitmap() {
@@ -125,14 +112,6 @@ public class ImageSavingThread extends Thread{
             this.bitmap = bitmap;
         }
 
-        public Callback getCallback() {
-            return callback;
-        }
-
-        public void setCallback(Callback callback) {
-            this.callback = callback;
-        }
-
         public int getNumberOfReturns() {
             return this.returns;
         }
@@ -140,9 +119,5 @@ public class ImageSavingThread extends Thread{
         public void returnToQueue() {
             this.returns++;
         }
-    }
-
-    public interface Callback {
-        void onImageSaved(ImageSavingThread.Data data);
     }
 }

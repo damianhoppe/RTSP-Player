@@ -6,11 +6,12 @@ import android.graphics.SurfaceTexture;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.lifecycle.Observer;
 
 import pl.huczeq.rtspplayer.R;
-import pl.huczeq.rtspplayer.ui.activities.base.BasePreviewCameraActivity;
 import pl.huczeq.rtspplayer.ui.renderers.OnTakeImageCallback;
 import pl.huczeq.rtspplayer.ui.renderers.base.RendererCallback;
 import pl.huczeq.rtspplayer.ui.views.surfaces.MyGLSurfaceView;
@@ -28,20 +29,28 @@ public class GLSurfaceViewPreviewCameraActivity extends BasePreviewCameraActivit
 
         setViewsWidgets();
         if(this.url != null) {
-            if(this.camera != null) {
-                if (settings.isEnabledGenerateCameraTumbnailOnce()) {
-                    if (this.camera.getPreviewImg() == null || this.camera.getPreviewImg().trim().isEmpty()) {
-                        videoView.takePicture();
-                    }
-                } else {
-                    videoView.takePicture();
-                }
-            }
             videoView.initRenderer(new RendererCallback() {
                 @Override
                 public void onReady(SurfaceTexture surfaceTexture) {
-                    prepareSurface();
-                    loadVideo();
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if(!vlcLibrary.isPrepared())
+                                prepareSurface();
+                            viewModel.getPreviewUrl().observe(GLSurfaceViewPreviewCameraActivity.this, new Observer<String>() {
+                                @Override
+                                public void onChanged(String newUrl) {
+                                    Log.d(TAG, "New url:" + newUrl);
+                                    if(newUrl != null) {
+                                        camera = viewModel.getCamera();
+                                        url = newUrl;
+                                        loadVideo();
+                                        viewModel.getPreviewUrl().removeObserver(this);
+                                    }
+                                }
+                            });
+                        }
+                    });
                 }
             }, this);
         }
@@ -109,7 +118,21 @@ public class GLSurfaceViewPreviewCameraActivity extends BasePreviewCameraActivit
 
     @Override
     public void onSaveImg(final Bitmap bitmap) {
-        Log.d(TAG, "onSaveImage" + this.camera.getName());
-        dataManager.savePreviewImg(this.camera, bitmap);
+        Log.d(TAG, "onSaveImage" + this.camera.getCameraInstance().getName());
+        dataManager.saveCameraPreviewImg(this.camera.getCameraInstance(), bitmap);
+    }
+
+    @Override
+    protected void loadVideo() {
+        super.loadVideo();
+        if(camera != null) {
+            if (settings.isEnabledGenerateCameraTumbnailOnce()) {
+                if (camera.getCameraInstance().getPreviewImg() == null || camera.getCameraInstance().getPreviewImg().trim().isEmpty()) {
+                    videoView.takePicture();
+                }
+            } else {
+                videoView.takePicture();
+            }
+        }
     }
 }

@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/linearLayout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:animateLayoutChanges="true">
+    android:animateLayoutChanges="true"
+    android:paddingBottom="150dp">
 
     <EditText
         android:id="@+id/etCameraName"
@@ -38,10 +41,18 @@
         android:visibility="gone"
         android:paddingBottom="27dp"
         android:animateLayoutChanges="true">
+        <ProgressBar
+            android:id="@+id/pbLoadingProducers"
+            android:layout_marginTop="12dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:visibility="gone"/>
         <TextView
             android:id="@+id/tvProducers"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
             android:paddingStart="10dp"
             android:visibility="gone"
             android:text="@string/label_producers"/>
@@ -49,7 +60,7 @@
             android:id="@+id/spinnerProducers"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:layout_marginTop="18dp"
+            android:layout_marginTop="6dp"
             android:paddingHorizontal="20dp"
             android:paddingVertical="5dp"
             android:background="@drawable/edittext_selector"
@@ -62,6 +73,7 @@
             android:id="@+id/tvModels"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
             android:paddingStart="10dp"
             android:visibility="gone"
             android:text="@string/label_models"/>
@@ -69,7 +81,7 @@
             android:id="@+id/spinnerModel"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:layout_marginTop="18dp"
+            android:layout_marginTop="6dp"
             android:paddingHorizontal="20dp"
             android:paddingVertical="5dp"
             android:background="@drawable/edittext_selector"
@@ -83,7 +95,7 @@
             android:id="@+id/etUserName"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:layout_marginTop="18dp"
+            android:layout_marginTop="12dp"
             android:ems="10"
             android:hint="@string/label_user_name"
             android:textColor="@color/textColor"
@@ -134,7 +146,7 @@
             android:paddingHorizontal="20dp"
             android:paddingVertical="5dp"
             android:background="@drawable/edittext_selector"
-            android:inputType="numberDecimal"
+            android:inputType="text"
             android:drawableRight="@null"/>
 
         <EditText
@@ -151,14 +163,6 @@
             android:background="@drawable/edittext_selector"
             android:inputType="text"/>
 
-        <ProgressBar
-            android:id="@+id/pbLoadingProducers"
-            android:layout_marginTop="12dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:visibility="gone"/>
-
         <EditText
             android:id="@+id/etChannel"
             android:layout_width="match_parent"
@@ -172,7 +176,7 @@
             android:paddingHorizontal="20dp"
             android:paddingVertical="5dp"
             android:background="@drawable/edittext_selector"
-            android:inputType="number"
+            android:inputType="text"
             android:visibility="gone"/>
 
         <Spinner
@@ -207,4 +211,59 @@
         android:paddingVertical="5dp"
         android:background="@drawable/edittext_selector"
         android:inputType="textPersonName"/>
+
+    <LinearLayout
+        android:id="@+id/llAdvanced"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="18dp">
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="24dp"
+                android:text="Special variables"
+                style="?android:attr/borderlessButtonStyle"
+                android:textAlignment="viewStart"
+                android:background="@color/background"
+                android:paddingStart="10dp"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/buttonAddVariable"/>
+
+            <ImageButton
+                android:id="@+id/buttonAddVariable"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:padding="10dp"
+                android:layout_marginEnd="7dp"
+                android:background="?android:attr/actionBarItemBackground"
+                android:src="@drawable/ic_add"
+                android:clickable="true"
+                android:scaleType="fitCenter"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"/>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <LinearLayout
+            android:id="@+id/lvVariables"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:background="@color/background"
+            android:choiceMode="singleChoice"
+            android:clipToPadding="false"
+            android:divider="@android:color/darker_gray"
+            android:dividerHeight="0dp"
+            android:fadingEdgeLength="0dp"
+            android:foregroundGravity="top"
+            android:paddingBottom="150dp"
+            android:orientation="vertical"
+            android:animateLayoutChanges="true">
+        </LinearLayout>
+    </LinearLayout>
 </LinearLayout>

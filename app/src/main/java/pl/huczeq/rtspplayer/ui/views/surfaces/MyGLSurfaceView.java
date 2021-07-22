@@ -3,17 +3,13 @@ package pl.huczeq.rtspplayer.ui.views.surfaces;
 import android.content.Context;
 import android.graphics.PointF;
 import android.graphics.RectF;
-import android.graphics.SurfaceTexture;
 import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
-import android.view.ViewConfiguration;
 
 import pl.huczeq.rtspplayer.data.DataManager;
 import pl.huczeq.rtspplayer.data.Settings;
-import pl.huczeq.rtspplayer.data.objects.Camera;
 import pl.huczeq.rtspplayer.ui.renderers.GLSurfaceViewRenderer;
 import pl.huczeq.rtspplayer.ui.renderers.OnTakeImageCallback;
 import pl.huczeq.rtspplayer.ui.renderers.base.RendererCallback;

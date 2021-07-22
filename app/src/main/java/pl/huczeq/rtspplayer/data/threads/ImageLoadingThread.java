@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.telecom.Call;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -14,11 +15,12 @@ import androidx.annotation.NonNull;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.lang.ref.SoftReference;
+import java.lang.ref.WeakReference;
 import java.util.Objects;
 
 import pl.huczeq.rtspplayer.data.Settings;
-import pl.huczeq.rtspplayer.data.CachedImages;
-import pl.huczeq.rtspplayer.data.objects.Camera;
+import pl.huczeq.rtspplayer.data.objects.CameraInstance;
 
 public class ImageLoadingThread extends Thread{
 
@@ -46,24 +48,23 @@ public class ImageLoadingThread extends Thread{
             @Override
             public boolean handleMessage(@NonNull Message message) {
                 final Data data = (Data)message.obj;
-                Bitmap bitmap = CachedImages.getCachedBitmap(data.getCamera());
-                if(bitmap == null) {
-                    Settings settings = Settings.getInstance(context);
-                    File f = new File(settings.getPreviewImagesDir(), data.getCamera().getPreviewImg());
-                    if(!f.exists()) {
-                        return false;
-                    }
-                    bitmap = loadBitmapFromFile(f);
-                    if(bitmap == null) returnMessageToQueue(message);;
-                    CachedImages.addCachedImage(data.camera, bitmap);
+                Settings settings = Settings.getInstance(context);
+                File f = new File(settings.getPreviewImagesDir(), data.getCamera().getPreviewImg());
+                if(!f.exists()) {
+                    return false;
                 }
+                Bitmap bitmap = loadBitmapFromFile(f);
+                if(bitmap == null) returnMessageToQueue(message);
                 final Bitmap finalBitmap = bitmap;
-                new Handler(Looper.getMainLooper()).post(new Runnable() {
-                    @Override
-                    public void run() {
-                        data.callback.onImageLoaded(data, finalBitmap);
-                    }
-                });
+                if(data.callback != null) {
+                    Log.d("TEST", "data.callback != null");
+                    new Handler(Looper.getMainLooper()).post(new Runnable() {
+                        @Override
+                        public void run() {
+                            data.callback.onImageLoaded(data, bitmap);
+                        }
+                    });
+                }
                 return false;
             }
         });
@@ -106,23 +107,28 @@ public class ImageLoadingThread extends Thread{
         return bitmap;
     }
 
+    public void clearQueue() {
+        this.handler.removeCallbacksAndMessages(null);
+    }
+
     public static class Data {
-        Camera camera;
+        CameraInstance cameraInstance;
         Callback callback;
         int returns;
 
-        public Data(Camera camera, Callback callback) {
-            this.camera = camera;
+        public Data(CameraInstance cameraInstance, Callback callback) {
+            Log.d("TEST", "Data() callback" + ((callback == null)? "is null" : "is not null"));
+            this.cameraInstance = cameraInstance;
             this.callback = callback;
             this.returns = 0;
         }
 
-        public Camera getCamera() {
-            return camera;
+        public CameraInstance getCamera() {
+            return cameraInstance;
         }
 
-        public void setCamera(Camera camera) {
-            this.camera = camera;
+        public void setCamera(CameraInstance cameraInstance) {
+            this.cameraInstance = cameraInstance;
         }
 
         public Callback getCallback() {

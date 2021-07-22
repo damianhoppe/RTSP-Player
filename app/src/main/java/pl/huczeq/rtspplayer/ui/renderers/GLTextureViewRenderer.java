@@ -19,7 +19,7 @@ import javax.microedition.khronos.opengles.GL10;
 import pl.huczeq.rtspplayer.ui.renderers.base.RendererCallback;
 import pl.huczeq.rtspplayer.ui.renderers.base.SurfaceRenderer;
 import pl.huczeq.rtspplayer.ui.views.surfaces.base.GLTextureView;
-import pl.huczeq.rtspplayer.utils.GLUtils;
+import pl.huczeq.rtspplayer.common.GLUtils;
 
 import static android.opengl.GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
 

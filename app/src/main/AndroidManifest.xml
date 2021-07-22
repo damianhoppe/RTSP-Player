@@ -27,8 +27,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ui.activities.mgmt.AddCameraActivity" />
-        <activity android:name=".ui.activities.mgmt.EditCameraActivity" />
+        <activity android:name=".ui.activities.cameraform.AddCameraFormActivity" />
+        <activity android:name=".ui.activities.cameraform.EditCameraFormActivity" />
         <activity android:name=".ui.activities.MainActivity" />
         <activity android:name=".ui.activities.settings.info.AppInfoActivity" />
         <activity android:name=".ui.activities.settings.info.LicenseActivity" />

@@ -5,14 +5,15 @@ import android.graphics.Bitmap;
 import android.graphics.SurfaceTexture;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.lifecycle.Observer;
 
 import pl.huczeq.rtspplayer.R;
 import pl.huczeq.rtspplayer.ui.renderers.OnTakeImageCallback;
 import pl.huczeq.rtspplayer.ui.renderers.base.RendererCallback;
 import pl.huczeq.rtspplayer.ui.views.surfaces.MyGLTextureView;
-import pl.huczeq.rtspplayer.ui.activities.base.BasePreviewCameraActivity;
 
 public class GLTextureViewPreviewCameraActivity extends BasePreviewCameraActivity implements OnTakeImageCallback{
 
@@ -27,20 +28,27 @@ public class GLTextureViewPreviewCameraActivity extends BasePreviewCameraActivit
 
         setViewsWidgets();
         if(this.url != null) {
-            if(this.camera != null) {
-                if (settings.isEnabledGenerateCameraTumbnailOnce()) {
-                    if (this.camera.getPreviewImg() == null || this.camera.getPreviewImg().trim().isEmpty()) {
-                        videoView.takePicture();
-                    }
-                } else {
-                    videoView.takePicture();
-                }
-            }
             videoView.initRenderer(new RendererCallback() {
                 @Override
                 public void onReady(SurfaceTexture surfaceTexture) {
-                    prepareSurface();
-                    loadVideo();
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if(!vlcLibrary.isPrepared())
+                                prepareSurface();
+                            viewModel.getPreviewUrl().observe(GLTextureViewPreviewCameraActivity.this, new Observer<String>() {
+                                @Override
+                                public void onChanged(String newUrl) {
+                                    if(newUrl != null) {
+                                        camera = viewModel.getCamera();
+                                        url = newUrl;
+                                        loadVideo();
+                                        viewModel.getPreviewUrl().removeObserver(this);
+                                    }
+                                }
+                            });
+                        }
+                    });
                 }
             }, this);
         }
@@ -116,6 +124,20 @@ public class GLTextureViewPreviewCameraActivity extends BasePreviewCameraActivit
 
     @Override
     public void onSaveImg(Bitmap bitmap) {
-        dataManager.savePreviewImg(this.camera, bitmap);
+        dataManager.saveCameraPreviewImg(this.camera.getCameraInstance(), bitmap);
+    }
+
+    @Override
+    protected void loadVideo() {
+        super.loadVideo();
+        if(this.camera != null) {
+            if (settings.isEnabledGenerateCameraTumbnailOnce()) {
+                if (this.camera.getCameraInstance().getPreviewImg() == null || this.camera.getCameraInstance().getPreviewImg().trim().isEmpty()) {
+                    videoView.takePicture();
+                }
+            } else {
+                videoView.takePicture();
+            }
+        }
     }
 }

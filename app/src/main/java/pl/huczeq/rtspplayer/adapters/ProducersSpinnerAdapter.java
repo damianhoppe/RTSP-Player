@@ -3,7 +3,6 @@ package pl.huczeq.rtspplayer.adapters;
 import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -11,9 +10,10 @@ import android.widget.TextView;
 import java.util.List;
 
 import pl.huczeq.rtspplayer.R;
-import pl.huczeq.rtspplayer.data.objects.urls.Producer;
+import pl.huczeq.rtspplayer.data.objects.urltemplates.Producer;
 
 public class ProducersSpinnerAdapter extends ArrayAdapter<Producer> {
+
     Context context;
     List<Producer> producerList;
     public static Producer emptyProducer = new Producer("none");

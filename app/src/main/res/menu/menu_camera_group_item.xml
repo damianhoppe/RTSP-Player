@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/watch"
+        android:icon="@android:drawable/ic_menu_view"
+        android:title="@string/watch"/>
+    <item android:id="@+id/edit"
+        android:icon="@android:drawable/ic_menu_edit"
+        android:title="@string/edit" />
+    <item android:id="@+id/duplicate_camera"
+        android:icon="@android:drawable/ic_menu_day"
+        android:title="@string/duplicate_camera"/>
+    <item android:id="@+id/duplicate"
+        android:icon="@android:drawable/ic_menu_day"
+        android:title="@string/duplicate_group"/>
+    <item android:id="@+id/remove"
+        android:icon="@android:drawable/ic_menu_delete"
+        android:title="@string/remove"/>
+</menu>

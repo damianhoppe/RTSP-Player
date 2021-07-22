@@ -18,7 +18,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import pl.huczeq.rtspplayer.data.Settings;
-import pl.huczeq.rtspplayer.ui.views.OldVideoView;
 
 public class VlcLibrary implements IVLCVout.OnNewVideoLayoutListener {
 
@@ -55,7 +54,7 @@ public class VlcLibrary implements IVLCVout.OnNewVideoLayoutListener {
         this.released = true;
         this.settings = Settings.getInstance(context);
         int caching = settings.getCachingBufferSize();
-        this.args = new ArrayList<String>(Arrays.asList("--vout=android-display", "--file-caching="+caching, "--network-caching="+caching, "--live-caching="+caching, "-vvv"));//TODO CHANGED
+        this.args = new ArrayList<String>(Arrays.asList("--vout=android-display", "--file-caching="+caching, "--network-caching="+caching, "--live-caching="+caching, "-vvv"));//TODO
     }
 
     public void init() {
@@ -137,10 +136,11 @@ public class VlcLibrary implements IVLCVout.OnNewVideoLayoutListener {
         this.outputType = OutputType.SURFACE_VIEW;
         this.outputSurfaceView = outputSurface;
 
-        if(!vlcVout.areViewsAttached()) {
+        if(vlcVout.areViewsAttached()) {
             vlcVout.setVideoView(this.outputSurfaceView);
             vlcVout.attachViews(this);
         }
+
         this.prepared = true;
     }
 
@@ -280,6 +280,10 @@ public class VlcLibrary implements IVLCVout.OnNewVideoLayoutListener {
     public boolean isPlaying() {
         if(this.mediaPlayer == null) return false;
         return this.mediaPlayer.isPlaying();
+    }
+
+    public boolean isPrepared() {
+        return prepared;
     }
 
     public enum OutputType {

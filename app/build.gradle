@@ -2,10 +2,10 @@ import java.text.SimpleDateFormat
 
 apply plugin: 'com.android.application'
 
-def appVersionCode = 14
+def appVersionCode = 15
 def appSiteUrl = "https://github.com/Huczeq/RTSP-Player"
 def urlAddModelForm = "https://docs.google.com/forms/d/e/1FAIpQLSdIlcGRIdQSlwCDhrjd2s62ZVPadYcQDpa2At543e9urx2VyQ/viewform?usp=sf_link"
-def appVersionName = "1.6.4"
+def appVersionName = "pre 1.7"
 def buildTime(String format = "yyyy-MM-dd") {
     def df = new SimpleDateFormat(format)
     df.setTimeZone(TimeZone.getTimeZone("UTC"))
@@ -16,6 +16,7 @@ android {
     compileSdkVersion 30
     buildToolsVersion "30.0.0"
     android.ndkVersion "21.0.6113669"
+
 
     defaultConfig {
         applicationId "pl.huczeq.rtspplayer"
@@ -38,17 +39,10 @@ android {
     }
 
     splits {
-        // Configures multiple APKs based on ABI.
         abi {
-            // Enables building multiple APKs per ABI.
             enable true
-            // By default all ABIs are included, so use reset() and include to specify that we only
-            // want APKs for x86 and x86_64.
-            // Resets the list of ABIs that Gradle should create APKs for to none.
             reset()
-            // Specifies a list of ABIs that Gradle should create APKs for.
             include "x86", "x86_64", "armeabi-v7a", "arm64-v8a"
-            // Specifies that we do not want to also generate a universal APK that includes all ABIs.
             universalApk true
         }
     }
@@ -67,6 +61,11 @@ android {
             }
         }
     }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
@@ -77,6 +76,7 @@ dependencies {
     implementation 'androidx.navigation:navigation-fragment:2.1.0'
     implementation 'androidx.navigation:navigation-ui:2.1.0'
     implementation 'androidx.lifecycle:lifecycle-extensions:2.1.0'
+    implementation 'org.jetbrains:annotations:15.0'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
 
@@ -85,5 +85,20 @@ dependencies {
     implementation 'androidx.core:core:1.3.0'
 
     implementation 'org.videolan.android:libvlc-all:3.3.4'
-    implementation 'com.github.Lucem-Anb:ZoomableVideo:1.0.0'
+
+    def room_version = "2.3.0"
+    implementation "androidx.room:room-runtime:$room_version"
+    annotationProcessor "androidx.room:room-compiler:$room_version"
+
+    //OPTIONALS
+    implementation "androidx.room:room-rxjava2:$room_version"
+    implementation "androidx.room:room-rxjava3:$room_version"
+    implementation "androidx.room:room-guava:$room_version"
+    testImplementation "androidx.room:room-testing:$room_version"
+
+    def paging_version = "3.0.0"
+    implementation "androidx.paging:paging-runtime:$paging_version"
+
+    implementation 'com.github.jorgecastilloprz:fabprogresscircle:1.01@aar'
+
 }

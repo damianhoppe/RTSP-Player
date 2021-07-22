@@ -4,11 +4,12 @@ import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.lifecycle.Observer;
 
 import pl.huczeq.rtspplayer.R;
-import pl.huczeq.rtspplayer.ui.activities.base.BasePreviewCameraActivity;
 import pl.huczeq.rtspplayer.ui.views.surfaces.ZoomableTextureView;
 
 public class TextureViewPreviewCameraActivity extends BasePreviewCameraActivity {
@@ -25,10 +26,20 @@ public class TextureViewPreviewCameraActivity extends BasePreviewCameraActivity 
         setContentView(R.layout.activity_preview_camera_textureview);
 
         setViewsWidgets();
-        if(this.url != null) {
+
+        if(!vlcLibrary.isPrepared())
             prepareSurface();
-            loadVideo();
-        }
+        viewModel.getPreviewUrl().observe(this, new Observer<String>() {
+            @Override
+            public void onChanged(String newUrl) {
+                if(newUrl != null) {
+                    camera = viewModel.getCamera();
+                    url = newUrl;
+                    loadVideo();
+                    viewModel.getPreviewUrl().removeObserver(this);
+                }
+            }
+        });
     }
 
     @Override
@@ -97,6 +108,13 @@ public class TextureViewPreviewCameraActivity extends BasePreviewCameraActivity 
     protected boolean canTakePicture() {
         if(!super.canTakePicture())
             return false;
+        if(settings.isEnabledGenerateCameraTumbnailOnce()) {
+            if (this.camera.getCameraInstance().getPreviewImg() == null || this.camera.getCameraInstance().getPreviewImg().trim().isEmpty()) {
+                return this.canTakePicture;
+            }else {
+                return false;
+            }
+        }
         return this.canTakePicture;
     }
 

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <include android:id="@+id/include"
+        layout="@layout/toolbar"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@+id/include">
+        <include
+            android:id="@+id/includedForm"
+            layout="@layout/form_camera"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_margin="20dp"
+            app:layout_constraintTop_toTopOf="parent" />
+    </ScrollView>
+
+    <com.github.jorgecastilloprz.FABProgressCircle
+        android:id="@+id/saveCameraFAButtonCircle"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:arcColor="@color/popupTextColor">
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/saveCameraFAButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:layout_margin="20dp"
+            app:fabSize="normal"
+            app:maxImageSize="30dp"
+            android:contentDescription="Save"
+            app:srcCompat="@drawable/ic_confirm"
+            app:rippleColor="#5BFFFFFF"/>
+
+    </com.github.jorgecastilloprz.FABProgressCircle>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/startPreviewFAButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        android:src="@drawable/ic_preview"
+        android:layout_margin="20dp"
+        app:fabSize="normal"
+        app:maxImageSize="30dp"
+        android:contentDescription="Preview"
+        app:layout_constraintBottom_toTopOf="@id/saveCameraFAButtonCircle"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -19,6 +19,10 @@
     <string name="edit">Edytuj</string>
     <string name="duplicate">Duplikuj</string>
     <string name="remove">Usuń</string>
+    <string name="duplicate_camera">Duplikuj kamerę</string>
+    <string name="edit_group">Edytuj grupę</string>
+    <string name="duplicate_group">Duplikuj grupę</string>
+    <string name="remove_group">Usuń grupę</string>
 
     <!--Dialog-->
     <string name="yes">Tak</string>
@@ -49,8 +53,11 @@
     <string name="title_activity_settings">Ustawienia</string>
     <string name="title_activity_create_backup">Stwórz kopię zapasową</string>
     <string name="title_activity_restore_backup">Przywróć kopię zapasową</string>
-    <string name="dialog_remove_title">Usuń kamere</string>
+    <string name="dialog_remove_title">Usuwanie kamery</string>
     <string name="dialog_remove_message">Jesteś pewny?</string>
+    <string name="dialog_remove_group_title">Usuwanie grupy kamer</string>
+    <string name="dialog_remove_group_message">Chcesz usunąć całą grupę?</string>
+    <string name="error_too_many_variables">Osiągnąłeś limit zmiennych!</string>
 
     <string name="none">Żaden</string>
 
@@ -138,7 +145,7 @@
     <string-array name="pref_player_surface_labels">
         <item>OpenGL - limit klatek urządzenia</item>
         <item>OpenGL - brak limitu klatek</item>
-        <item>No OpenGL - zależna od źródła</item>
+        <item>Bez OpenGL - zależna od źródła</item>
     </string-array>
 
     <string name="pref_ads_label">Tryb wyświetlania reklam</string>

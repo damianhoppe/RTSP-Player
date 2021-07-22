@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Environment;
-import android.util.Log;
 
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.preference.PreferenceManager;
@@ -13,8 +12,6 @@ import java.io.File;
 import java.util.UUID;
 
 import pl.huczeq.rtspplayer.BuildConfig;
-import pl.huczeq.rtspplayer.ui.fragments.SettingsFragment;
-import pl.huczeq.rtspplayer.utils.Utils;
 
 public class Settings {
 
@@ -28,7 +25,7 @@ public class Settings {
         return instance;
     }
 
-    private Context context;
+    private Context appContext;
     private final String preferencesName = "Settings";
     public static final long adFullscreenDelay = 1000*60*60;
     public static final long CLICK_MIN_DELTA_TIME = 150;
@@ -44,9 +41,13 @@ public class Settings {
     private SharedPreferences.OnSharedPreferenceChangeListener listener;
 
     public Settings(Context context) {
-        this.context = context;
-        this.appPref = this.context.getSharedPreferences(preferencesName, Context.MODE_PRIVATE);
-        this.settingsPref = PreferenceManager.getDefaultSharedPreferences(this.context);
+        this.appContext = context.getApplicationContext();
+        this.appPref = this.appContext.getSharedPreferences(preferencesName, Context.MODE_PRIVATE);
+        this.settingsPref = PreferenceManager.getDefaultSharedPreferences(this.appContext);
+    }
+
+    public Context getAppContext() {
+        return this.appContext;
     }
 
     public void setListener(SharedPreferences.OnSharedPreferenceChangeListener listener) {
@@ -197,15 +198,15 @@ public class Settings {
     //END OF SETTINGS PREFERENCES
 
     public File getPreviewImagesDir() {
-        return this.context.getCacheDir();
+        return this.appContext.getCacheDir();
         //return this.context.getExternalCacheDir();
     }
     public File getBackupsDir() {
         File dir;
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !Environment.isExternalStorageManager()) {
-            dir = new File(context.getExternalFilesDir(null), "Backups");
+            dir = new File(appContext.getExternalFilesDir(null), "Backups");
         }else {
-            String path = context.getExternalFilesDir(null).getAbsolutePath();
+            String path = appContext.getExternalFilesDir(null).getAbsolutePath();
             if(path.contains(File.separator + "Android")) {
                 path = path.split(File.separator + "Android")[0];
             }

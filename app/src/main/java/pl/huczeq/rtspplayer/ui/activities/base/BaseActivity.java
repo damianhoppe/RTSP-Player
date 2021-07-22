@@ -10,56 +10,39 @@ import androidx.annotation.StringRes;
 import androidx.appcompat.widget.Toolbar;
 
 import pl.huczeq.rtspplayer.R;
-import pl.huczeq.rtspplayer.interfaces.OnDataChanged;
-import pl.huczeq.rtspplayer.data.Settings;
 import pl.huczeq.rtspplayer.data.DataManager;
+import pl.huczeq.rtspplayer.data.Settings;
 
-public class BaseActivity extends AbstractBaseActivity implements OnDataChanged {
+public class BaseActivity extends AbstractBaseActivity {
 
     private final String TAG = "BaseActivity";
-    private boolean dataChanged = false;
-    private boolean active = false;
 
     protected Toolbar toolbar;
     private ImageView toolbarIcon;
 
-    protected DataManager dataManager;
     protected Settings settings;
-
-
-    public BaseActivity() {
-    }
+    protected DataManager dataManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        dataManager = DataManager.getInstance(this, new DataManager.Callback() {
-            @Override
-            public void onDataLoaded() {
-                onDataChanged();
-            }
-        });
-        settings = Settings.getInstance(this);
-        this.dataChanged = true;
+        this.settings = Settings.getInstance(getApplicationContext());
+        this.dataManager = DataManager.getInstance(getApplicationContext());
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        dataManager.removeOnDataChangeListener(this);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        this.active = true;
-        if(this.dataChanged) onDataChangedWAA();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        this.active = false;
     }
 
     @Override
@@ -71,23 +54,6 @@ public class BaseActivity extends AbstractBaseActivity implements OnDataChanged 
             getSupportActionBar().setTitle(R.string.title_activity_main);
             toolbarIcon = findViewById(R.id.iconToolbar);
         }
-    }
-
-    /**
-     *called when data is changed and activity is active
-     */
-    protected void onDataChangedWAA() {
-        Log.d(TAG, "onDataChangedWAA");
-        this.dataChanged = false;
-    }
-
-    @Override
-    public void onDataChanged() {
-        if(this.active) onDataChangedWAA(); else this.dataChanged = true;
-    }
-
-    public void enableOnDataChangeListener() {
-        dataManager.addOnDataChangedListener(this);
     }
 
     public void enableToolbarIcon(Drawable icon, View.OnClickListener onClickListener) {

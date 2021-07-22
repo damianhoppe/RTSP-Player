@@ -1,33 +1,18 @@
 package pl.huczeq.rtspplayer.adapters;
 
 import android.content.Context;
-import android.content.res.Resources;
-import android.graphics.Bitmap;
-import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.view.ContextThemeWrapper;
 
 import java.util.List;
 
 import pl.huczeq.rtspplayer.R;
-import pl.huczeq.rtspplayer.data.DataManager;
-import pl.huczeq.rtspplayer.data.objects.Camera;
-import pl.huczeq.rtspplayer.data.threads.ImageLoadingThread;
-import pl.huczeq.rtspplayer.interfaces.OnCameraChanged;
-import pl.huczeq.rtspplayer.interfaces.OnListItemSelected;
-import pl.huczeq.rtspplayer.interfaces.OnMenuItemSelected;
 
 public class BackupsListAdapter extends ArrayAdapter<String> {
 
