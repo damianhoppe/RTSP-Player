@@ -3,22 +3,18 @@
     <!--Common-->
     <string name="app_name">RTSP Player</string>
     <string name="double_back_2_exit_info">Kliknij ponownie WSTECZ, aby wyjść</string>
-    <string name="dialog_alert_delete_title">Usuwanie kopii</string>
-    <string name="are_your_sure">Jesteś pewny?</string>
+    <string name="error">Błąd</string>
 
     <!--Incorrect-->
-    <string name="incorrect_camera_url">Adres jest niepoprawny</string>
-    <string name="incorrect_camera_name">Nazwa jest niepoprawna</string>
-    <string name="camera_name_is_used">Nazwa jest zajęta</string>
-    <string name="incorrect_addressip">Adres IP jest niepoprawny</string>
-    <string name="incorrect_port">Port jest niepoprawny</string>
-    <string name="incorrect_channel">Kanał jest niepoprawny</string>
 
     <!--Menu-->
     <string name="watch">Oglądaj</string>
     <string name="edit">Edytuj</string>
     <string name="duplicate">Duplikuj</string>
     <string name="remove">Usuń</string>
+    <string name="duplicate_camera">Duplikuj kamerę</string>
+    <string name="edit_group">Edytuj</string>
+    <string name="duplicate_group">Duplikuj grupę</string>
 
     <!--Dialog-->
     <string name="yes">Tak</string>
@@ -32,62 +28,46 @@
     <string name="label_models">Wyberz model:</string>
     <string name="label_name_camera">Nazwa</string>
     <string name="label_camera_url">rtsp://</string>
-    <string name="label_ip">Adres IP</string>
+    <string name="label_ip_address">Adres IP</string>
     <string name="label_port">Port</string>
     <string name="label_user_name">Nazwa użytkownika</string>
     <string name="label_password">Hasło</string>
     <string name="label_channel">Kanał</string>
-    <string name="label_show_more">Pokaż więcej</string>
-    <string name="label_show_less">Ukryj</string>
-    <string name="label_none_url_template">Brak</string>
+    <string name="label_show_more">Zaawansowane</string>
     <string name="label_server_url">Adres url serwera</string>
-    <string name="button_add_camera">Dodaj</string>
-    <string name="button_start_camera_preview">Podgląd</string>
     <string name="title_activity_main">@string/app_name</string>
     <string name="title_activity_add_camera">Dodawanie</string>
     <string name="title_activity_edit_camera">Edycja</string>
     <string name="title_activity_settings">Ustawienia</string>
-    <string name="title_activity_create_backup">Stwórz kopię zapasową</string>
-    <string name="title_activity_restore_backup">Przywróć kopię zapasową</string>
-    <string name="dialog_remove_title">Usuń kamere</string>
-    <string name="dialog_remove_message">Jesteś pewny?</string>
+    <string name="dialog_delete_title">Usuwanie kamery</string>
+    <string name="dialog_delete_message">Jesteś pewny?</string>
+    <string name="dialog_delete_group_title">Usuwanie grupy kamer</string>
+    <string name="dialog_delete_group_message">Chcesz usunąć całą grupę?</string>
 
-    <string name="none">Żaden</string>
+    <string name="none">Brak</string>
 
     <!--Activity Preview Camera-->
-    <string name="video_error">Wystąpił błąd podczas odtwarzania</string>
-    <string name="offline_status">Jesteś teraz offline</string>
-    <string name="online_status">Jesteś znowu online</string>
 
     <!--Activity App Info-->
     <string name="app_info">RTSP Player pozwala na odtwarzanie strumieni sieciowych wykorzystując bibliotekę libVLC. Aplikacja jest objęta licencją LGPL 3.0 oraz oferuje otwarty kod źródłowy.</string>
     <string name="label_show_license"><u>Pokaż licencję</u></string>
 
+    <!--Activity Select Camera-->
+    <string name="title_activity_select_camera">Wybierz startową kamere</string>
+
     <!--Spinner stream-->
-    <string-array name="spinner_stream">
-        <item value="0">Główny strumień</item>
-        <item value="1">Podstrumień</item>
-    </string-array>
+    <string name="stream_type_label_main_stream">Główny strumień</string>
+    <string name="stream_type_label_sub_stream">Podstrumień</string>
 
     <!--Export & import data-->
-    <string name="cameras">Kamery</string>
-    <string name="settings">Ustawienia</string>
-    <string name="export_data">Eksportuj</string>
-    <string name="import_data">Importuj</string>
-    <string name="label_list_backups">Kopie zapasowe:</string>
-    <string name="number_of_cameras">Liczba kamer</string>
-    <string name="no_backups">Brak kopii zapasowych</string>
-    <string name="permissions_storage_rationale">Aby móc zapisać kopię musisz nadać uprawnienia</string>
-    <string name="success_restore">Przywracanie powiodło się</string>
-    <string name="success_created">Utworzono kopię pomyślnie</string>
-    <string name="error_restore">Wystapił błąd</string>
-    <string name="backup_cameras_summary">Eksportuje wszystkie kamery, zawierając ich wszystkie dane, takie jak adres ip, port, nazwa użytkownika oraz hasło.</string>
-    <string name="backup_settings_summary">Wszystkie ustawienia aplikacji.</string>
 
     <!--Preferences-->
     <string name="label_interface">Interfejs</string>
-    <string name="label_ads">Reklamy</string>
     <string name="label_data">Dane</string>
+
+    <string name="label_general">Ogólne</string>
+    <string name="title_starting_camera">Kamera startowa</string>
+    <string name="summary_starting_camera">Uruchomienie podglądu kamery wraz z startem aplikacji</string>
 
     <string name="label_theme">Motyw</string>
     <string name="summary_theme">Wybierz motyw aplikacji</string>
@@ -95,22 +75,15 @@
     <string name="summary_default_orientation">Startowa orientacja ekranu odtwarzacza</string>
     <string name="label_orientation_mode">Tryb orientacji ekranu</string>
     <string name="summary_orientation_mode">Wybierz tryb obrotu ekranu</string>
-    <string name="label_generate_camera_thumbnail_once">Generuj miniaturkę kamery tylko raz</string>
-    <string name="summary_generate_camera_thumbnail_once">Wybierz, czy chcesz wygenerować miniaturkę tylko raz, przy pierwszym uruchomieniu, czy przy każdym uruchomieniu podglądu kamery.</string>
     <string name="label_restore_backup">Przywróć kopię zapasową</string>
     <string name="summary_restore_backup">Przywróć wcześniej utworzoną kopię zapasową</string>
     <string name="label_create_backup">Utwórz kopię zapasową</string>
     <string name="summary_create_backup">Utwórz kopię zapasową danych</string>
-    <string name="label_player_settings">Ustawienie odtwarzacza video</string>
-    <string name="label_player_surface">Powierzchnia odtwarzacza</string>
-    <string name="summary_player_surface">Wybierz sposób wyświetlania obrazu, wydajny OpenGL z limitem klatek dla urządzenia (zalecane, mniejsze zużycie baterii), bez limitu klatek (większe zużycie baterii), lub bez wykorzystaniu OpenGL (korzystać w przypadku problemów z pozostałymi) - częstotliwość odświeżania zależna jest od liczby klatek video.</string>
 
     <string name="label_caching_buffer_size">Rozmiar bufora buforowania</string>
     <string name="summary_caching_buffer_size">Rozmiar buforwa w ms - niższe wartości zmniejszą opóźnienie, ale mogą powodować zacinanie się obrazu</string>
     <string name="label_hardware_acceleration">Akceleracja sprzętowa</string>
     <string name="summary_hardware_acceleration">Użyj akceleracji sprzętowej dla uzyskania lepszej wydajności</string>
-    <string name="label_avcodes_fast">Sztuczki przyśpieszające</string>
-    <string name="summary_avcodes_fast">Pozwala na wykorzystanie sztuczek przyspieszających, ale jest podatne na błędy</string>
     <string name="label_others">Inne</string>
     <string name="label_url_add_model_form">Dodaj nowy model</string>
     <string name="summary_url_add_model_form">Zostaniesz przekierowany do formularza dodawania nowego modelu, formularz zostanie otworzony w twojej przeglądarce internetowej</string>
@@ -120,8 +93,8 @@
 
     <string-array name="pref_theme_labels">
         <item>Automatyczny (systemowy)</item>
-        <item>Ciemny</item>
         <item>Jasny</item>
+        <item>Ciemny</item>
     </string-array>
 
     <string-array name="pref_default_orientation_labels">
@@ -130,31 +103,10 @@
     </string-array>
 
     <string-array name="pref_orientation_mode_labels">
-        <item>Automatyczny - zawsze włączony</item>
         <item>Automatyczny - zależnie od ustawień systemu</item>
+        <item>Automatyczny - zawsze włączony</item>
         <item>Zablokowany</item>
     </string-array>
 
-    <string-array name="pref_player_surface_labels">
-        <item>OpenGL - limit klatek urządzenia</item>
-        <item>OpenGL - brak limitu klatek</item>
-        <item>No OpenGL - zależna od źródła</item>
-    </string-array>
-
-    <string name="pref_ads_label">Tryb wyświetlania reklam</string>
-    <string name="pref_ads_summary">Określ jakie reklamy chcesz oglądać</string>
-    <string-array name="pref_ads_labels">
-        <item>Tylk baner reklamowy</item>
-        <item>Tylko pełnoekranowe</item>
-        <item>Pełnoekranowe oraz baner reklamowy</item>
-    </string-array>
-
-    <string name="pref_fullscreen_ads_delay_label">Częstotliwość reklam pełnoekranowych</string>
-    <string name="pref_fullscreen_ads_delay_summary">Wybierz jak często moją się pojawiać reklamy pełnoekranowe</string>
-    <string-array name="pref_fullscreen_ads_delay_labels">
-        <item>Raz na godzinę</item>
-        <item>Raz na 3 godziny</item>
-        <item>Raz na 6 godzin</item>
-        <item>Raz na 12 godzin</item>
-    </string-array>
+    <string name="label_reconnect">Reconnect</string>
 </resources>

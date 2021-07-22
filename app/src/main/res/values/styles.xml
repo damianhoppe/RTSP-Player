@@ -1,54 +1,145 @@
 <resources>
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen.IconBackground">
+        <item name="windowSplashScreenAnimatedIcon">@drawable/launcher_icon</item>
+        <item name="windowSplashScreenIconBackgroundColor">@color/ic_launcher_background</item>
+        <item name="windowSplashScreenAnimationDuration">200</item>
+        <item name="postSplashScreenTheme">@style/AppTheme</item>
+    </style>
+
     <style name="AppTheme" parent="AppTheme.Default"/>
     <style name="AppTheme.Player" parent="AppTheme.Default.Player"/>
 
     <!-- Base application theme. -->
-    <style name="AppTheme.Default" parent="Theme.AppCompat.DayNight">
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
-        <item name="android:statusBarColor">@color/background</item>
+    <style name="AppTheme.Default" parent="Theme.Material3.DynamicColors.DayNight">
+        <item name="colorPrimary">@color/md_theme_primary</item>
+        <item name="colorOnPrimary">@color/md_theme_onPrimary</item>
+        <item name="colorPrimaryContainer">@color/md_theme_primaryContainer</item>
+        <item name="colorOnPrimaryContainer">@color/md_theme_onPrimaryContainer</item>
+        <item name="colorSecondary">@color/md_theme_secondary</item>
+        <item name="colorOnSecondary">@color/md_theme_onSecondary</item>
+        <item name="colorSecondaryContainer">@color/md_theme_secondaryContainer</item>
+        <item name="colorOnSecondaryContainer">@color/md_theme_onSecondaryContainer</item>
+        <item name="colorTertiary">@color/md_theme_tertiary</item>
+        <item name="colorOnTertiary">@color/md_theme_onTertiary</item>
+        <item name="colorTertiaryContainer">@color/md_theme_tertiaryContainer</item>
+        <item name="colorOnTertiaryContainer">@color/md_theme_onTertiaryContainer</item>
+        <item name="colorError">@color/md_theme_error</item>
+        <item name="colorErrorContainer">@color/md_theme_errorContainer</item>
+        <item name="colorOnError">@color/md_theme_onError</item>
+        <item name="colorOnErrorContainer">@color/md_theme_onErrorContainer</item>
+        <item name="android:colorBackground">@color/md_theme_background</item>
+        <item name="colorOnBackground">@color/md_theme_onBackground</item>
+        <item name="colorSurface">@color/md_theme_surface</item>
+        <item name="colorOnSurface">@color/md_theme_onSurface</item>
+        <item name="colorSurfaceVariant">@color/md_theme_surfaceVariant</item>
+        <item name="colorOnSurfaceVariant">@color/md_theme_onSurfaceVariant</item>
+        <item name="colorOutline">@color/md_theme_outline</item>
+        <item name="colorOnSurfaceInverse">@color/md_theme_inverseOnSurface</item>
+        <item name="colorSurfaceInverse">@color/md_theme_inverseSurface</item>
+        <item name="colorCustomColor1">#006d3a</item>
+        <item name="colorOnCustomColor1">#ffffff</item>
+        <item name="colorCustomColor1Container">#82faab</item>
+        <item name="colorOnCustomColor1Container">#00210e</item>
+        <item name="harmonizeCustomColor1">true</item>
+        <item name="colorPrimaryInverse">@color/md_theme_inversePrimary</item>
+
+<!--        <item name="android:windowTranslucentStatus">true</item>-->
+<!--        <item name="android:windowTranslucentNavigation">true</item>-->
         <item name="android:windowLightStatusBar">@bool/windowLightStatusBar</item>
-        <item name="android:colorBackground">@color/background</item>
-        <item name="android:windowBackground">@color/background</item>
-        <item name="android:navigationBarColor">@android:color/black</item>
+        <item name="android:statusBarColor">?android:colorBackground</item>
+
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
-        <item name="android:textColor">@color/textColor</item>
-        <item name="android:popupMenuStyle">@style/AppTheme.Default.PopupMenu</item>
-        <item name="popupMenuStyle">@style/AppTheme.Default.PopupMenu</item>
-        <item name="android:textColorSecondary">@color/textColorSecondary</item>
     </style>
 
-    <style name="AppTheme.Default.Player" parent="AppTheme.Default">
+    <style name="AppTheme.Default.Player" parent="AppTheme">
         <item name="android:statusBarColor">@android:color/black</item>
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:windowBackground">@android:color/black</item>
-    </style>
+        <item name="colorOnSurface">@android:color/black</item>
+        <item name="colorOnBackground">@android:color/black</item>
 
-    <style name="AppTheme.Default.PopupMenu" parent="@android:style/Widget.PopupMenu">
-        <item name="android:popupBackground">@color/popupBackground</item>
-        <item name="android:popupElevation">10dp</item>
-        <item name="android:textColor">@color/popupTextColor</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowContentOverlay">@null</item>
+
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
     </style>
 
     <style name="actionOverflowButtonStyle" parent="@style/Widget.AppCompat.ActionButton.Overflow">
-        <item name="android:tint">@color/textColorPrimary</item>
+<!--        <item name="android:tint">@color/textColorPrimary</item>-->
     </style>
 
     <style name="SelectableItemTheme">
         <item name="android:colorControlHighlight">@color/colorControlHighlight</item>
     </style>
 
-    <style name="SelectableItemBackground">
-        <item name="android:theme">@style/SelectableItemTheme</item>
-        <item name="android:background">?attr/selectableItemBackground</item>
+    <style name="AppTheme.Preferences" parent="AppTheme">
+<!--        <item name="android:textColor">@drawable/preferences_selector</item>-->
+<!--        <item name="android:textColorPrimary">@drawable/preferences_selector</item>-->
+<!--        <item name="android:textColorSecondary">@drawable/preferences_selector_secondary</item>-->
+<!--        <item name="android:textColorTertiary">@drawable/preferences_selector_secondary</item>-->
+<!--        <item name="alertDialogTheme">@style/AppTheme.AlertDialogTheme</item>-->
+<!--        <item name="preferenceTheme">@style/PreferenceThemeOverlay.Rikka.Material3</item>-->
     </style>
 
-    <style name="AppTheme.Preferences" parent="AppTheme">
-        <item name="android:textColor">@drawable/preferences_selector</item>
-        <item name="android:textColorPrimary">@drawable/preferences_selector</item>
-        <item name="android:textColorSecondary">@drawable/preferences_selector_secondary</item>
-        <item name="android:textColorTertiary">@drawable/preferences_selector_secondary</item>
+
+    <style name="AppTheme.TextInputLayout.OutlinedBox" parent="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="android:layout_marginTop">4dp</item>
+        <item name="boxBackgroundColor">@color/edittext_background</item>
+        <item name="boxStrokeColor">@color/text_input_box_stroke_color</item>
+        <item name="shapeAppearanceOverlay">@style/AppTheme.TextInputEditText.Shape.Rounded</item>
+    </style>
+
+    <style name="AppTheme.TextInputLayout.OutlinedBox.ExposedDropdownMenu" parent="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+        <item name="android:layout_marginTop">4dp</item>
+        <item name="boxBackgroundColor">@color/edittext_background</item>
+        <item name="boxStrokeColor">@color/text_input_box_stroke_color</item>
+        <item name="shapeAppearanceOverlay">@style/AppTheme.TextInputEditText.Shape.Rounded</item>
+    </style>
+
+    <style name="AppTheme.TextInputEditText.Shape.Rounded" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">20dp</item>
+    </style>
+
+    <style name="AppTheme.TextInputEditText" parent="@style/ThemeOverlay.Material3.TextInputEditText">
+<!--        <item name="android:textColor">@color/textColor</item>-->
+<!--        <item name="android:textColorHint">@color/textColorHint</item>-->
+<!--        <item name="android:textCursorDrawable">@null</item>-->
+<!--        <item name="android:paddingStart">@dimen/inputHorizontalPadding</item>-->
+<!--        <item name="android:paddingEnd">@dimen/inputHorizontalPadding</item>-->
+<!--        <item name="android:paddingTop">14dp</item>-->
+<!--        <item name="android:paddingBottom">14dp</item>-->
+    </style>
+
+    <style name="AppTheme.Dropdown" parent="@style/ThemeOverlay.Material3.AutoCompleteTextView">
+<!--        <item name="android:textColor">@color/textColor</item>-->
+<!--        <item name="android:textColorHint">@color/textColorHint</item>-->
+<!--        <item name="android:background">@drawable/edittext_selector</item>-->
+<!--        <item name="android:popupBackground">@color/spinnerPopupBackground</item>-->
+<!--        <item name="android:foregroundGravity">center_vertical|right</item>-->
+<!--        <item name="android:textCursorDrawable">@null</item>-->
+<!--        <item name="android:paddingStart">@dimen/inputHorizontalPadding</item>-->
+<!--        <item name="android:paddingEnd">@dimen/inputHorizontalPadding</item>-->
+<!--        <item name="android:paddingTop">14dp</item>-->
+<!--        <item name="android:paddingBottom">14dp</item>-->
+    </style>
+
+    <style name="PlayerControlIconButton" parent="Widget.Material3.Button.TextButton">
+        <item name="android:layout_width">54dp</item>
+        <item name="android:layout_height">54dp</item>
+        <item name="android:layout_margin">10dp</item>
+        <item name="android:background">?actionBarItemBackground</item>
+        <item name="android:padding">4dp</item>
+        <item name="iconPadding">0dp</item>
+        <item name="iconSize">28dp</item>
+        <item name="iconGravity">textStart</item>
+        <item name="rippleColor">@android:color/transparent</item>
+        <item name="android:shadowColor">@android:color/transparent</item>
+        <item name="strokeColor">@android:color/transparent</item>
+        <item name="colorAccent">@android:color/white</item>
+        <item name="iconTint">@android:color/white</item>
     </style>
 </resources>

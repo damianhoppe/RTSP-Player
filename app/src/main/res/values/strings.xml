@@ -2,22 +2,18 @@
     <!--Common-->
     <string name="app_name">RTSP Player</string>
     <string name="double_back_2_exit_info">Please click BACK again to exit</string>
-    <string name="dialog_alert_delete_title">Delete backup</string>
-    <string name="are_your_sure">Are you sure?</string>
+    <string name="error">Error</string>
 
     <!--Incorrect-->
-    <string name="incorrect_camera_url">The address is not correct</string>
-    <string name="incorrect_camera_name">The name is not correct</string>
-    <string name="camera_name_is_used">The name is already taken</string>
-    <string name="incorrect_addressip">Address IP is not correct</string>
-    <string name="incorrect_port">Port is not correct</string>
-    <string name="incorrect_channel">Channel is not correct</string>
 
     <!--Menu-->
     <string name="watch">Watch</string>
     <string name="edit">Edit</string>
     <string name="duplicate">Duplicate</string>
     <string name="remove">Remove</string>
+    <string name="duplicate_camera">Duplicate camera</string>
+    <string name="edit_group">Edit group</string>
+    <string name="duplicate_group">Duplicate group</string>
 
     <!--Dialog-->
     <string name="yes">Yes</string>
@@ -31,85 +27,62 @@
     <string name="label_models">Select model:</string>
     <string name="label_name_camera">Name</string>
     <string name="label_camera_url">rtsp://</string>
-    <string name="label_ip">Adreess IP</string>
+    <string name="label_ip_address">Adreess IP</string>
     <string name="label_port">Port</string>
     <string name="label_user_name">User name</string>
     <string name="label_password">Password</string>
     <string name="label_channel">Channel</string>
     <string name="label_show_more">Show more</string>
-    <string name="label_show_less">Hide</string>
-    <string name="label_none_url_template">None</string>
     <string name="label_server_url">Server url</string>
-    <string name="button_add_camera">Add</string>
-    <string name="button_start_camera_preview">Preview</string>
     <string name="title_activity_main">@string/app_name</string>
     <string name="title_activity_add_camera">Addition</string>
     <string name="title_activity_edit_camera">Editing</string>
     <string name="title_activity_settings">Settings</string>
-    <string name="title_activity_create_backup">Create backup</string>
-    <string name="title_activity_restore_backup">Restore backup</string>
-    <string name="dialog_remove_title">Delete camera</string>
-    <string name="dialog_remove_message">Are you sure?</string>
+    <string name="dialog_delete_title">Deleting camera</string>
+    <string name="dialog_delete_message">Are you sure?</string>
+    <string name="dialog_delete_group_title">Deleting group of cameras</string>
+    <string name="dialog_delete_group_message">Do you want delete the entire group?</string>
 
     <string name="none">None</string>
 
     <!--Activity Preview Camera-->
-    <string name="video_error">An error occurred while playing</string>
-    <string name="offline_status">You are now offline</string>
-    <string name="online_status">You are online again</string>
 
     <!--Activity App Info-->
     <string name="app_info">RTSP Player allows you to play network streams using the libVLC library. The application is licensed under LGPL 3.0 and offers open source code.</string>
     <string name="label_show_license"><u>Show license</u></string>
 
+    <!--Activity Select Camera-->
+    <string name="title_activity_select_camera">Select starting camera</string>
+
     <!--Spinner stream-->
-    <string-array name="spinner_stream">
-        <item>Main stream</item>
-        <item>Substream</item>
-    </string-array>
+    <string name="stream_type_label_main_stream">Main stream</string>
+    <string name="stream_type_label_sub_stream">Sub-stream</string>
 
     <!--Export & import data-->
-    <string name="cameras">Cameras</string>
-    <string name="settings">Settings</string>
-    <string name="export_data">Export</string>
-    <string name="import_data">Import</string>
-    <string name="label_list_backups">Backups:</string>
-    <string name="number_of_cameras">Number of cameras</string>
-    <string name="no_backups">No backups</string>
-    <string name="permissions_storage_rationale">To be able to save a backup, you must grant permission</string>
-    <string name="success_restore">Restore successful</string>
-    <string name="success_created">Backup have created successful</string>
-    <string name="error_restore">Error occured</string>
-    <string name="backup_cameras_summary">It exports cameras, including all data, even IP addresses, username and password.</string>
-    <string name="backup_settings_summary">All application settings.</string>
 
     <!--Preferences-->
     <string name="label_interface">Interface</string>
-    <string name="label_ads">Ads</string>
     <string name="label_data">Data</string>
+
+    <string name="label_general">General</string>
+    <string name="title_starting_camera">Starting camera</string>
+    <string name="summary_starting_camera">Launching the camera preview with the start of the application</string>
 
     <string name="label_theme">Theme</string>
     <string name="summary_theme">Select an application theme</string>
     <string name="label_default_orientation">Initial screen orientation</string>
     <string name="summary_default_orientation">Initial screen orientation of the player</string>
-    <string name="label_orientation_mode">Screen orientation mode</string>
-    <string name="label_generate_camera_thumbnail_once">Generate camera thumbnail only once</string>
-    <string name="summary_generate_camera_thumbnail_once">Select if you want to generate the thumbnail only once, on first start or every time camera preview starts.</string>
+    <string name="label_orientation_mode">Screen orientation</string>
     <string name="summary_orientation_mode">Select a screen rotation mode</string>
     <string name="label_restore_backup">Restore backup</string>
     <string name="summary_restore_backup">Restore previously created backup</string>
     <string name="label_create_backup">Create backup</string>
     <string name="summary_create_backup">Create backup of data</string>
-    <string name="label_player_settings">Video player settings</string>
-    <string name="label_player_surface">Surface of player</string>
-    <string name="summary_player_surface">Choose surface of player, efficient OpenGL with a frame limit for the device (recommended, less battery consumption), no frame limit (higher battery consumption), or without using OpenGL (use in case of problems with others) - refresh rate depends on the number of video frames.</string>
 
     <string name="label_caching_buffer_size">Caching buffer size</string>
     <string name="summary_caching_buffer_size">Buffer size in ms - lower values will reduce latency but may cause stuttering</string>
     <string name="label_hardware_acceleration">Hardware acceleration</string>
     <string name="summary_hardware_acceleration">Use hardware acceleration for better performance</string>
-    <string name="label_avcodes_fast">Speed tricks</string>
-    <string name="summary_avcodes_fast">Allows you to use speed-up tricks, but is prone to errors</string>
     <string name="label_others">Others</string>
     <string name="label_url_add_model_form">Open add model form</string>
     <string name="summary_url_add_model_form">You will be redirected to the adding a new model form, the form will open in your web browser</string>
@@ -119,8 +92,8 @@
 
     <string-array name="pref_theme_labels">
         <item>Auto (system theme)</item>
-        <item>Dark</item>
         <item>Light</item>
+        <item>Dark</item>
     </string-array>
     <string-array name="pref_theme_values">
         <item>0</item>
@@ -136,8 +109,8 @@
         <item>1</item>
     </string-array>
     <string-array name="pref_orientation_mode_labels">
-        <item>Automatic - always on</item>
         <item>Automatic - depending on system settings</item>
+        <item>Automatic - always on</item>
         <item>Locked</item>
     </string-array>
     <string-array name="pref_orientation_mode_values">
@@ -145,42 +118,29 @@
         <item>1</item>
         <item>2</item>
     </string-array>
-    <string-array name="pref_player_surface_labels">
-        <item>OpenGL - device frames limit</item>
-        <item>OpenGL - no frames limit</item>
-        <item>No OpenGL - frames of source video</item>
+
+    <string-array name="pref_playback_library">
+        <item>VLC</item>
+        <item>ExoPlayer</item>
     </string-array>
-    <string-array name="pref_player_surface_values">
+    <string-array name="pref_playback_library_values">
         <item>0</item>
         <item>1</item>
-        <item>2</item>
     </string-array>
 
-    <string name="pref_ads_label">Advertising display mode</string>
-    <string name="pref_ads_summary">Define what ads you want to watch</string>
-    <string-array name="pref_ads_labels">
-        <item>Only banner</item>
-        <item>Only fullscreen</item>
-        <item>Fullscreen and banner</item>
-    </string-array>
-    <string-array name="pref_ads_values">
-        <item>0</item>
-        <item>1</item>
-        <item>2</item>
-    </string-array>
-
-    <string name="pref_fullscreen_ads_delay_label">Fullscreen ads frequency</string>
-    <string name="pref_fullscreen_ads_delay_summary">Choose how often your fullscreen ad may show</string>
-    <string-array name="pref_fullscreen_ads_delay_labels">
-        <item>Once per hour</item>
-        <item>Once every 3 hours</item>
-        <item>Once every 6 hours</item>
-        <item>Once every 12 hours</item>
-    </string-array>
-    <string-array name="pref_fullscreen_ads_delay_values">
-        <item>1</item>
-        <item>3</item>
-        <item>6</item>
-        <item>12</item>
-    </string-array>
+    <string name="error_stream_url_not_passed">Application error, stream url not passed</string>
+    <string name="label_reconnect">Reconnect</string>
+    <string name="loading_in_progress">Trwa ładowanie</string>
+    <string name="label_useDynamicColors">Use a system color scheme</string>
+    <string name="summary_useDynamicColors">Applies the system color scheme to the application interface elements</string>
+    <string name="label_autoEnterPipMode">Auto enter in pip mode when leaving the app</string>
+    <string name="summary_autoEnterPipMode">Automatically switches the player to picture in picture mode when leaving the application</string>
+    <string name="label_playbackLibrary">Playback library</string>
+    <string name="summary_playbackLibrary">You can change which video playback library is used</string>
+    <string name="label_vlc_player">VLC Player settings</string>
+    <string name="label_advanced">Advanced</string>
+    <string name="title_mute_audio_default">Mute audio default</string>
+    <string name="summary_mute_audio_default">Mute autio default</string>
+    <string name="label_force_use_rtsp_tcp">Force use tcp</string>
+    <string name="summary_label_force_use_rtsp_tcp">Force use RTSP over TCP</string>
 </resources>

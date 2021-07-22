@@ -2,8 +2,25 @@
 <PreferenceScreen
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    app:iconSpaceReserved="false">
+    app:iconSpaceReserved="false"
+    app:key="root">
 
+    <PreferenceCategory
+        app:title="@string/label_general"
+        app:iconSpaceReserved="false">
+        <pl.huczeq.rtspplayer.ui.views.materialpreferences.SwitchPreferenceMaterial
+            app:key="appStartCameraEnabled"
+            app:title="@string/title_starting_camera"
+            app:iconSpaceReserved="false"
+            app:summary="@string/summary_starting_camera"
+            app:defaultValue="false"/>
+        <pl.huczeq.rtspplayer.ui.views.materialpreferences.SwitchPreferenceMaterial
+            app:key="muteAutoDefaultEnabled"
+            app:title="@string/title_mute_audio_default"
+            app:iconSpaceReserved="false"
+            app:summary="@string/summary_mute_audio_default"
+            app:defaultValue="false"/>
+    </PreferenceCategory>
     <PreferenceCategory
         app:title="@string/label_interface"
         app:iconSpaceReserved="false">
@@ -13,17 +30,23 @@
             app:entryValues="@array/pref_theme_values"
             app:title="@string/label_theme"
             app:summary="@string/summary_theme"
-            app:defaultValue="0"
             app:iconSpaceReserved="false"
-            android:negativeButtonText="@string/cancel"/>
+            android:negativeButtonText="@string/cancel"
+            app:defaultValue="0"/>
+        <pl.huczeq.rtspplayer.ui.views.materialpreferences.SwitchPreferenceMaterial
+            app:key="useDynamicColors"
+            app:title="@string/label_useDynamicColors"
+            app:summary="@string/summary_useDynamicColors"
+            app:iconSpaceReserved="false"
+            app:defaultValue="true"/>
         <ListPreference
-            app:key="defaultOrientation"
+            app:key="initialOrientation"
             app:entries="@array/pref_default_orientation_labels"
             app:entryValues="@array/pref_default_orientation_values"
             app:title="@string/label_default_orientation"
             app:summary="@string/summary_default_orientation"
-            app:defaultValue="0"
             app:iconSpaceReserved="false"
+            app:defaultValue="0"
             android:negativeButtonText="@string/cancel"/>
         <ListPreference
             app:key="orientationMode"
@@ -31,85 +54,99 @@
             app:entryValues="@array/pref_orientation_mode_values"
             app:title="@string/label_orientation_mode"
             app:summary="@string/summary_orientation_mode"
+            app:iconSpaceReserved="false"
             app:defaultValue="0"
-            app:iconSpaceReserved="false"
             android:negativeButtonText="@string/cancel"/>
-        <CheckBoxPreference
-            app:key="generateCameratTumbnailOnce"
-            app:title="@string/label_generate_camera_thumbnail_once"
+        <pl.huczeq.rtspplayer.ui.views.materialpreferences.SwitchPreferenceMaterial
+            app:key="autoEnterPipModeEnabled"
+            app:title="@string/label_autoEnterPipMode"
             app:iconSpaceReserved="false"
-            app:summary="@string/summary_generate_camera_thumbnail_once"
-            app:defaultValue="1"/>
+            app:summary="@string/summary_autoEnterPipMode"
+            app:defaultValue="true"
+            app:widgetLayout="@layout/pref_m3_checkbox"/>
     </PreferenceCategory>
 
     <PreferenceCategory
-        app:title="@string/label_player_settings"
+        app:title="@string/label_advanced"
         app:iconSpaceReserved="false">
         <ListPreference
-            app:key="playerSurface"
-            app:entries="@array/pref_player_surface_labels"
-            app:entryValues="@array/pref_player_surface_values"
-            app:title="@string/label_player_surface"
-            app:summary="@string/summary_player_surface"
+            app:key="playbackLibrary"
+            app:title="@string/label_playbackLibrary"
+            app:summary="@string/summary_playbackLibrary"
+            app:entries="@array/pref_playback_library"
+            app:entryValues="@array/pref_playback_library_values"
             app:defaultValue="0"
             app:iconSpaceReserved="false"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        app:key="categoryVlcOptions"
+        app:title="@string/label_vlc_player"
+        app:iconSpaceReserved="false">
         <SeekBarPreference
             app:key="cachingBufferSize"
             app:title="@string/label_caching_buffer_size"
             app:summary="@string/summary_caching_buffer_size"
-            app:defaultValue="200"
-            app:min="10"
-            android:max="1000"
+            app:defaultValue="500"
+            app:min="100"
+            android:max="4000"
+            app:seekBarIncrement="100"
             app:showSeekBarValue="true"
             app:iconSpaceReserved="false"/>
-        <CheckBoxPreference
-            app:key="hardwareAcceleration"
+        <pl.huczeq.rtspplayer.ui.views.materialpreferences.SwitchPreferenceMaterial
+            app:key="hardwareAccelerationEnabled"
             app:title="@string/label_hardware_acceleration"
             app:iconSpaceReserved="false"
             app:summary="@string/summary_hardware_acceleration"
-            app:defaultValue="0"/>
-        <CheckBoxPreference
-            app:key="avcodesFast"
-            app:title="@string/label_avcodes_fast"
-            app:summary="@string/summary_avcodes_fast"
+            app:defaultValue="false"
+            app:widgetLayout="@layout/pref_m3_checkbox"/>
+        <pl.huczeq.rtspplayer.ui.views.materialpreferences.SwitchPreferenceMaterial
+            app:key="forceUseRtspTcpEnabled"
+            app:title="@string/label_force_use_rtsp_tcp"
             app:iconSpaceReserved="false"
-            app:defaultValue="0"/>
-    </PreferenceCategory>
-
-    <PreferenceCategory
-        app:title="@string/label_others"
-        app:iconSpaceReserved="false">
-        <Preference
-            app:key="openAddModelForm"
-            app:title="@string/label_url_add_model_form"
-            app:summary="@string/summary_url_add_model_form"
-            app:iconSpaceReserved="false"/>
+            app:summary="@string/summary_label_force_use_rtsp_tcp"
+            app:defaultValue="false"
+            app:widgetLayout="@layout/pref_m3_checkbox"/>
     </PreferenceCategory>
 
     <PreferenceCategory
         app:title="@string/label_data"
         app:iconSpaceReserved="false">
         <Preference
-            app:key="createBackup"
+            app:key="actionCreateBackup"
             app:title="@string/label_create_backup"
             app:summary="@string/summary_create_backup"
-            app:iconSpaceReserved="false"/>
+            app:iconSpaceReserved="false"
+            app:enabled="false"/>
         <Preference
-            app:key="restoreBackup"
+            app:key="actionRestoreBackup"
             app:title="@string/label_restore_backup"
             app:summary="@string/summary_restore_backup"
-            app:iconSpaceReserved="false"/>
+            app:iconSpaceReserved="false"
+            app:enabled="false"/>
+    </PreferenceCategory>
+
+
+    <PreferenceCategory
+        app:title="@string/label_others"
+        app:iconSpaceReserved="false">
+        <Preference
+            app:key="actionNewCameraModelRequestForm"
+            app:title="@string/label_url_add_model_form"
+            app:summary="@string/summary_url_add_model_form"
+            app:iconSpaceReserved="false"
+            app:enabled="false"/>
     </PreferenceCategory>
 
     <PreferenceCategory
         app:title="@string/label_about_app"
         app:iconSpaceReserved="false">
         <Preference
-            app:key="appInformations"
+            app:key="actionAboutApp"
             app:title="@string/label_app_information"
             app:iconSpaceReserved="false"/>
         <Preference
-            app:key="showLicense"
+            app:key="actionShowLicense"
             app:title="@string/label_license"
             app:iconSpaceReserved="false"/>
     </PreferenceCategory>

@@ -6,7 +6,7 @@
     <item android:id="@+id/edit"
         android:icon="@android:drawable/ic_menu_edit"
         android:title="@string/edit" />
-    <item android:id="@+id/duplicate"
+    <item android:id="@+id/duplicate_group"
         android:icon="@android:drawable/ic_menu_day"
         android:title="@string/duplicate"/>
     <item android:id="@+id/remove"

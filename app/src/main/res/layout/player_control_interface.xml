@@ -1,19 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    android:id="@+id/rootPlayerControl"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:visibility="gone"
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
+        <data>
+                <variable
+                    name="handler"
+                    type="pl.huczeq.rtspplayer.ui.player.PlayerHandler" />
+        </data>
 
-        <ImageView
-            android:id="@+id/buttonVolumeChange"
-            android:layout_width="70dp"
-            android:layout_height="70dp"
-            android:padding="20dp"
-            android:src="@drawable/ic_volume_on"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+        <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/rootPlayerControl"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+                
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="160dp"
+                    android:clickable="false"
+                    android:focusable="false"
+                    android:background="@drawable/bg_control_player_gradient"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buttonHome"
+                    android:contentDescription="Back"
+                    app:icon="@drawable/ic_back"
+                    style="@style/PlayerControlIconButton"
+                    android:onClick="@{(v) -> handler.back()}"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buttonEnterPictureInPictureMode"
+                    android:contentDescription="Back"
+                    app:icon="@drawable/ic_enter_picture_in_picture_mode"
+                    style="@style/PlayerControlIconButton"
+                    android:onClick="@{(v) -> handler.enterPlayerIntoPuctureInPictureMode()}"
+                    app:layout_constraintEnd_toStartOf="@id/buttonVolumeChange"
+                    app:layout_constraintTop_toTopOf="parent"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buttonVolumeChange"
+                    android:contentDescription="Back"
+                    app:icon="@drawable/ic_volume_on"
+                    style="@style/PlayerControlIconButton"
+                    android:onClick="@{(v) -> handler.switchVolume()}"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"/>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

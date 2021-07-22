@@ -15,16 +15,18 @@ It makes it easy to add camera previews using the built-in list of templates for
 - Url templates
 - Advanced settings for screen rotation in player
 - Backup/import streams and settings
-
-## TODO
-
-- Selection of the starting camera - preview of the camera when the application starts
-- Selection of connection protocol (TCP/UDP)
 - PIP mode
 - Camera groups
 - Material Design 3
+- Selection of the starting camera - preview of the camera when the application starts
+- Selection of connection protocol (TCP/UDP) - global option
+
+## TODO
+
+- Selection of connection protocol (TCP/UDP) per camera/camera group
 - Android TV Support
 - View multiple streams simultaneously
+- Widgets/Shortcuts
 
 ## License
 

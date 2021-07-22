@@ -1,26 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#DDD</color>
-    <color name="colorPrimaryDark">#BBB</color>
     <color name="colorAccent">#25A761</color>
-    <color name="colorAccentDark">#25A761</color>
-    <color name="background">#FFF</color>
-    <color name="popupBackground">#EFEFEF</color>
-    <color name="popupTextColor">#444</color>
-    <color name="spinnerPopupBackground">#EEE</color>
-    <color name="spinnerPopupTextColor">#666</color>
-    <color name="textColorPrimary">#000</color>
-    <color name="textColor">#666</color>
     <color name="iconFillColor">#0000</color>
-    <color name="textColorHint">#AAA</color>
-    <color name="selectable_item_background">#AAA</color>
     <color name="edittext_background">#EFEFEF</color>
-    <color name="tint">#000</color>
     <color name="colorControlHighlight">#3666</color>
-    <color name="textColorSecondary">#999</color>
-    <color name="textColorDisabled">#7777</color>
-    <color name="textColorDisabledSecondary">#7AAA</color>
 
     <bool name="windowLightStatusBar">true</bool>
     <bool name="windowLightNavigationBar">true</bool>
+
+
+    <color name="md_theme_primary">#006D3A</color>
+    <color name="md_theme_onPrimary">#FFFFFF</color>
+    <color name="md_theme_primaryContainer">#82FAAB</color>
+    <color name="md_theme_onPrimaryContainer">#00210E</color>
+    <color name="md_theme_secondary">#4F6353</color>
+    <color name="md_theme_onSecondary">#FFFFFF</color>
+    <color name="md_theme_secondaryContainer">#D2E8D4</color>
+    <color name="md_theme_onSecondaryContainer">#0D1F13</color>
+    <color name="md_theme_tertiary">#3A646F</color>
+    <color name="md_theme_onTertiary">#FFFFFF</color>
+    <color name="md_theme_tertiaryContainer">#BEEAF6</color>
+    <color name="md_theme_onTertiaryContainer">#001F26</color>
+    <color name="md_theme_error">#BA1A1A</color>
+    <color name="md_theme_errorContainer">#FFDAD6</color>
+    <color name="md_theme_onError">#FFFFFF</color>
+    <color name="md_theme_onErrorContainer">#410002</color>
+    <color name="md_theme_background">#FBFDF8</color>
+    <color name="md_theme_onBackground">#191C19</color>
+    <color name="md_theme_surface">#FBFDF8</color>
+    <color name="md_theme_onSurface">#191C19</color>
+    <color name="md_theme_surfaceVariant">#DDE5DB</color>
+    <color name="md_theme_onSurfaceVariant">#414942</color>
+    <color name="md_theme_outline">#717971</color>
+    <color name="md_theme_inverseOnSurface">#F0F1EC</color>
+    <color name="md_theme_inverseSurface">#2E312E</color>
+    <color name="md_theme_inversePrimary">#65DD91</color>
 </resources>

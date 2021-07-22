@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+    <data>
+        <import type="android.view.View" />
+        <import type="pl.huczeq.rtspplayer.util.states.ProcessingStateType"/>
+        <variable
+            name="handler"
+            type="pl.huczeq.rtspplayer.ui.addeditcamera.CameraFormHandler" />
+        <variable
+            name="viewmodel"
+            type="pl.huczeq.rtspplayer.ui.addeditcamera.CameraFormViewModel" />
+        <variable
+            name="cameraFormModel"
+            type="pl.huczeq.rtspplayer.ui.addeditcamera.CameraFormModel" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fitsSystemWindows="true">
+
+        <include android:id="@+id/toolbarContainer"
+            layout="@layout/toolbar"/>
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="@{viewmodel.cameraLoading? View.VISIBLE : View.GONE}"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:fillViewport="true"
+            android:clipToPadding="false"
+            android:isScrollContainer="true"
+            app:layout_constraintTop_toBottomOf="@+id/toolbarContainer"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:visibility="@{viewmodel.cameraLoading? View.GONE : View.VISIBLE}">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:animateLayoutChanges="true"
+                android:paddingBottom="170dp"
+                android:paddingHorizontal="20dp">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilCameraName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    style="@style/AppTheme.TextInputLayout.OutlinedBox"
+                    app:hintEnabled="false"
+                    app:endIconMode="clear_text"
+                    app:errorEnabled="true"
+                    errorMessage="@{cameraFormModel.nameValidator.error}">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etCameraName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        style="@style/AppTheme.TextInputEditText"
+                        android:text="@={cameraFormModel.name}"
+                        android:hint="@string/label_name_camera"
+                        android:inputType="textPersonName"/>
+                </com.google.android.material.textfield.TextInputLayout>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/bShowMore"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    app:icon="@drawable/ic_expand_more"
+                    app:iconSize="28dp"
+                    app:iconGravity="end"
+                    android:text="@string/label_show_more"
+                    android:gravity="start|center_vertical"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    android:onClick="@{() -> handler.toggleAdvancedVisibility()}"
+                    android:paddingVertical="8dp"/>
+                <LinearLayout
+                    android:id="@+id/llAdvanced"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="@{cameraFormModel.advancedVisible? View.VISIBLE : View.GONE}"
+                    android:animateLayoutChanges="true">
+                    <ProgressBar
+                        android:id="@+id/pbLoadingProducers"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"/>
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilProducers"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:errorEnabled="true"
+                        app:hintEnabled="false"
+                        style="@style/AppTheme.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+                        <pl.huczeq.rtspplayer.ui.views.DropDownListView
+                            android:id="@+id/ddProducers"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            style="@style/AppTheme.Dropdown"
+                            android:text="@{cameraFormModel.producerName}"
+                            android:hint="@string/label_producers"
+                            android:inputType="none"/>
+                    </com.google.android.material.textfield.TextInputLayout>
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilModels"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:errorEnabled="true"
+                        app:hintEnabled="false"
+                        style="@style/AppTheme.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+                        <pl.huczeq.rtspplayer.ui.views.DropDownListView
+                            android:id="@+id/ddModels"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            style="@style/AppTheme.Dropdown"
+                            android:text="@{cameraFormModel.modelName}"
+                            android:hint="@string/label_models"
+                            android:inputType="none"/>
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <LinearLayout
+                        android:orientation="vertical"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:visibility="@{cameraFormModel.formVisible? View.VISIBLE : View.GONE}"
+                        android:animateLayoutChanges="true">
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilUserName"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            errorMessage="@{cameraFormModel.userNameValidator.error}"
+                            app:errorEnabled="true"
+                            app:hintEnabled="false"
+                            style="@style/AppTheme.TextInputLayout.OutlinedBox">
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etUserName"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                style="@style/AppTheme.TextInputEditText"
+                                android:text="@={cameraFormModel.userName}"
+                                android:hint="@string/label_user_name"
+                                android:inputType="textPersonName"/>
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilPassword"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:errorEnabled="true"
+                            app:hintEnabled="false"
+                            app:endIconMode="password_toggle"
+                            style="@style/AppTheme.TextInputLayout.OutlinedBox">
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etPassword"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                style="@style/AppTheme.TextInputEditText"
+                                android:text="@={cameraFormModel.password}"
+                                android:hint="@string/label_password"
+                                android:inputType="textPassword"/>
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilIpAddress"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            errorMessage="@{cameraFormModel.addressIpValidator.error}"
+                            app:errorEnabled="true"
+                            app:hintEnabled="false"
+                            style="@style/AppTheme.TextInputLayout.OutlinedBox">
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etIpAddress"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                style="@style/AppTheme.TextInputEditText"
+                                android:text="@={cameraFormModel.addressIp}"
+                                android:hint="@string/label_ip_address"
+                                android:inputType="textNoSuggestions"/>
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilPort"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            errorMessage="@{cameraFormModel.portValidator.error}"
+                            app:errorEnabled="true"
+                            app:hintEnabled="false"
+                            style="@style/AppTheme.TextInputLayout.OutlinedBox">
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etPort"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                style="@style/AppTheme.TextInputEditText"
+                                android:text="@={cameraFormModel.port}"
+                                android:hint="@string/label_port"
+                                android:inputType="text"/>
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilServerUrl"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:visibility="@{cameraFormModel.serverUrlInputVisibile? View.VISIBLE : View.GONE}"
+                            app:errorEnabled="true"
+                            app:hintEnabled="false"
+                            style="@style/AppTheme.TextInputLayout.OutlinedBox">
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etServerUrl"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                style="@style/AppTheme.TextInputEditText"
+                                android:text="@={cameraFormModel.serverUrl}"
+                                android:hint="@string/label_server_url"
+                                android:inputType="text"/>
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilChannel"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:visibility="@{cameraFormModel.channelInputVisibile? View.VISIBLE : View.GONE}"
+                            errorMessage="@{cameraFormModel.channelValidator.error}"
+                            app:errorEnabled="true"
+                            app:hintEnabled="false"
+                            style="@style/AppTheme.TextInputLayout.OutlinedBox">
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etChannel"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                style="@style/AppTheme.TextInputEditText"
+                                android:text="@={cameraFormModel.channel}"
+                                android:hint="@string/label_channel"
+                                android:inputType="text"/>
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilStreamType"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:errorEnabled="true"
+                            app:hintEnabled="false"
+                            android:visibility="@{cameraFormModel.streamTypeInputVisibile? View.VISIBLE : View.GONE}"
+                            style="@style/AppTheme.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+                            <pl.huczeq.rtspplayer.ui.views.DropDownListView
+                                android:id="@+id/ddStreamType"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                style="@style/AppTheme.Dropdown"
+                                android:inputType="none"/>
+                        </com.google.android.material.textfield.TextInputLayout>
+                    </LinearLayout>
+                </LinearLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilCameraUrl"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    style="@style/AppTheme.TextInputLayout.OutlinedBox"
+                    errorMessage="@{cameraFormModel.urlValidator.error}"
+                    app:hintEnabled="false">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etUrl"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        style="@style/AppTheme.TextInputEditText"
+                        android:text="@={cameraFormModel.url}"
+                        android:hint="@string/label_camera_url"
+                        android:inputType="textPersonName"/>
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+        </ScrollView>
+
+        <pl.huczeq.rtspplayer.ui.views.ProgressFloatingActionButton
+            android:id="@+id/fabConfirm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_check"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginBottom="16dp"
+            app:fabSize="normal"
+            app:maxImageSize="30dp"
+            progressVisible="@{viewmodel.savingActionState.type == ProcessingStateType.PROCESSING}"
+            android:focusable="@{viewmodel.savingActionState.type != ProcessingStateType.PROCESSING}"
+            android:contentDescription="Preview"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:onClick="@{() -> handler.confirmForm()}" />
+
+        <pl.huczeq.rtspplayer.ui.views.ProgressFloatingActionButton
+            android:id="@+id/fabStartPreview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/video_camera_back"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginBottom="10dp"
+            app:fabSize="normal"
+            app:maxImageSize="30dp"
+            progressVisible="@{viewmodel.previewActionState.type == ProcessingStateType.PROCESSING}"
+            android:focusable="@{viewmodel.previewActionState.type != ProcessingStateType.PROCESSING}"
+            android:contentDescription="Preview"
+            app:layout_constraintBottom_toTopOf="@id/fabConfirm"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:onClick="@{() -> handler.startPreview()}" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>
