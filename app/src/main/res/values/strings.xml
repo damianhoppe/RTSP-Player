@@ -4,6 +4,10 @@
     <string name="double_back_2_exit_info">Please click BACK again to exit</string>
     <string name="dialog_alert_delete_title">Delete backup</string>
     <string name="are_your_sure">Are you sure?</string>
+    <string name="error">Error</string>
+    <string name="attention">Attention</string>
+    <string name="select_file">Select file</string>
+    <string name="restore_backup">Restore backup</string>
 
     <!--Incorrect-->
     <string name="incorrect_camera_url">The address is not correct</string>
@@ -69,6 +73,9 @@
     <string name="app_info">RTSP Player allows you to play network streams using the libVLC library. The application is licensed under LGPL 3.0 and offers open source code.</string>
     <string name="label_show_license"><u>Show license</u></string>
 
+    <!--Activity Select Camera-->
+    <string name="title_activity_select_camera">Select starting camera</string>
+
     <!--Spinner stream-->
     <string-array name="spinner_stream">
         <item>Main stream</item>
@@ -89,11 +96,18 @@
     <string name="error_restore">Error occured</string>
     <string name="backup_cameras_summary">It exports cameras, including all data, even IP addresses, username and password.</string>
     <string name="backup_settings_summary">All application settings.</string>
+    <string name="backup_path_tip">After clicking the button below, you will be asked to choose a file location.</string>
+    <string name="restore_cameras_summary">It exports cameras, including all data, even IP addresses, username and password.</string>
+    <string name="restore_settings_summary">All application settings.</string>
 
     <!--Preferences-->
     <string name="label_interface">Interface</string>
     <string name="label_ads">Ads</string>
     <string name="label_data">Data</string>
+
+    <string name="label_general">General</string>
+    <string name="title_starting_camera">Starting camera</string>
+    <string name="summary_starting_camera">Launching the camera preview with the start of the application</string>
 
     <string name="label_theme">Theme</string>
     <string name="summary_theme">Select an application theme</string>

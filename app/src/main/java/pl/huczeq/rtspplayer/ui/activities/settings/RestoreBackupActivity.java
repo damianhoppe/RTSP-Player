@@ -11,13 +11,19 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
+import android.os.ParcelFileDescriptor;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
@@ -29,6 +35,8 @@ import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -40,7 +48,9 @@ import pl.huczeq.rtspplayer.data.DataConverter;
 import pl.huczeq.rtspplayer.data.DataManager;
 import pl.huczeq.rtspplayer.data.Settings;
 import pl.huczeq.rtspplayer.data.objects.CameraInstance;
+import pl.huczeq.rtspplayer.interfaces.IOnTaskFinished;
 import pl.huczeq.rtspplayer.ui.activities.base.BaseActivity;
+import pl.huczeq.rtspplayer.ui.activities.cameraform.BaseCameraFormActivity;
 import pl.huczeq.rtspplayer.viewmodels.RestoreBackupViewModel;
 import pl.huczeq.rtspplayer.viewmodels.factories.DataManagerViewModelFactory;
 
@@ -48,9 +58,12 @@ public class RestoreBackupActivity extends BaseActivity {
 
     private final static String TAG = "RestoreBackupActivity";
 
-    private ListView lvBackups;
+    private final static int RESULT_CODE_SELECT_FILE = 1;
+
+    private CheckBox cbCameras, cbSettings;
+    private TextView tvTitle, tvNumberOfCameras, tvCamerasAttention, tvSettingsAttention;
+    private Button buttonSelectFile, buttonRestoreBackup;
     private ProgressBar progressBar;
-    private BackupsListAdapter backupsListAdapter;
 
     private RestoreBackupViewModel viewModel;
 
@@ -60,71 +73,144 @@ public class RestoreBackupActivity extends BaseActivity {
         setContentView(R.layout.activity_restore_backup);
         setViewsWidgets();
 
-        backupsListAdapter = new BackupsListAdapter(this, new ArrayList<String>());
-        lvBackups.setAdapter(backupsListAdapter);
-        lvBackups.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, final int i, long l) {
-                if(progressBar.getVisibility() != View.VISIBLE)
-                    viewModel.loadBackup(backupsListAdapter.getItem(i), true);
-            }
-        });
-        lvBackups.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> adapterView, View view, final int index, long l) {
-                if(index > -1) {
-                    AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(RestoreBackupActivity.this)
-                            .setTitle(getResources().getString(R.string.dialog_alert_delete_title))
-                            .setMessage(getResources().getString(R.string.are_your_sure))
-                            .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialogInterface, int i) {
-                                    if (!arePermissionsGranted())
-                                        return;
-                                    File file = new File(settings.getBackupsDir(), backupsListAdapter.getItem(index));
-                                    file.delete();
-                                    backupsListAdapter.remove(index);
-                                }
-                            })
-                            .setNegativeButton(R.string.cancel, null);
-                    alertDialogBuilder.create().show();
-                }
-                return true;
-            }
-        });
-
         setToolbarTitle(R.string.title_activity_restore_backup);
 
         this.viewModel = ViewModelProviders.of(this, new DataManagerViewModelFactory(this.dataManager)).get(RestoreBackupViewModel.class);
-        this.viewModel.getFileList().observe(this, new Observer<List<String>>() {
+        this.viewModel.getIsRunning().observe(this, new Observer<Boolean>() {
             @Override
-            public void onChanged(List<String> strings) {
-                if(strings == null) {
-                    return;
-                }
-                backupsListAdapter.setList(strings);
+            public void onChanged(Boolean bool) {
+                /*
+                tvCamerasAttention.setEnabled(!bool);
+                tvSettingsAttention.setEnabled(!bool);
+                cbCameras.setClickable(!bool);
+                cbSettings.setClickable(!bool);*/
+                buttonRestoreBackup.setClickable(!bool);
+                progressBar.setVisibility((bool)? View.VISIBLE : View.GONE);
             }
         });
-        this.viewModel.getDataIsBeingRestored().observe(this, new Observer<Boolean>() {
+        this.viewModel.getData().observe(this, new Observer<RestoreBackupViewModel.DataModel>() {
             @Override
-            public void onChanged(Boolean b) {
-                progressBar.setVisibility((b)? View.VISIBLE : View.INVISIBLE);
+            public void onChanged(RestoreBackupViewModel.DataModel dataModel) {
+                buttonRestoreBackup.setEnabled(dataModel != null);
+                if(dataModel == null) {
+                    tvNumberOfCameras.setText(getString(R.string.number_of_cameras));
+                    cbCameras.setEnabled(false);
+                    cbCameras.setEnabled(false);
+                }else {
+                    tvNumberOfCameras.setText(getString(R.string.number_of_cameras) + ": " + dataModel.numberOfCameras);
+                    cbCameras.setEnabled(dataModel.containsCameras);
+                    cbSettings.setEnabled(dataModel.containsSettings);
+                }
             }
         });
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        if(arePermissionsGranted()) viewModel.refreshFileList();
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable @org.jetbrains.annotations.Nullable Intent data) {
+        if(requestCode == RESULT_CODE_SELECT_FILE) {
+            //TODO
+            if(data == null) {
+
+            }else {
+                ParcelFileDescriptor fileDescriptor = null;
+                try {
+                    fileDescriptor = getContentResolver().openFileDescriptor(data.getData(), "r");
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                    //TODO
+                    tvTitle.setText("");
+                    return;
+                }
+                String fileName = data.getData().getLastPathSegment();
+                FileInputStream inputStream = new FileInputStream(fileDescriptor.getFileDescriptor());
+                viewModel.initData(fileName, inputStream, new IOnTaskFinished() {
+                    @Override
+                    public void onComplete() {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                tvTitle.setText(fileName);
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onError(Exception exception) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                tvTitle.setText("");
+                            }
+                        });
+                    }
+                });
+            }
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if(this.viewModel.getIsRunning().getValue() && this.viewModel.getData() != null) {
+            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+            alertDialogBuilder.setPositiveButton(":D", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    RestoreBackupActivity.this.finish();
+                }
+            });
+            alertDialogBuilder.setNegativeButton(":(", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    return;
+                }
+            });
+            AlertDialog alertDialog = alertDialogBuilder.create();
+            alertDialog.show();
+            return;
+        }
+        super.onBackPressed();
     }
 
     @Override
     protected void setViewsWidgets() {
         super.setViewsWidgets();
 
-        lvBackups = findViewById(R.id.lvBackups);
+        cbCameras = findViewById(R.id.cbCameras);
+        tvCamerasAttention = findViewById(R.id.tvCamerasAttention);
+        cbSettings = findViewById(R.id.cbSettings);
+        tvSettingsAttention = findViewById(R.id.tvSettingsAttention);
+        tvTitle = findViewById(R.id.tvTitle);
+        tvNumberOfCameras = findViewById(R.id.tvNumberOfCameras);
+        buttonSelectFile = findViewById(R.id.buttonSelectFile);
+        buttonRestoreBackup = findViewById(R.id.buttonRestoreBackup);
         progressBar = findViewById(R.id.progressBar);
+
+        buttonSelectFile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                selectFile();
+            }
+        });
+
+        buttonRestoreBackup.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(!viewModel.canRestoreData())
+                    return;
+                viewModel.restoreData(cbCameras.isChecked() && cbCameras.isChecked(), cbSettings.isClickable() && cbSettings.isChecked(), new IOnTaskFinished() {
+                    @Override
+                    public void onComplete() {
+                        //TODO
+                    }
+
+                    @Override
+                    public void onError(Exception exception) {
+                        //TODO
+                    }
+                });
+            }
+        });
     }
 
     private boolean arePermissionsGranted() {
@@ -143,14 +229,7 @@ public class RestoreBackupActivity extends BaseActivity {
                 requestPermissions(p, 1);
                 return false;
             }
-        }/*else {
-            if(!Environment.isExternalStorageManager()) {
-                Intent intent = new Intent(android.provider.Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
-                startActivity(intent);
-                Toast.makeText(this, R.string.permissions_storage_rationale, Toast.LENGTH_SHORT).show();
-                return false;
-            }
-        }*/
+        }
         return true;
     }
 
@@ -165,7 +244,7 @@ public class RestoreBackupActivity extends BaseActivity {
             }
         }
         if(granted) {
-            this.viewModel.refreshFileList();
+            //this.viewModel.refreshFileList();
         }else {
             if(!showSettingsPermissions) {
                 showSettingsPermissions = true;
@@ -177,5 +256,13 @@ public class RestoreBackupActivity extends BaseActivity {
             }
             Toast.makeText(this, R.string.permissions_storage_rationale, Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void selectFile() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("application/json");
+
+        startActivityForResult(intent, RESULT_CODE_SELECT_FILE);
     }
 }

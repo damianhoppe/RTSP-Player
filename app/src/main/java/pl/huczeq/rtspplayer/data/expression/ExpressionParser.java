@@ -24,7 +24,7 @@ public class ExpressionParser {
     }
 
     public static String loadDataToExpression(String expression, HashMap<String, Integer> patterData) {
-        ExpressionHelper helper = new ExpressionHelper();
+        ExpressionHelper<Integer> helper = new ExpressionHelper<>();
         List<String> partialyExpression = helper.splitExpression(expression, patterData);
         StringBuilder stringBuilder = new StringBuilder();
         String varName;

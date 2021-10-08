@@ -7,11 +7,6 @@ import pl.huczeq.rtspplayer.exceptions.ParsingException;
 
 import static org.junit.Assert.*;
 
-/**
- * Example local unit test, which will execute on the development machine (host).
- *
- * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
- */
 public class VariableTest {
 
     @Test
@@ -67,5 +62,73 @@ public class VariableTest {
         String data = "1,2,3-10,11/10";
         Variable variable = new Variable("Test", data);
         assertEquals(20, variable.getValues().size());
+    }
+
+    @Test
+    public void variable_parsing_exceptions() {
+        try {
+            Variable variable = new Variable("Test", "");
+            variable.parse();
+            fail();
+        }catch (ParsingException e) {
+            e.printStackTrace();
+        }
+        try {
+            Variable variable = new Variable("Test", "1-");
+            variable.parse();
+            fail();
+        }catch (ParsingException e) {
+            e.printStackTrace();
+        }
+        try {
+            Variable variable = new Variable("Test", "-3");
+            variable.parse();
+            fail();
+        }catch (ParsingException e) {
+            e.printStackTrace();
+        }
+        try {
+            Variable variable = new Variable("Test", "10-2");
+            variable.parse();
+            fail();
+        }catch (ParsingException e) {
+            e.printStackTrace();
+        }
+        try {
+            Variable variable = new Variable("Test", "10/");
+            variable.parse();
+            fail();
+        }catch (ParsingException e) {
+            e.printStackTrace();
+        }
+        try {
+            Variable variable = new Variable("Test", "/2");
+            variable.parse();
+            fail();
+        }catch (ParsingException e) {
+            e.printStackTrace();
+        }
+        try {
+            Variable variable = new Variable("Test", "-1");
+            variable.parse();
+            fail();
+        }catch (ParsingException e) {
+            e.printStackTrace();
+        }
+        try {
+            Variable variable = new Variable("Test", "-1,-2");
+            variable.parse();
+            fail();
+        }catch (ParsingException e) {
+            e.printStackTrace();
+        }
+        try {
+            Variable variable = new Variable("Test", "-1/-2");
+            variable.parse();
+            fail();
+        }catch (ParsingException e) {
+            e.printStackTrace();
+        }
+        assertTrue(true);
     }
 }

@@ -25,8 +25,12 @@ public abstract class CameraDao {
     public abstract CameraInstance getCameraInstanceById(int id);
 
     @Transaction
-    @Query("SELECT * FROM cameraInstance WHERE id = :id")
-    public abstract Camera getCameraById(int id);
+    @Query("SELECT * FROM cameraInstance WHERE id = :id LIMIT 1")
+    public abstract List<Camera> getCameraListById(int id);
+
+    @Transaction
+    @Query("SELECT * FROM cameraInstance WHERE id = :id LIMIT 1")
+    public abstract LiveData<List<Camera>> getCameraById(int id);
 
     @Insert
     protected abstract void insertCameraInstance(CameraInstance cameraInstance);
@@ -92,5 +96,16 @@ public abstract class CameraDao {
     public void deleteCameraPatternWithInstances(CameraPattern cameraPattern) {
         deleteCameraPattern(cameraPattern);
         deleteCameraInstanceWithPatternId(cameraPattern.getId());
+    }
+
+    @Query("DELETE FROM camerainstance")
+    protected abstract void clearInstances();
+
+    @Query("DELETE FROM CameraPattern")
+    protected abstract void clearPatterns();
+
+    public void clear() {
+        clearPatterns();
+        clearInstances();
     }
 }

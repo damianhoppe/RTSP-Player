@@ -21,6 +21,7 @@ import java.util.List;
 import pl.huczeq.rtspplayer.adapters.CamerasListAdapter;
 import pl.huczeq.rtspplayer.data.DataManager;
 import pl.huczeq.rtspplayer.data.objects.Camera;
+import pl.huczeq.rtspplayer.interfaces.IGetCameraCallback;
 import pl.huczeq.rtspplayer.ui.activities.cameraform.BaseCameraFormActivity;
 import pl.huczeq.rtspplayer.ui.activities.camerapreviews.BasePreviewCameraActivity;
 import pl.huczeq.rtspplayer.ui.activities.cameraform.AddCameraFormActivity;
@@ -36,6 +37,7 @@ import pl.huczeq.rtspplayer.viewmodels.factories.DataManagerViewModelFactory;
 public class MainActivity extends BaseActivity implements IOnListItemSelected, IOnMenuItemListSelected {
 
     private final String TAG = "ListCamerasActivity";
+    public static final String KEY_STARTING_CAMERA_ID = "startingCameraId";
 
     private RecyclerView listView;
     private FloatingActionButton fABaddNewCamera;
@@ -51,7 +53,6 @@ public class MainActivity extends BaseActivity implements IOnListItemSelected, I
         setContentView(R.layout.activity_list_cameras);
         setViewsWidgets();
 
-        //MEMORY LEAK?
         camerasListAdapter = new CamerasListAdapter(this,this, this);
         listView.setAdapter(camerasListAdapter);
         listView.setLayoutManager(new LinearLayoutManager(this));
@@ -60,11 +61,22 @@ public class MainActivity extends BaseActivity implements IOnListItemSelected, I
         this.camerasListViewModel.getAllCameras().observe(this, new Observer<List<Camera>>() {
             @Override
             public void onChanged(List<Camera> cameras) {
-                Log.d(TAG, "onChanged");
                 camerasListAdapter.updateList(cameras);
-                tvEmptyCameraListMessage.setVisibility((cameras.size()==0? View.VISIBLE : View.INVISIBLE));
+                tvEmptyCameraListMessage.setVisibility((cameras.size()==0? View.VISIBLE : View.GONE));
             }
         });
+
+        int startingCameraId = getIntent().getIntExtra(KEY_STARTING_CAMERA_ID, -1);
+        if(startingCameraId >= 0) {
+            camerasListViewModel.getCamera(startingCameraId, new IGetCameraCallback() {
+                @Override
+                public void onGetCamera(Camera camera) {
+                    if(camera != null) {
+                        startActivity(BasePreviewCameraActivity.getStartIntent(getApplicationContext(), camera));
+                    }
+                }
+            });
+        }
     }
     @Override
     protected void setViewsWidgets() {
@@ -98,7 +110,7 @@ public class MainActivity extends BaseActivity implements IOnListItemSelected, I
 
     @Override
     public void onCameraItemSelected(Camera camera) {
-        startActivity(BasePreviewCameraActivity.getPreviewCameraIntent(getApplicationContext(), camera));
+        startActivity(BasePreviewCameraActivity.getStartIntent(getApplicationContext(), camera));
     }
 
     @Override

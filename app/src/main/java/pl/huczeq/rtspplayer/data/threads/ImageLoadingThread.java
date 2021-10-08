@@ -19,6 +19,7 @@ import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 import java.util.Objects;
 
+import pl.huczeq.rtspplayer.data.DataManager;
 import pl.huczeq.rtspplayer.data.Settings;
 import pl.huczeq.rtspplayer.data.objects.CameraInstance;
 
@@ -51,13 +52,15 @@ public class ImageLoadingThread extends Thread{
                 Settings settings = Settings.getInstance(context);
                 File f = new File(settings.getPreviewImagesDir(), data.getCamera().getPreviewImg());
                 if(!f.exists()) {
+                    data.getCamera().setPrevImgLastUpdateTime(0);
+                    data.getCamera().setPreviewImg("");
+                    DataManager.getInstance(context.getApplicationContext()).updateCameraInstance(data.getCamera());
                     return false;
                 }
                 Bitmap bitmap = loadBitmapFromFile(f);
                 if(bitmap == null) returnMessageToQueue(message);
                 final Bitmap finalBitmap = bitmap;
                 if(data.callback != null) {
-                    Log.d("TEST", "data.callback != null");
                     new Handler(Looper.getMainLooper()).post(new Runnable() {
                         @Override
                         public void run() {
@@ -74,7 +77,6 @@ public class ImageLoadingThread extends Thread{
     private void returnMessageToQueue(Message message) {
         final Data data = (Data) message.obj;
         if(data.getNumberOfReturns() >= 2) {
-            Log.e(TAG, "Returned message to queue " + data.getNumberOfReturns() + " times, name: " + data.getCamera().getName() + ", img: " + data.getCamera().getPreviewImg());
             new Handler(Looper.getMainLooper()).post(new Runnable() {
                 @Override
                 public void run() {

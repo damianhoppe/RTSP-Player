@@ -1,8 +1,13 @@
 package pl.huczeq.rtspplayer.data.expression;
 
+import androidx.room.util.StringUtil;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import pl.huczeq.rtspplayer.data.utils.StringUtils;
+import pl.huczeq.rtspplayer.exceptions.ParsingException;
 
 public class ExpressionHelper<T> {
 
@@ -15,6 +20,8 @@ public class ExpressionHelper<T> {
     }
 
     public boolean isCorrect(String expression) {
+        if(StringUtils.countChar(expression, '{') != StringUtils.countChar(expression, '}'))
+            return false;
         return true;
     }
 

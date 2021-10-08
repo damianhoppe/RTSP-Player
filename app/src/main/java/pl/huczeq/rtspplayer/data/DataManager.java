@@ -79,12 +79,20 @@ public class DataManager implements ICameraInstancesService {
         this.camerasRepository.getCameraById(id, callback);
     }
 
+    public LiveData<List<Camera>> getCameraById(int id) {
+        return this.camerasRepository.getCameraById(id);
+    }
+
     public void addCamera(CameraPattern cameraPattern, IOnDataUpdated callback) {
         camerasRepository.addCamera(cameraPattern, this, callback);
     }
 
     public void addCamerasSync(List<CameraPattern> list) {
         camerasRepository.addCamerasSync(list, this, false);
+    }
+
+    public void addCamerasSync(List<CameraPattern> list, boolean removeAllCameras) {
+        camerasRepository.addCamerasSync(list, this, removeAllCameras);
     }
 
     public void updateCamera(CameraPattern cameraPattern, IOnDataUpdated callback) {
@@ -137,6 +145,10 @@ public class DataManager implements ICameraInstancesService {
         for(int i = 0; i < currentCameraInstaces.size(); i++) {
             currentCameraInstaces.get(i).update(newCameraInstances.get(i));
         }
+    }
+
+    public void updateCameraInstance(CameraInstance cameraInstance) {
+        this.camerasRepository.updateCameraInstance(cameraInstance, null);
     }
 
     public LiveData<CamerasStats> getCamerasStats() {

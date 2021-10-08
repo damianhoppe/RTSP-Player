@@ -20,8 +20,12 @@ public class ExpressionTest {
     @Test
     public void expressionHelper_isCorrect_test() {
         ExpressionHelper helper = new ExpressionHelper();
-        String input = "elo{var1}xd2{var2xd}elo2";
-        assertTrue(helper.isCorrect(input));
+        expressionHelper_isCorrect_testHelper(helper, "elo{var1}xd2{var2xd}elo2", true);
+        expressionHelper_isCorrect_testHelper(helper, "elo{{var1}xd2{var2xd}elo2", false);
+    }
+
+    public void expressionHelper_isCorrect_testHelper(ExpressionHelper expressionHelper, String expression, boolean expectedResult) {
+        assertEquals(expressionHelper.isCorrect(expression), expectedResult);
     }
 
     @Test

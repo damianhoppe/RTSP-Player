@@ -8,6 +8,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
+import androidx.annotation.Nullable;
 import androidx.preference.CheckBoxPreference;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
@@ -19,6 +20,7 @@ import pl.huczeq.rtspplayer.BuildConfig;
 import pl.huczeq.rtspplayer.R;
 import pl.huczeq.rtspplayer.ui.activities.settings.CreateBackupActivity;
 import pl.huczeq.rtspplayer.ui.activities.settings.RestoreBackupActivity;
+import pl.huczeq.rtspplayer.ui.activities.settings.SelectCameraActivity;
 import pl.huczeq.rtspplayer.ui.activities.settings.info.AppInfoActivity;
 import pl.huczeq.rtspplayer.ui.activities.settings.info.LicenseActivity;
 import pl.huczeq.rtspplayer.data.Settings;
@@ -29,7 +31,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
 
     Preference restoreBackup, createBackup, aboutApp, showLicense, openAddModelForm;
     ListPreference theme, orientationMode, defaultOrientation, playerSurface;
-    CheckBoxPreference useHardwareAcceleration, useAVCodesFast, generateCameraTumbnailOnce;
+    CheckBoxPreference useHardwareAcceleration, useAVCodesFast, generateCameraTumbnailOnce, startingCamera;
     SeekBarPreference cachingBufferSize;
 
     SharedPreferences.OnSharedPreferenceChangeListener onNewSettingsLoaded = new SharedPreferences.OnSharedPreferenceChangeListener() {
@@ -99,6 +101,13 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
                         }
                     });
                     break;
+                case Settings.KEY_STARTING_CAMERA:
+                    new Handler(Looper.getMainLooper()).post(new Runnable() {
+                        @Override
+                        public void run() {
+                            startingCamera.setChecked(sharedPreferences.getBoolean(Settings.KEY_STARTING_CAMERA, false));
+                        }
+                    });
                 default:
             }
         }
@@ -107,6 +116,8 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         setPreferencesFromResource(R.xml.preferences, rootKey);
+
+        startingCamera = findPreference(Settings.KEY_STARTING_CAMERA);
 
         restoreBackup = findPreference(Settings.KEY_RESTORE_BACKUP);
         createBackup = findPreference(Settings.KEY_CREATE_BACKUP);
@@ -120,6 +131,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
         generateCameraTumbnailOnce = findPreference(Settings.KEY_GENERATE_CAMERA_TUMBNAIL_ONCE);
         cachingBufferSize = findPreference(Settings.KEY_CACHING_BUFFER_SIZE);
 
+        if(startingCamera != null) startingCamera.setOnPreferenceClickListener(this);
         if(restoreBackup != null) restoreBackup.setOnPreferenceClickListener(this);
         if(createBackup != null) createBackup.setOnPreferenceClickListener(this);
         if(aboutApp != null) aboutApp.setOnPreferenceClickListener(this);
@@ -145,6 +157,13 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
     public boolean onPreferenceClick(Preference preference) {
         Intent intent = null;
         switch(preference.getKey()) {
+            case Settings.KEY_STARTING_CAMERA:
+                startingCamera.setChecked(!startingCamera.isChecked());
+                intent = new Intent(getContext(), SelectCameraActivity.class);
+                intent.putExtra(SelectCameraActivity.EXTRA_SHOW_NONE_OPTION, true);
+                intent.putExtra(SelectCameraActivity.EXTRA_SELECTED_CAMERA_ID, Settings.getInstance(this.getContext()).getStartingCameraId());
+                startActivityForResult(intent, SelectCameraActivity.RESULT_CODE);
+                return false;
             case Settings.KEY_RESTORE_BACKUP:
                 intent = new Intent(getContext(), RestoreBackupActivity.class);
                 break;
@@ -171,6 +190,27 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
             case Settings.KEY_THEME:
                 Settings.getInstance(getContext()).setTheme();
                 break;
+            case Settings.KEY_STARTING_CAMERA:
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.d(TAG, "KEY_STARTING_CAMERA changed: " + sharedPreferences.getBoolean(Settings.KEY_STARTING_CAMERA, false));
+                        startingCamera.setChecked(sharedPreferences.getBoolean(Settings.KEY_STARTING_CAMERA, false));
+                    }
+                });
         }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable @org.jetbrains.annotations.Nullable Intent data) {
+        if(resultCode == SelectCameraActivity.RESULT_CODE) {
+            Settings settings = Settings.getInstance(this.getContext());
+            int selectedCameraId = data.getIntExtra(SelectCameraActivity.EXTRA_SELECTED_CAMERA_ID, -10);
+            Log.d(TAG, "Selected: " + selectedCameraId);
+            if(selectedCameraId != -10) {
+                settings.setStartingCameraId((selectedCameraId < 0)? -1 : selectedCameraId);
+            }
+        }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 }

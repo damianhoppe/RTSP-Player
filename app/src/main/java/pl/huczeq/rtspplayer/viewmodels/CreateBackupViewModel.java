@@ -17,9 +17,11 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import pl.huczeq.rtspplayer.R;
 import pl.huczeq.rtspplayer.data.DataConverter;
@@ -27,6 +29,7 @@ import pl.huczeq.rtspplayer.data.DataManager;
 import pl.huczeq.rtspplayer.data.Settings;
 import pl.huczeq.rtspplayer.data.database.CamerasStats;
 import pl.huczeq.rtspplayer.data.objects.CameraPattern;
+import pl.huczeq.rtspplayer.interfaces.IOnTaskFinished;
 import pl.huczeq.rtspplayer.viewmodels.base.DataManagerViewModel;
 
 public class CreateBackupViewModel extends DataManagerViewModel {
@@ -65,11 +68,23 @@ public class CreateBackupViewModel extends DataManagerViewModel {
         this.isBackupCreating.setValue(false);
     }
 
-    public void createBackup(Context context, boolean camerasBackup, boolean settingsBackup) {
+    public void createBackup(OutputStream outputStream, boolean camerasBackup, boolean settingsBackup, IOnTaskFinished callback) {
         interruptBackupCreatingThread();
         this.backupCreatingThread = new Thread(new Runnable() {
             @Override
             public void run() {
+                try {
+                    work();
+                } catch (IOException e) {
+                    callback.onError(e);
+                    return;
+                } finally {
+                    isBackupCreating.postValue(false);
+                }
+                callback.onComplete();
+            }
+
+            private void work() throws IOException {
                 JSONObject json = new JSONObject();
                 if(camerasBackup) {
                     JSONArray jsonCameras = new JSONArray();
@@ -99,6 +114,10 @@ public class CreateBackupViewModel extends DataManagerViewModel {
                                 obj.put(DataConverter.JSONStream, c.getStream());
                             if (c.getServerUrl() != null && !c.getServerUrl().isEmpty())
                                 obj.put(DataConverter.JSONServerUrl, c.getServerUrl());
+                            JSONArray jsonVariables = c.getJSONArrayVariables();
+                            if(jsonVariables != null) {
+                                obj.put(DataConverter.JSONVariables, jsonVariables);
+                            }
                         } catch (JSONException e) {
                             e.printStackTrace();
                             break;
@@ -131,49 +150,9 @@ public class CreateBackupViewModel extends DataManagerViewModel {
                         e.printStackTrace();
                     }
                 }
-
-                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                String fileName = df.format(new Date()) + " - ";
-                String exported = "";
-                if(camerasBackup)
-                    exported += context.getString(R.string.cameras);
-                if(settingsBackup) {
-                    if(!exported.isEmpty())
-                        exported += ", ";
-                    exported += context.getString(R.string.settings);
-                }
-                fileName += exported;
-                File file = new File(dataManager.getSettings().getBackupsDir(), fileName + ".json");
-                if(!file.getParentFile().exists()) {
-                    file.getParentFile().mkdirs();
-                }
-                try {
-                    if(!file.exists())
-                        file.createNewFile();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                FileOutputStream stream = null;
-                try {
-                    stream = new FileOutputStream(file);
-                    stream.write(json.toString().getBytes());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                if(stream != null) {
-                    try {
-                        stream.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-                new Handler(Looper.getMainLooper()).post(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(context, R.string.success_created, Toast.LENGTH_SHORT).show();
-                    }
-                });
-                isBackupCreating.postValue(false);
+                outputStream.write(json.toString().getBytes());
+                outputStream.flush();
+                outputStream.close();
             }
         });
         this.isBackupCreating.setValue(true);

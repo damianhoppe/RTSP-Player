@@ -99,15 +99,10 @@ public class SpecialExpression {
                 buffer = buffer.substring(0, bufferIndex);
             }
             partialyExpression.add(buffer);
-            System.out.println(buffer);
             tempExpression = tempExpression.substring(endIndex+1);
         }
         if(!tempExpression.isEmpty())
             partialyExpression.add(tempExpression);
-
-        for(String msg : this.partialyExpression) {
-            System.out.println(" - " + msg);
-        }
     }
 
     public HashMap<String, String> getVariables() {

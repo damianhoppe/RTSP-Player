@@ -1,5 +1,6 @@
 package pl.huczeq.rtspplayer.adapters;
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.os.Handler;
 import android.util.Log;
@@ -32,6 +33,7 @@ import pl.huczeq.rtspplayer.data.objects.CameraPattern;
 import pl.huczeq.rtspplayer.data.threads.ImageLoadingThread;
 import pl.huczeq.rtspplayer.interfaces.IOnListItemSelected;
 import pl.huczeq.rtspplayer.interfaces.IOnMenuItemListSelected;
+import pl.huczeq.rtspplayer.ui.activities.cameraform.BaseCameraFormActivity;
 
 public class CamerasListAdapter extends RecyclerView.Adapter<CameraViewHolder> {
 
@@ -106,10 +108,6 @@ public class CamerasListAdapter extends RecyclerView.Adapter<CameraViewHolder> {
         }
     }
 
-    public void onViewRecycled(@NonNull CameraViewHolder holder) {
-        Log.d("TEST", "onViewRecycled: " + holder.cameraInstance.getName());
-    }
-
     public static class CameraDiffCallback extends DiffUtil.Callback{
 
         private List<Camera> oldList;
@@ -165,13 +163,11 @@ public class CamerasListAdapter extends RecyclerView.Adapter<CameraViewHolder> {
         private ImageLoadingThread.Callback imageLoadinThreadCallback = new ImageLoadingThread.Callback() {
             @Override
             public void onImageLoaded(ImageLoadingThread.Data data, Bitmap bitmap) {
-                Log.d("TEST", "onImageLoaded = " + (bitmap == null));
                 if(data.getCamera().getId() != cameraInstance.getId()) {
-                    Log.d("TEST", "Id's are not equals: " + data.getCamera().getName() + "/" + data.getCamera().getId() + " - " + cameraInstance.getName() + "/" + cameraInstance.getId());
                     return;
                 }
                 if(imageView == null)
-                    return;;
+                    return;
                 if(bitmap == null) {
                     imageView.setImageResource(R.mipmap.icon_camera);
                 }else {
@@ -195,7 +191,7 @@ public class CamerasListAdapter extends RecyclerView.Adapter<CameraViewHolder> {
 
         public void bindTo(Camera camera) {
             this.cameraInstance = camera.getCameraInstance();
-            textView.setText(cameraInstance.getName());
+            setCameraTitle(textView, cameraInstance.getName());
             popupMenu = new PopupMenu(ctw, imageButtonMenu);
             menu = popupMenu.getMenu();
             if(camera.getCameraPattern() != null && camera.getCameraPattern().getNumberOfInstances() > 1) {
@@ -233,5 +229,33 @@ public class CamerasListAdapter extends RecyclerView.Adapter<CameraViewHolder> {
                 }
             });
         }
+
+        private void setCameraTitle(TextView tv, String text) {
+            TextView textView = new TextView(tv.getContext());
+            textView.setTypeface(tv.getTypeface());
+            textView.setLayoutParams(tv.getLayoutParams());
+
+            textView.setText(text);
+            textView.measure(0, 0);
+
+            int maxTextWidth = Resources.getSystem().getDisplayMetrics().widthPixels;
+            maxTextWidth = maxTextWidth/2-maxTextWidth/5;
+
+            if(textView.getMeasuredWidth() > maxTextWidth) {
+                StringBuilder newText = new StringBuilder();
+                char[] textA = text.toCharArray();
+                int i = 0;
+                do {
+                    newText.append(textA[i]);
+                    textView.setText(newText+".");
+                    textView.measure(0, 0);
+                    i++;
+                }while(textView.getMeasuredWidth() < maxTextWidth);
+                newText.deleteCharAt(newText.length()-1);
+                text = newText.toString() + "...";
+            }
+            tv.setText(text);
+        }
+
     }
 }

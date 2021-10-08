@@ -5,6 +5,17 @@
     app:iconSpaceReserved="false">
 
     <PreferenceCategory
+        app:title="@string/label_general"
+        app:iconSpaceReserved="false">
+        <CheckBoxPreference
+            app:key="startingCamera"
+            app:title="@string/title_starting_camera"
+            app:iconSpaceReserved="false"
+            app:summary="@string/summary_starting_camera"
+            app:defaultValue="0"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory
         app:title="@string/label_interface"
         app:iconSpaceReserved="false">
         <ListPreference

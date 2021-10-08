@@ -30,6 +30,7 @@ import pl.huczeq.rtspplayer.R;
 import pl.huczeq.rtspplayer.data.DataManager;
 import pl.huczeq.rtspplayer.data.Settings;
 import pl.huczeq.rtspplayer.data.objects.Camera;
+import pl.huczeq.rtspplayer.ui.activities.MainActivity;
 import pl.huczeq.rtspplayer.ui.activities.base.BaseActivity;
 import pl.huczeq.rtspplayer.common.Utils;
 import pl.huczeq.rtspplayer.viewmodels.CameraPreviewViewModel;
@@ -40,20 +41,26 @@ public class BasePreviewCameraActivity extends BaseActivity implements VlcLibrar
 
     private final static String TAG = "BasePreviewCameraActiv";
 
-    public static Intent getPreviewCameraIntent(Context context, Camera camera) {
-        Intent intent = getPreviewCameraIntent(context);
+    public static Intent getStartIntent(Context context, Camera camera, boolean showHomeButton) {
+        Intent intent = getStartIntent(context, camera);
+        intent.putExtra(BasePreviewCameraActivity.EXTRA_SHOW_HOME_BUTTON, showHomeButton);
+        return intent;
+    }
+
+    public static Intent getStartIntent(Context context, Camera camera) {
+        Intent intent = getStartIntent(context);
         intent.putExtra(BasePreviewCameraActivity.EXTRA_CAMERA_ID, camera.getCameraInstance().getId());
         intent.putExtra(BasePreviewCameraActivity.EXTRA_URL, camera.getCameraInstance().getUrl());
         return intent;
     }
 
-    public static Intent getPreviewCameraIntent(Context context, String url) {
-        Intent intent = getPreviewCameraIntent(context);
+    public static Intent getStartIntent(Context context, String url) {
+        Intent intent = getStartIntent(context);
         intent.putExtra(BasePreviewCameraActivity.EXTRA_URL, url);
         return intent;
     }
 
-    private static Intent getPreviewCameraIntent(Context context) {
+    private static Intent getStartIntent(Context context) {
         Intent intent;
         switch(Settings.getInstance(context).getPlayerSurfaceEnum()) {
             case GLTEXTUREVIEW:
@@ -71,11 +78,13 @@ public class BasePreviewCameraActivity extends BaseActivity implements VlcLibrar
 
     public static String EXTRA_CAMERA_ID = "cameraId";
     public static String EXTRA_URL = "cameraUrl";
+    public static String EXTRA_SHOW_HOME_BUTTON = "showHomeButton";
 
     protected ConstraintLayout rootLayout;
     protected ProgressBar pBLoading;
     protected ConstraintLayout rootPlayerControl;
     protected ImageView buttonVolumeChange;
+    protected ImageView buttomHome;
 
     protected VlcLibrary vlcLibrary;
 
@@ -162,7 +171,11 @@ public class BasePreviewCameraActivity extends BaseActivity implements VlcLibrar
             url = null;
         if(cameraId == -1 && url == null)
         {
-            finish();
+            if(getIntent().getBooleanExtra(EXTRA_SHOW_HOME_BUTTON, false)) {
+                startActivity(new Intent(this, MainActivity.class));
+            }else {
+                finish();
+            }
         }
         vlcLibrary = new VlcLibrary(this);
         vlcLibrary.init();
@@ -185,7 +198,8 @@ public class BasePreviewCameraActivity extends BaseActivity implements VlcLibrar
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        rootPlayerControl.setVisibility(View.INVISIBLE);
+                        if(rootPlayerControl.getVisibility() == View.VISIBLE)
+                            rootPlayerControl.setVisibility(View.INVISIBLE);
                     }
                 });
             }
@@ -214,6 +228,7 @@ public class BasePreviewCameraActivity extends BaseActivity implements VlcLibrar
                     if(threadPlayerControlHide != null) {
                         if (threadPlayerControlHide.isAlive())
                             threadPlayerControlHide.interrupt();
+                        threadPlayerControlHide = null;
                     }
                 }else {
                     rootPlayerControl.setVisibility(View.VISIBLE);
@@ -223,6 +238,7 @@ public class BasePreviewCameraActivity extends BaseActivity implements VlcLibrar
         });
 
         buttonVolumeChange = findViewById(R.id.buttonVolumeChange);
+        buttomHome = findViewById(R.id.buttonHome);
         vlcLibrary.mediaPlayer.setVolume(100);
         buttonVolumeChange.setImageResource(R.drawable.ic_volume_on);
 
@@ -241,6 +257,15 @@ public class BasePreviewCameraActivity extends BaseActivity implements VlcLibrar
                 startThreadPlayerControlHide();
             }
         });
+        buttomHome.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                //intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+            }
+        });
+        this.buttomHome.setVisibility(getIntent().getBooleanExtra(EXTRA_SHOW_HOME_BUTTON, false)? View.VISIBLE : View.GONE);
     }
 
     @Override
@@ -273,6 +298,13 @@ public class BasePreviewCameraActivity extends BaseActivity implements VlcLibrar
     @Override
     protected void onPause() {
         super.onPause();
+        rootPlayerControl.setVisibility(View.GONE);
+        if(threadPlayerControlHide != null) {
+            if (threadPlayerControlHide.isAlive()) {
+                threadPlayerControlHide.interrupt();
+            }
+            threadPlayerControlHide = null;
+        }
         if(this.canTakePicture() && this.camera != null) {
             dataManager.saveCameraPreviewImg(this.camera.getCameraInstance(), this.takePicture());
         }
@@ -289,7 +321,7 @@ public class BasePreviewCameraActivity extends BaseActivity implements VlcLibrar
 
     @Override
     public void onVideoStart(int width, int height, int videoWidth, int videoHeight) {
-        pBLoading.setVisibility(View.INVISIBLE);
+        //pBLoading.setVisibility(View.GONE);
     }
 
     @Override
@@ -315,6 +347,11 @@ public class BasePreviewCameraActivity extends BaseActivity implements VlcLibrar
     @Override
     public void onEndReached() {
         onVideError();
+    }
+
+    @Override
+    public void onVideoPlaying() {
+        this.pBLoading.setVisibility(View.GONE);
     }
 
     @Override

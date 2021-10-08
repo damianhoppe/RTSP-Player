@@ -28,9 +28,8 @@ public class AddCameraFormActivity extends BaseCameraFormActivity {
         setViewsWidgets();
 
         int cameraId = getIntent().getIntExtra(EXTRA_CAMERA_ID, -1);
-        boolean loadDataFromCameraInstance = getIntent().getBooleanExtra(EXTRA_DATA_FROM_CAMERA_INSTANCE, false);
-
-        this.viewModel = ViewModelProviders.of(this, new CameraFormViewModelFactory(DataManager.getInstance(getApplicationContext()), cameraId)).get(CameraFormViewModel.class);
+        boolean loadOnlyInstanceData = getIntent().getBooleanExtra(EXTRA_DATA_FROM_CAMERA_INSTANCE, false);
+        this.viewModel = ViewModelProviders.of(this, new CameraFormViewModelFactory(DataManager.getInstance(getApplicationContext()), cameraId, loadOnlyInstanceData)).get(CameraFormViewModel.class);
 
         if(cameraId >= 0 && this.viewModel.getCameraLoadingState() != null) {
             this.viewModel.getCameraLoadingState().observe(this, new Observer<DataState>() {

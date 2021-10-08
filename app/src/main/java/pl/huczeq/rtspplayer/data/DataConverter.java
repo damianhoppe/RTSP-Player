@@ -31,6 +31,7 @@ public class DataConverter {
     public final static String JSONProducer = "producer";
     public final static String JSONModel = "model";
     public final static String JSONServerUrl = "serverUrl";
+    public final static String JSONVariables = "variables";
 
     public static boolean jsonFile2Database(DataManager dataManager) {
         Context context = dataManager.getSettings().getAppContext();

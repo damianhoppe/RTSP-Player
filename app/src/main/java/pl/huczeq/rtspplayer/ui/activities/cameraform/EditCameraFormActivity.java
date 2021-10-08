@@ -7,8 +7,12 @@ import android.widget.Toast;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
+import java.util.List;
+
 import pl.huczeq.rtspplayer.R;
+import pl.huczeq.rtspplayer.data.CameraInstancesFactory;
 import pl.huczeq.rtspplayer.data.DataManager;
+import pl.huczeq.rtspplayer.data.objects.CameraInstance;
 import pl.huczeq.rtspplayer.data.objects.CameraPattern;
 import pl.huczeq.rtspplayer.interfaces.IOnDataUpdated;
 import pl.huczeq.rtspplayer.ui.activities.camerapreviews.BasePreviewCameraActivity;
@@ -31,14 +35,13 @@ public class EditCameraFormActivity extends BaseCameraFormActivity {
 
         cameraId = getIntent().getIntExtra(EXTRA_CAMERA_ID, -1);
 
-        boolean loadDataFromCameraInstance = getIntent().getBooleanExtra(EXTRA_DATA_FROM_CAMERA_INSTANCE, false);
         Log.d(TAG, "Camera id: " + cameraId);
         if(cameraId < 0) {
             finish();
             return;
         }
         setViewsWidgets();
-        this.viewModel = ViewModelProviders.of(this, new CameraFormViewModelFactory(DataManager.getInstance(getApplicationContext()), cameraId)).get(CameraFormViewModel.class);
+        this.viewModel = ViewModelProviders.of(this, new CameraFormViewModelFactory(DataManager.getInstance(getApplicationContext()), cameraId, false)).get(CameraFormViewModel.class);
 
         if(cameraId >= 0 && this.viewModel.getCameraLoadingState() != null) {
             buttonAddCamera.setEnabled(false);
@@ -79,13 +82,23 @@ public class EditCameraFormActivity extends BaseCameraFormActivity {
         onStartDataUpdate();
         DataManager.getInstance(getApplicationContext()).updateCamera(cameraPattern, this);
     }
-
+/*
     @Override
     protected void onClickButtonStartCameraPreview() {
         if(!isUrlFormCorrect()) {
             Toast.makeText(this, getResources().getString(R.string.incorrect_camera_url), Toast.LENGTH_SHORT).show();
             return;
         }
-        startActivity(BasePreviewCameraActivity.getPreviewCameraIntent(getApplicationContext(), this.etCameraUrl.getText().toString()));
-    }
+        String previewUrl;
+        Log.d(TAG, "Size: " + this.variables.size());
+        if(this.variables.size() <= 0) {
+            List<CameraInstance> cameraInstance = new CameraInstancesFactory(getCamera()).setOnlyOneInsance(true).build();
+            if(cameraInstance.size() <= 0)
+                return;
+            previewUrl = cameraInstance.get(0).getUrl();
+        }else {
+            previewUrl = this.etCameraUrl.getText().toString();
+        }
+        startActivity(BasePreviewCameraActivity.getPreviewCameraIntent(getApplicationContext(), previewUrl));
+    }*/
 }

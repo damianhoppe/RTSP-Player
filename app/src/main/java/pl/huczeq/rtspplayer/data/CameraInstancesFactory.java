@@ -28,27 +28,30 @@ public class CameraInstancesFactory {
 
     public List<CameraInstance> build() {
         List<CameraInstance> cameraInstances = new ArrayList<>();
+
+        Expression expression;
+        List<HashMap<String, Integer>> variations;
         if(this.onlyOneInsance) {
-            //TODO
+            expression = new Expression(cameraPattern.getUrl(), cameraPattern.getVariables());
+            variations = expression.generatePatternDataList(1);
         }else {
-            Expression expression = new Expression(cameraPattern.getUrl(), cameraPattern.getVariables());
-            List<HashMap<String, Integer>> variations = expression.generatePatternDataList();
-            int index = 1;
-            for(HashMap<String, Integer> variation : variations) {
-                variation.put("i", index);
-                variation.put("index", index);
-                CameraInstance cameraInstance = new CameraInstance();
-                cameraInstance.setName(ExpressionParser.loadDataToExpression(cameraPattern.getName(), variation));
-                Log.d("Test", "1: " + cameraPattern.getName() + ", 2: " + cameraInstance.getName() + "/");
-                cameraInstance.setUrl(ExpressionParser.loadDataToExpression(expression.getPartialyExpression(), variation));
-                cameraInstance.setPatternId(cameraPattern.getId());
-                cameraInstance.setPrevImgLastUpdateTime(0);
-                cameraInstance.setPatternData(variation);
-                cameraInstances.add(cameraInstance);
-                index++;
-            }
+            expression = new Expression(cameraPattern.getUrl(), cameraPattern.getVariables());
+            variations = expression.generatePatternDataList();
         }
-        //cameraInstances.add(new CameraInstance(cameraPattern.getName(), cameraPattern.getUrl(), "", 0, "", -1));
+        int index = 1;
+        for(HashMap<String, Integer> variation : variations) {
+            variation.put("i", index);
+            variation.put("index", index);
+            CameraInstance cameraInstance = new CameraInstance();
+            cameraInstance.setName(ExpressionParser.loadDataToExpression(cameraPattern.getName(), variation));
+            Log.d("Test", "1: " + cameraPattern.getName() + ", 2: " + cameraInstance.getName() + "/");
+            cameraInstance.setUrl(ExpressionParser.loadDataToExpression(expression.getPartialyExpression(), variation));
+            cameraInstance.setPatternId(cameraPattern.getId());
+            cameraInstance.setPrevImgLastUpdateTime(0);
+            cameraInstance.setPatternData(variation);
+            cameraInstances.add(cameraInstance);
+            index++;
+        }
         return cameraInstances;
     }
 }

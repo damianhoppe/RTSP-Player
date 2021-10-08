@@ -13,17 +13,15 @@ public class VariableModel {
         return name;
     }
 
-    public VariableModel setName(String name) {
+    public void setName(String name) {
         this.name = name;
-        return this;
     }
 
     public String getValue() {
         return value;
     }
 
-    public VariableModel setValue(String value) {
+    public void setValue(String value) {
         this.value = value;
-        return this;
     }
 }

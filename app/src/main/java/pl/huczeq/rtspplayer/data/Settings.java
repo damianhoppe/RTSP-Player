@@ -103,6 +103,17 @@ public class Settings {
         this.settingsEditor.commit();
     }
 
+    public int getStartingCameraId() {
+        return this.settingsPref.getInt(KEY_STARTING_CAMERA_ID, -1);
+    }
+
+    public void setStartingCameraId(int cameraId) {
+        editSettings();
+        this.settingsEditor.putInt(KEY_STARTING_CAMERA_ID, cameraId);
+        this.settingsEditor.putBoolean(KEY_STARTING_CAMERA, cameraId >= 0);
+        commitSettings();
+    }
+
     public String getTheme() {
         String theme = this.settingsPref.getString(KEY_THEME, "0");
         return theme;
@@ -224,6 +235,8 @@ public class Settings {
     }
 
     public static final String KEY_RESTORE_BACKUP = "restoreBackup";
+    public static final String KEY_STARTING_CAMERA = "startingCamera";
+    public static final String KEY_STARTING_CAMERA_ID = "startingCameraId";
     public static final String KEY_CREATE_BACKUP = "createBackup";
     public static final String KEY_ABOUT_APP = "appInformations";
     public static final String KEY_SHOW_LICENSE = "showLicense";

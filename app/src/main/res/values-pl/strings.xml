@@ -5,6 +5,10 @@
     <string name="double_back_2_exit_info">Kliknij ponownie WSTECZ, aby wyjść</string>
     <string name="dialog_alert_delete_title">Usuwanie kopii</string>
     <string name="are_your_sure">Jesteś pewny?</string>
+    <string name="error">Błąd</string>
+    <string name="attention">Uwaga</string>
+    <string name="select_file">Wybierz plik</string>
+    <string name="restore_backup">Przywróć kopię</string>
 
     <!--Incorrect-->
     <string name="incorrect_camera_url">Adres jest niepoprawny</string>
@@ -59,7 +63,7 @@
     <string name="dialog_remove_group_message">Chcesz usunąć całą grupę?</string>
     <string name="error_too_many_variables">Osiągnąłeś limit zmiennych!</string>
 
-    <string name="none">Żaden</string>
+    <string name="none">Żadna</string>
 
     <!--Activity Preview Camera-->
     <string name="video_error">Wystąpił błąd podczas odtwarzania</string>
@@ -69,6 +73,9 @@
     <!--Activity App Info-->
     <string name="app_info">RTSP Player pozwala na odtwarzanie strumieni sieciowych wykorzystując bibliotekę libVLC. Aplikacja jest objęta licencją LGPL 3.0 oraz oferuje otwarty kod źródłowy.</string>
     <string name="label_show_license"><u>Pokaż licencję</u></string>
+
+    <!--Activity Select Camera-->
+    <string name="title_activity_select_camera">Wybierz startową kamere</string>
 
     <!--Spinner stream-->
     <string-array name="spinner_stream">
@@ -90,11 +97,18 @@
     <string name="error_restore">Wystapił błąd</string>
     <string name="backup_cameras_summary">Eksportuje wszystkie kamery, zawierając ich wszystkie dane, takie jak adres ip, port, nazwa użytkownika oraz hasło.</string>
     <string name="backup_settings_summary">Wszystkie ustawienia aplikacji.</string>
+    <string name="backup_path_tip">Po kliknięciu poniższego przycisku zostaniesz poproszony o wybór lokalizacji pliku.</string>
+    <string name="restore_cameras_summary">UWAGA! Wszystkie twoje kamery zostaną nadpisane!</string>
+    <string name="restore_settings_summary">UWAGA! Wszystkie twoje ustawienia zostaną nadpisane!</string>
 
     <!--Preferences-->
     <string name="label_interface">Interfejs</string>
     <string name="label_ads">Reklamy</string>
     <string name="label_data">Dane</string>
+
+    <string name="label_general">Ogólne</string>
+    <string name="title_starting_camera">Kamera startowa</string>
+    <string name="summary_starting_camera">Uruchomienie podglądu kamery wraz z startem aplikacji</string>
 
     <string name="label_theme">Motyw</string>
     <string name="summary_theme">Wybierz motyw aplikacji</string>

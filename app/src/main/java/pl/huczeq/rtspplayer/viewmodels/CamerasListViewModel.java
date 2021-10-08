@@ -7,6 +7,7 @@ import java.util.List;
 import pl.huczeq.rtspplayer.data.DataManager;
 import pl.huczeq.rtspplayer.data.objects.Camera;
 import pl.huczeq.rtspplayer.data.objects.CameraPattern;
+import pl.huczeq.rtspplayer.interfaces.IGetCameraCallback;
 import pl.huczeq.rtspplayer.viewmodels.base.DataManagerViewModel;
 
 public class CamerasListViewModel extends DataManagerViewModel {
@@ -17,6 +18,10 @@ public class CamerasListViewModel extends DataManagerViewModel {
 
     public LiveData<List<Camera>> getAllCameras() {
         return this.dataManager.getAllCameras();
+    }
+
+    public void getCamera(int id, IGetCameraCallback callback) {
+        this.dataManager.getCameraById(id, callback);
     }
 
     public void deleteCameras(CameraPattern cameraPattern) {

@@ -2,7 +2,6 @@ package pl.huczeq.rtspplayer.ui.activities.cameraform;
 
 import android.content.Context;
 import android.graphics.Typeface;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -27,20 +26,24 @@ import android.widget.Toast;
 import androidx.lifecycle.Observer;
 
 import com.github.jorgecastilloprz.FABProgressCircle;
-import com.github.jorgecastilloprz.listeners.FABProgressListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import pl.huczeq.rtspplayer.R;
 import pl.huczeq.rtspplayer.adapters.ModelsSpinnerAdapter;
 import pl.huczeq.rtspplayer.adapters.ProducersSpinnerAdapter;
+import pl.huczeq.rtspplayer.data.CameraInstancesFactory;
+import pl.huczeq.rtspplayer.data.objects.CameraInstance;
 import pl.huczeq.rtspplayer.data.objects.CameraPattern;
-import pl.huczeq.rtspplayer.data.expression.SpecialExpression;
 import pl.huczeq.rtspplayer.data.expression.Variable;
 import pl.huczeq.rtspplayer.data.repositories.UrlTemplatesRepository;
+import pl.huczeq.rtspplayer.exceptions.ParsingException;
 import pl.huczeq.rtspplayer.interfaces.IOnDataUpdated;
 import pl.huczeq.rtspplayer.interfaces.RightDrawableOnTouchListener;
 import pl.huczeq.rtspplayer.ui.activities.base.BaseActivity;
@@ -79,7 +82,7 @@ public class BaseCameraFormActivity extends BaseActivity implements UrlTemplates
 
     protected ProducersSpinnerAdapter producersAdapter;
     protected ModelsSpinnerAdapter modelsAdapter;
-    protected HashMap<View, Variable> variables;
+    protected LinkedHashMap<View, Variable> variables;
 
     protected CameraPattern cameraPatternToLoad;
 
@@ -94,8 +97,6 @@ public class BaseCameraFormActivity extends BaseActivity implements UrlTemplates
         @Override public void afterTextChanged(Editable editable) { }
     };
 
-    BlockInitOnItemSelectedListener producersOnItemSelected;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -103,7 +104,7 @@ public class BaseCameraFormActivity extends BaseActivity implements UrlTemplates
 
         this.producersAdapter = new ProducersSpinnerAdapter(getBaseContext(), new ArrayList<Producer>());
         this.modelsAdapter = new ModelsSpinnerAdapter(getBaseContext(), new ArrayList<Model>());
-        this.variables = new HashMap<>();
+        this.variables = new LinkedHashMap<>();
 
         DataManager.getInstance(getApplicationContext()).getUrlTemplatesRepositoryState().observe(this, new Observer<DataState>() {
             @Override
@@ -118,7 +119,6 @@ public class BaseCameraFormActivity extends BaseActivity implements UrlTemplates
                 }
             }
         });
-        producersOnItemSelected = new BlockInitOnItemSelectedListener(this);
     }
 
     @Override
@@ -338,7 +338,12 @@ public class BaseCameraFormActivity extends BaseActivity implements UrlTemplates
             }
         });
         */
-        spinProducers.setOnItemSelectedListener(this.producersOnItemSelected);
+        spinProducers.setOnItemSelectedListener(new IgnoreInitOnItemSelectedListener(){
+            @Override
+            void onItemSelectedAfterInit(AdapterView<?> adapterView, View view, int i, long l) {
+                onProducerSelected(BaseCameraFormActivity.this.producersAdapter.getItem(i));
+            }
+        });
         spinModel.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             public boolean firstInit = true;
             @Override
@@ -476,8 +481,8 @@ public class BaseCameraFormActivity extends BaseActivity implements UrlTemplates
         newCameraPattern.setChannel(etChannel.getText().toString());
         newCameraPattern.setStream(String.valueOf(spinStreamType.getSelectedItemPosition()));
         newCameraPattern.setServerUrl(etServerUrl.getText().toString());
-
-        newCameraPattern.setVariables(new ArrayList<>(this.variables.values()));
+        Collection<Variable> variables = this.variables.values();
+        newCameraPattern.setVariables(variables);
 
         return newCameraPattern;
     }
@@ -486,7 +491,7 @@ public class BaseCameraFormActivity extends BaseActivity implements UrlTemplates
         Log.d(TAG, "Domain: " + Patterns.DOMAIN_NAME.matcher(etIp.getText().toString()).matches());
         Log.d(TAG, "Ip: " + Patterns.IP_ADDRESS.matcher(etIp.getText().toString()).matches());
         //if(etIp.getText().toString().length() == 0 || (!Patterns.DOMAIN_NAME.matcher(etIp.getText().toString()).matches() && !Patterns.IP_ADDRESS.matcher(etIp.getText().toString()).matches())) {
-        if(etIp.getText().toString().length() == 0 || (!etIp.getText().toString().matches(SpecialExpression.variableRegex+"\\."+ SpecialExpression.variableRegex+"\\."+ SpecialExpression.variableRegex+"\\."+ SpecialExpression.variableRegex) && !etIp.getText().toString().matches("[0-9]+"+"\\."+"[0-9]+"+"\\."+"[0-9]+"+"\\."+"[0-9]+"))) {
+        /*if(etIp.getText().toString().length() == 0 || (!etIp.getText().toString().matches(SpecialExpression.variableRegex+"\\."+ SpecialExpression.variableRegex+"\\."+ SpecialExpression.variableRegex+"\\."+ SpecialExpression.variableRegex) && !etIp.getText().toString().matches("[0-9]+"+"\\."+"[0-9]+"+"\\."+"[0-9]+"+"\\."+"[0-9]+"))) {
             return getResources().getString(R.string.incorrect_addressip);
         }
         if(etPort.getText().toString().length() == 0 || !etPort.getText().toString().matches(SpecialExpression.variableRegex)) {
@@ -494,7 +499,7 @@ public class BaseCameraFormActivity extends BaseActivity implements UrlTemplates
         }
         if(etChannel.getVisibility()==View.VISIBLE && (etChannel.getText().toString().length() == 0 || !etChannel.getText().toString().matches(SpecialExpression.variableRegex))) {
             return getResources().getString(R.string.incorrect_channel);
-        }
+        }*/
         return "";
     }
     protected boolean isUrlFormCorrect(boolean showMessage) {
@@ -525,6 +530,25 @@ public class BaseCameraFormActivity extends BaseActivity implements UrlTemplates
         }
         if(etCameraUrl.getText().length() == 0) {
             return getResources().getString(R.string.incorrect_camera_url);
+        }
+        int i = 0;
+        Log.d(TAG, "Variables list: " + this.variables.values().size());
+        List<String> varNames = new ArrayList<>();
+        for(Variable variable : this.variables.values()) {
+            i++;
+            if(variable.getName().equals("")) {
+                return "Name empty: " + i;
+            }
+            if(varNames.contains(variable.getName())) {
+                return "Duplicate name: " + variable.getName();
+            }
+            varNames.add(variable.getName());
+            try {
+                variable.parse();
+            } catch (ParsingException e) {
+                e.printStackTrace();
+                return "Invalid variable (" + i + "): " + variable.getName();
+            }
         }
         return "";
     }
@@ -559,11 +583,26 @@ public class BaseCameraFormActivity extends BaseActivity implements UrlTemplates
 
     protected void onClickButtonSaveCamera() {}
     protected void onClickButtonStartCameraPreview() {
+        /*if(!isUrlFormCorrect()) {
+            Toast.makeText(this, getResources().getString(R.string.incorrect_camera_url), Toast.LENGTH_SHORT).show();
+            return;
+        }
+        startActivity(BasePreviewCameraActivity.getPreviewCameraIntent(getApplicationContext(), etCameraUrl.getText().toString()));*/
         if(!isUrlFormCorrect()) {
             Toast.makeText(this, getResources().getString(R.string.incorrect_camera_url), Toast.LENGTH_SHORT).show();
             return;
         }
-        startActivity(BasePreviewCameraActivity.getPreviewCameraIntent(getApplicationContext(), etCameraUrl.getText().toString()));
+        String previewUrl;
+        Log.d(TAG, "Size: " + this.variables.size());
+        if(this.variables.size() > 0) {
+            List<CameraInstance> cameraInstance = new CameraInstancesFactory(getCamera()).setOnlyOneInsance(true).build();
+            if(cameraInstance.size() <= 0)
+                return;
+            previewUrl = cameraInstance.get(0).getUrl();
+        }else {
+            previewUrl = this.etCameraUrl.getText().toString();
+        }
+        startActivity(BasePreviewCameraActivity.getStartIntent(getApplicationContext(), previewUrl));
     }
 
     public void updateUrl() {
@@ -626,17 +665,24 @@ public class BaseCameraFormActivity extends BaseActivity implements UrlTemplates
                     }
                 }
             }
-
-            this.producersOnItemSelected.firstInit = false;
-            spinProducers.setSelection(producerIndex + 1, false);
-            loadModels(producersAdapter.getItem(producerIndex + 1));
-            spinModel.setSelection(modelIndex, false);
+            Log.d(TAG, "Test: " + spinProducers.getSelectedItemPosition() + " ? " + (producerIndex+1));
+            //TODO CHANGED 04.08 - nie otwiera sie formularz czasami
+            //Chyba naprawione???????
+            if(spinProducers.getSelectedItemPosition() != producerIndex+1) {
+                if(this.spinProducers.getOnItemSelectedListener().getClass().isAssignableFrom(IgnoreInitOnItemSelectedListener.class)) {
+                    ((IgnoreInitOnItemSelectedListener) this.spinProducers.getOnItemSelectedListener()).firstInit = false;
+                }
+                spinProducers.setSelection(producerIndex + 1, false);
+                loadModels(producersAdapter.getItem(producerIndex + 1));
+                spinModel.setSelection(modelIndex, false);
+            }
         }
     }
 
     protected void addNewVariable(Variable var) {
-        if(var == null)
+        if(var == null) {
             var = new Variable("", "");
+        }
         if(this.variables.size() >= 10) {
             Toast.makeText(this, getString(R.string.error_too_many_variables), Toast.LENGTH_SHORT).show();
             return;
@@ -740,28 +786,6 @@ public class BaseCameraFormActivity extends BaseActivity implements UrlTemplates
         return spinStreamType.getSelectedItemPosition();
     }
 
-    protected static class BlockInitOnItemSelectedListener implements AdapterView.OnItemSelectedListener {
-
-        public boolean firstInit = true;
-        private BaseCameraFormActivity activity;
-        public BlockInitOnItemSelectedListener(BaseCameraFormActivity activity) {
-            this.activity = activity;
-        }
-
-        @Override
-        public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-            if(firstInit)
-                this.activity.onProducerSelected(this.activity.producersAdapter.getItem(i));
-            else
-                firstInit = true;
-        }
-
-        @Override
-        public void onNothingSelected(AdapterView<?> adapterView) {
-
-        }
-    }
-
     protected void onStartDataUpdate() {
         saveCameraFAButtonCircle.show();
         buttonAddCamera.setClickable(false);
@@ -770,5 +794,25 @@ public class BaseCameraFormActivity extends BaseActivity implements UrlTemplates
     @Override
     public void onComplete() {
         finish();
+    }
+
+    protected static abstract class IgnoreInitOnItemSelectedListener implements AdapterView.OnItemSelectedListener {
+
+        public boolean firstInit = true;
+
+        @Override
+        public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+            if(firstInit)
+                this.onItemSelectedAfterInit(adapterView, view, i, l);
+            else
+                firstInit = true;
+        }
+
+        abstract void onItemSelectedAfterInit(AdapterView<?> adapterView, View view, int i, long l);
+
+        @Override
+        public void onNothingSelected(AdapterView<?> adapterView) {
+
+        }
     }
 }

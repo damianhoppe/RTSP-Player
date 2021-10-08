@@ -16,7 +16,7 @@ public class Variable {
         this(new VariableModel(name, value));
     }
 
-    public Variable(VariableModel model) {
+    public Variable(VariableModel model) throws ParsingException{
         this.model = model;
         this.values = new ArrayList<>();
         try {
@@ -34,8 +34,27 @@ public class Variable {
         return values;
     }
 
+    public String getName() {
+        return this.model.getName();
+    }
+
+    public void setName(String name) {
+        this.model.setName(name);
+    }
+
+    public String getValue() {
+        return this.model.getValue();
+    }
+
+    public void setValue(String value) {
+        this.model.setValue(value);
+    }
+
+    public void parse() {
+        parse(this.model.value);
+    }
+
     private void parse(String data) {
-        //this.model.setValue(data);
         if(data.isEmpty())
             throw new ParsingException(ParsingException.Error.DATA_EMPTY);
         String[] dataUnits = data.split(",");
@@ -44,8 +63,6 @@ public class Variable {
             int secondValue = 0;
             if(dataUnit.contains("-")) {
                 String[] dataArray = dataUnit.split("-");
-                for(int i = 0; i < dataArray.length; i++)
-                    System.out.println(i + " - " + dataArray[i]);
                 if(dataArray.length != 2)
                     throw new ParsingException(ParsingException.Error.NUMBER_INTERVAL_ARRAY_ERROR);
                 try {
@@ -107,30 +124,12 @@ public class Variable {
     }
 
     private void addValue(int value) {
-        System.out.println("addValue(" + value + ")");
         if(this.values.contains(value))
             return;
-        System.out.println("addValue - 1");/*
+        /*
         if(this.values.size() > VariationsGenerator.MAX_VARIATIONS) {
             throw new ParsingException(ParsingException.Error.EXCEEDED_MAX_NUMBER_OF_VARIATIONS, this.model.getName());
         }*/
-        System.out.println("addValue - 2");
         this.values.add(value);
-    }
-
-    public String getName() {
-        return this.model.getName();
-    }
-
-    public void setName(String name) {
-        this.model.setName(name);
-    }
-
-    public String getValue() {
-        return this.model.getValue();
-    }
-
-    public void setValue(String value) {
-        this.model.setValue(value);
     }
 }

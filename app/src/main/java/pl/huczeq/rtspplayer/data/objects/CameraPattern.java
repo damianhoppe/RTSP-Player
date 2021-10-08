@@ -198,6 +198,15 @@ public class CameraPattern {
         return tempVariables;
     }
 
+    public JSONArray getJSONArrayVariables() {
+        try {
+            return new JSONArray(this.jsonVariables);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public void setVariables(Collection<Variable> variables) {
         this.tempVariables = new HashMap<>();
         for(Variable variable : variables) {

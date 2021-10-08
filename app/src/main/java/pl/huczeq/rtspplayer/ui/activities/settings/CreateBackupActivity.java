@@ -1,12 +1,16 @@
 package pl.huczeq.rtspplayer.ui.activities.settings;
 
 import android.Manifest;
+import android.content.ContentProvider;
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
+import android.os.ParcelFileDescriptor;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -15,6 +19,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
@@ -24,6 +29,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -37,6 +44,7 @@ import pl.huczeq.rtspplayer.data.Settings;
 import pl.huczeq.rtspplayer.data.database.CamerasStats;
 import pl.huczeq.rtspplayer.data.objects.CameraInstance;
 import pl.huczeq.rtspplayer.data.objects.CameraPattern;
+import pl.huczeq.rtspplayer.interfaces.IOnTaskFinished;
 import pl.huczeq.rtspplayer.ui.activities.base.BaseActivity;
 import pl.huczeq.rtspplayer.viewmodels.CreateBackupViewModel;
 import pl.huczeq.rtspplayer.viewmodels.RestoreBackupViewModel;
@@ -46,8 +54,10 @@ public class CreateBackupActivity extends BaseActivity {
 
     private final static String TAG = "CreateBackupActivity";
 
+    private final static int RESULT_CODE_SELECT_FILE = 1;
+
     private CheckBox cbCameras, cbSettings;
-    private TextView tvNumberOfCameras, tvPath;
+    private TextView tvNumberOfCameras;
     private Button buttonCreateBackup;
     private ProgressBar progressBar;
 
@@ -75,6 +85,8 @@ public class CreateBackupActivity extends BaseActivity {
             @Override
             public void onChanged(Boolean b) {
                 progressBar.setVisibility(b? View.VISIBLE : View.INVISIBLE);
+                cbCameras.setEnabled(!b);
+                cbSettings.setEnabled(!b);
                 buttonCreateBackup.setEnabled(!b);
             }
         });
@@ -89,7 +101,6 @@ public class CreateBackupActivity extends BaseActivity {
         tvNumberOfCameras = findViewById(R.id.tvNumberOfCameras);
         buttonCreateBackup = findViewById(R.id.buttonCreateBackup);
         progressBar = findViewById(R.id.progressBar);
-        tvPath = findViewById(R.id.tvPath);
 
         buttonCreateBackup.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -99,8 +110,7 @@ public class CreateBackupActivity extends BaseActivity {
         });
 
 
-        updatePathTextView();
-        tvNumberOfCameras.setText(getString(R.string.number_of_cameras) + ": -");
+        tvNumberOfCameras.setText(getString(R.string.number_of_cameras));
     }
 
     private boolean arePermissionsGranted() {
@@ -135,7 +145,73 @@ public class CreateBackupActivity extends BaseActivity {
             return;
         if(!arePermissionsGranted())
             return;
-        this.viewModel.createBackup(this,cbCameras.isClickable() && cbCameras.isChecked(), cbSettings.isChecked());
+
+        boolean camerasBackup = cbCameras.isClickable() && cbCameras.isChecked();
+        boolean settingsBackup = cbSettings.isChecked();
+
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("application/json");
+        intent.putExtra(Intent.EXTRA_TITLE, createNewBackupFileName(camerasBackup, settingsBackup));
+
+        startActivityForResult(intent, RESULT_CODE_SELECT_FILE);
+    }
+
+    private String createNewBackupFileName(boolean camerasBackup, boolean settingsBackup) {
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String date = df.format(new Date());
+        String dataExported = "";
+        if(camerasBackup)
+            dataExported += getString(R.string.cameras);
+        if(settingsBackup) {
+            if(!dataExported.isEmpty())
+                dataExported += ", ";
+            dataExported += getString(R.string.settings);
+        }
+        return date + " - " + dataExported + ".json";
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable @org.jetbrains.annotations.Nullable Intent data) {
+        if(requestCode == RESULT_CODE_SELECT_FILE && data != null) {
+            boolean camerasBackup = cbCameras.isClickable() && cbCameras.isChecked();
+            boolean settingsBackup = cbSettings.isChecked();
+            ParcelFileDescriptor fileDescriptor = null;
+            try {
+                fileDescriptor = getContentResolver().openFileDescriptor(data.getData(), "w");
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+                showErrorMessage(e.getMessage());
+                return;
+            }
+            FileOutputStream fileOutputStream = new FileOutputStream(fileDescriptor.getFileDescriptor());
+            this.viewModel.createBackup(fileOutputStream, camerasBackup, settingsBackup, new IOnTaskFinished() {
+                @Override
+                public void onComplete() {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(CreateBackupActivity.this, R.string.success_created, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+
+                @Override
+                public void onError(Exception exception) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            showErrorMessage(exception.getMessage());
+                        }
+                    });
+                }
+            });
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    private void showErrorMessage(String message) {
+        Toast.makeText(CreateBackupActivity.this, CreateBackupActivity.this.getString(R.string.error) + ": " + message, Toast.LENGTH_SHORT).show();
     }
 
     /*private void startCreateBackup() {
@@ -154,7 +230,6 @@ public class CreateBackupActivity extends BaseActivity {
     boolean showSettingsPermissions = false;
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        updatePathTextView();
         boolean granted = false;
         for(int i = 0; i < grantResults.length; i++) {
             if(Manifest.permission.WRITE_EXTERNAL_STORAGE.equals(permissions[i]) && grantResults[i] == PackageManager.PERMISSION_GRANTED) {
@@ -192,15 +267,4 @@ public class CreateBackupActivity extends BaseActivity {
         buttonCreateBackup.setEnabled(false);
         progressBar.setVisibility(View.VISIBLE);
     }*/
-
-    private void updatePathTextView() {
-        String path = settings.getBackupsDir().getPath();
-        int i = -1;
-        if((i = path.indexOf(File.separator + "Android")) > -1) {
-            path = path.substring(i);
-        }else if((i = path.indexOf(File.separator + "RTSP")) > -1) {
-            path = path.substring(i);
-        }
-        tvPath.setText(path);
-    }
 }

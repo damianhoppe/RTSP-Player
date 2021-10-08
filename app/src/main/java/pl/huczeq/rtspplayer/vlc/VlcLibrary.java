@@ -86,6 +86,8 @@ public class VlcLibrary implements IVLCVout.OnNewVideoLayoutListener {
                             callbackListener.onVideStop();
                         }
                         break;
+                    case MediaPlayer.Event.Playing:
+                        callbackListener.onVideoPlaying();
                 }
             }
         });
@@ -296,5 +298,6 @@ public class VlcLibrary implements IVLCVout.OnNewVideoLayoutListener {
         void onVideStop();
         void onVideoBuffering(float buffering);
         void onEndReached();
+        void onVideoPlaying();
     }
 }

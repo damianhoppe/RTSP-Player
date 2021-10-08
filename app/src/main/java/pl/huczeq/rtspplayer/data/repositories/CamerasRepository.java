@@ -59,11 +59,16 @@ public class CamerasRepository {
         return this.cameraDao.getCameraPatterns();
     }
 
+    public LiveData<List<Camera>> getCameraById(int id) {
+        return this.cameraDao.getCameraById(id);
+    }
+
     public void getCameraById(int id, IGetCameraCallback callback) {
         this.loadDataExecutor.execute(new ResultRunnable<IGetCameraCallback>(callback) {
             @Override
             public void run() {
-                Camera camera = cameraDao.getCameraById(id);
+                List<Camera> cameraList = cameraDao.getCameraListById(id);
+                Camera camera = (cameraList.size() > 0)? cameraList.get(0) : null;
                 if(this.callbackReference != null) {
                     uiThreadHandler.post(new Runnable() {
                         @Override
@@ -180,6 +185,15 @@ public class CamerasRepository {
                 if(input == null)
                     return null;
                 return new CamerasStats(input);
+            }
+        });
+    }
+
+    public void addUser(CameraPattern cam, IOnDataUpdated callback) {
+        this.modifyDataExecutor.execute(new ResultRunnable<IOnDataUpdated>(callback) {
+            @Override
+            public void run() {
+                cameraDao.addCamera(cam, new ArrayList<>());
             }
         });
     }

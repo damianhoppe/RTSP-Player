@@ -4,6 +4,7 @@ import androidx.lifecycle.MutableLiveData;
 
 import pl.huczeq.rtspplayer.data.DataManager;
 import pl.huczeq.rtspplayer.data.objects.Camera;
+import pl.huczeq.rtspplayer.data.objects.CameraInstance;
 import pl.huczeq.rtspplayer.data.objects.CameraPattern;
 import pl.huczeq.rtspplayer.interfaces.IGetCameraCallback;
 import pl.huczeq.rtspplayer.data.utils.DataState;
@@ -14,7 +15,7 @@ public class CameraFormViewModel extends DataManagerViewModel {
     private MutableLiveData<DataState> cameraLoadingState;
     private CameraPattern cameraPattern;
 
-    public CameraFormViewModel(DataManager dataManager, int cameraId) {
+    public CameraFormViewModel(DataManager dataManager, int cameraId, boolean loadOnlyInstanceData) {
         super(dataManager);
         if(cameraId > -1) {
             this.cameraLoadingState = new MutableLiveData<>();
@@ -22,8 +23,13 @@ public class CameraFormViewModel extends DataManagerViewModel {
             this.dataManager.getCameraById(cameraId, new IGetCameraCallback() {
                 @Override
                 public void onGetCamera(Camera camera) {
-                    if (camera != null)
-                        cameraPattern = camera.getCameraPattern();
+                    if (camera != null) {
+                        if(loadOnlyInstanceData) {
+                            cameraPattern = Camera.instance2Pattern(camera);
+                        }else {
+                            cameraPattern = camera.getCameraPattern();
+                        }
+                    }
                     cameraLoadingState.postValue(DataState.LOADED);
                 }
             });
