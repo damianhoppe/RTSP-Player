@@ -28,6 +28,12 @@ It makes it easy to add camera previews using the built-in list of templates for
 - View multiple streams simultaneously
 - Widgets/Shortcuts
 
+## Donation
+
+If you like the project and would like to support me, you can donate in the following way:
+- [PayPal](https://www.paypal.com/donate/?hosted_button_id=U889NXKZRM6G8)
+- [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/O4O3JXPCI)
+
 ## License
 
 RTSP-Player is licensed under [GPL-3.0](LICENSE)
