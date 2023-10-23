@@ -143,4 +143,5 @@
     <string name="summary_mute_audio_default">Mute autio default</string>
     <string name="label_force_use_rtsp_tcp">Force use tcp</string>
     <string name="summary_label_force_use_rtsp_tcp">Force use RTSP over TCP</string>
+    <string name="no_cameras">No cameras, go back to\nthe home screen and add one</string>
 </resources>

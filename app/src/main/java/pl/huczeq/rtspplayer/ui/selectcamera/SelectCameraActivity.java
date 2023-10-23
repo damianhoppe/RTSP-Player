@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -44,6 +45,7 @@ public class SelectCameraActivity extends BaseActivity {
     private long selectedId;
 
     private RecyclerView listView;
+    private TextView tvEmpty;
     private FloatingActionButton fabConfirm;
 
     private SelectCameraListAdapter adapter;
@@ -60,6 +62,8 @@ public class SelectCameraActivity extends BaseActivity {
         this.adapter = new SelectCameraListAdapter(this, this.thumbnailRepository);
         this.listView.setAdapter(this.adapter);
 
+        this.tvEmpty = findViewById(R.id.tvEmpty);
+
         this.fabConfirm = findViewById(R.id.button_confirm);
 
         this.fabConfirm.setOnClickListener(new View.OnClickListener() {
@@ -75,6 +79,7 @@ public class SelectCameraActivity extends BaseActivity {
         this.cameraRepository.getAllCameras().observe(this, new Observer<List<Camera>>() {
             @Override
             public void onChanged(List<Camera> cameras) {
+                tvEmpty.setVisibility(cameras == null || !cameras.isEmpty()? View.GONE : View.VISIBLE);
                 adapter.updateDataSet(cameras);
             }
         });

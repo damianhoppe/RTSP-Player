@@ -45,6 +45,12 @@ public class AppNavigator {
 
     public Intent buildPlayerCameraActivityIntent(Camera camera) {
         Intent intent = new Intent(this.context, PlayerCameraActivity.class);
+        if(settings.autoEnterPipModeEnabled()) {
+            intent.addFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT);
+            intent.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        }
+        intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PlayerCameraActivity.putCameraIntoIntent(intent, camera.getCameraInstance().getUrl(), settings.isForceUseRtspTcpEnabled(), camera.getCameraInstance().getId());
         return intent;
     }

@@ -10,6 +10,7 @@ import io.reactivex.rxjava3.plugins.RxJavaPlugins;
 import pl.huczeq.rtspplayer.data.repositories.base.CameraRepository;
 import pl.huczeq.rtspplayer.data.sources.cache.ThumbnailCache;
 import pl.huczeq.rtspplayer.domain.CameraThumbnailsIntegrityHelper;
+import pl.huczeq.rtspplayer.domain.StartingCameraIntegrityHelper;
 import pl.huczeq.rtspplayer.ui.start.DataMigrationViewModel;
 
 @HiltAndroidApp
@@ -29,6 +30,9 @@ public class RtspPlayerApp extends Application {
     public AppThemeHelper appThemeHelper;
     @Inject
     public CameraThumbnailsIntegrityHelper cameraThumbnailsIntegrityHelper;
+
+    @Inject
+    public StartingCameraIntegrityHelper startingCameraIntegrityHelper;
 
     @Override
     public void onCreate() {

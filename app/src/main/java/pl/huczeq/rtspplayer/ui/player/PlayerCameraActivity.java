@@ -271,7 +271,15 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         if(!player.isViewAttached() && binding.surfaceView.getSurfaceTexture() != null) {
             player.attachView(binding.surfaceView);
         }
+        if(player.isPlaying())
+            return;
         startPlaying();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                pictureInPictureParamsBuilder.setAutoEnterEnabled(settings.autoEnterPipModeEnabled());
+            }
+            setPictureInPictureParams(pictureInPictureParamsBuilder.build());
+        }
     }
 
     @Override
@@ -372,6 +380,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
     @Override
     public void back() {
         if(probablyBackstackLost && navToLauncherTask(this)) {
+            probablyBackstackLost = false;
             return;
         }
         super.onBackPressed();
@@ -442,8 +451,8 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
 
     private void onNewVideo() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (settings.autoEnterPipModeEnabled() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                pictureInPictureParamsBuilder.setAutoEnterEnabled(true);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                pictureInPictureParamsBuilder.setAutoEnterEnabled(settings.autoEnterPipModeEnabled());
             }
             setPictureInPictureParams(pictureInPictureParamsBuilder.build());
         }
@@ -471,8 +480,8 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         binding.pBLoading.setVisibility(View.INVISIBLE);
         updateVolumeButtonIcon();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (settings.autoEnterPipModeEnabled() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                pictureInPictureParamsBuilder.setAutoEnterEnabled(true);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                pictureInPictureParamsBuilder.setAutoEnterEnabled(settings.autoEnterPipModeEnabled());
             }
             setPictureInPictureParams(pictureInPictureParamsBuilder.build());
         }

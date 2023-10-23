@@ -40,13 +40,11 @@
             android:label="@string/title_activity_edit_camera"/>
         <activity android:name=".ui.player.PlayerCameraActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
-            android:launchMode="singleTask"
             android:theme="@style/AppTheme.Player"
             android:taskAffinity=".uiold.activities.PlayerCameraActivity"
             android:resizeableActivity="false"
             android:supportsPictureInPicture="true"
             android:autoRemoveFromRecents="true"
-            android:excludeFromRecents="true"
             android:allowTaskReparenting="true"/>
         <activity android:name=".ui.settings.SettingsActivity"
             android:label="@string/title_activity_settings"
