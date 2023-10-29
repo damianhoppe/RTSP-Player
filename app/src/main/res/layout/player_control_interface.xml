@@ -36,7 +36,7 @@
                     android:contentDescription="Back"
                     app:icon="@drawable/ic_enter_picture_in_picture_mode"
                     style="@style/PlayerControlIconButton"
-                    android:onClick="@{(v) -> handler.enterPlayerIntoPuctureInPictureMode()}"
+                    android:onClick="@{(v) -> handler.enterPlayerIntoPictureInPictureMode()}"
                     app:layout_constraintEnd_toStartOf="@id/buttonVolumeChange"
                     app:layout_constraintTop_toTopOf="parent"/>
 

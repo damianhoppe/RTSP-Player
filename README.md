@@ -14,7 +14,7 @@ It makes it easy to add camera previews using the built-in list of templates for
 
 - Url templates
 - Advanced settings for screen rotation in player
-- Backup/import streams and settings
+- ~~Backup/import streams and settings~~(Temporarily disabled)
 - PIP mode
 - Camera groups
 - Material Design 3

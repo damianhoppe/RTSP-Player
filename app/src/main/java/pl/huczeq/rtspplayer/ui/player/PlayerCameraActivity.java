@@ -22,6 +22,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.DisplayMetrics;
 import android.util.Rational;
 import android.view.OrientationEventListener;
 import android.view.View;
@@ -44,8 +45,8 @@ import javax.inject.Inject;
 import dagger.hilt.android.AndroidEntryPoint;
 import pl.huczeq.rtspplayer.R;
 import pl.huczeq.rtspplayer.Settings;
-import pl.huczeq.rtspplayer.databinding.ActivityPreviewCameraSurfaceviewGlBinding;
 import pl.huczeq.rtspplayer.RtspPlayerProvider;
+import pl.huczeq.rtspplayer.databinding.ActivityPreviewCameraSurfaceviewGlBinding;
 import pl.huczeq.rtspplayer.ui.BaseActivity;
 import pl.huczeq.rtspplayer.ui.player.view.renderer.OnImageCapturedListener;
 import pl.huczeq.rtspplayer.ui.player.view.renderer.PlayerRendererCallback;
@@ -83,6 +84,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
     private PictureInPictureParams.Builder pictureInPictureParamsBuilder;
     private ConnectivityManager.NetworkCallback networkCallback;
     private int lastScreenOrientation;
+    private boolean unknownPlayerRect = true;
 
     private Timer playerControlVisibilityTimer = new Timer(3000, new Timer.Callback() {
         @Override
@@ -141,11 +143,13 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         playerControlVisibilityTimer.start();
         lastScreenOrientation = getResources().getConfiguration().orientation;
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && getPackageManager().hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
             pictureInPictureParamsBuilder = new PictureInPictureParams.Builder();
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 pictureInPictureParamsBuilder.setSeamlessResizeEnabled(true);
+                pictureInPictureParamsBuilder.setAutoEnterEnabled(settings.autoEnterPipModeEnabled());
             }
+            setDefaultPIPRectAndAspectRatio(pictureInPictureParamsBuilder);
             setPictureInPictureParams(pictureInPictureParamsBuilder.build());
         }
 
@@ -193,16 +197,18 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         this.binding.surfaceView.setOnImageCapturedListener(this);
         takePicture();
 
-
         this.binding.surfaceView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
             @Override
             public void onLayoutChange(View view, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
+                    return;
 
                 if(left == oldLeft
                     && top == oldTop
                     &&right == oldRight
                     && bottom == oldBottom)
                     return;
+
                 Rect oldRect = new Rect();
                 oldRect.top = oldTop;
                 oldRect.right = oldRight;
@@ -218,17 +224,18 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
                     return;
                 if(rect.width() == oldRect.width() && rect.height() == oldRect.height())
                     return;
-
+                int maxDiff = 1;
+                if(Math.abs(rect.width() - oldRect.width()) <= maxDiff && Math.abs(rect.height() - oldRect.height()) <= maxDiff)
+                    return;
                 if (binding == null)
                     return;
                 if(isDestroyed())
                     return;
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
-                    return;
-                if(isInPictureInPictureMode())
+                if(!getPackageManager().hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE))
                     return;
 
                 Rational rational = clamp(new Rational(rect.width(), rect.height()));
+                unknownPlayerRect = false;
 
                 pictureInPictureParamsBuilder.setAspectRatio(rational);
                 pictureInPictureParamsBuilder.setSourceRectHint(rect);
@@ -240,6 +247,38 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
                 .setVisibility(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &&
                 getPackageManager().hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)?
                     View.VISIBLE : View.INVISIBLE);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void setDefaultPIPRectAndAspectRatio(PictureInPictureParams.Builder pictureInPictureParamsBuilder) {
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        int min;
+        boolean vertically;
+        if(displayMetrics.widthPixels < displayMetrics.heightPixels) {
+            min = displayMetrics.widthPixels;
+            vertically = false;
+        }else {
+            min = displayMetrics.heightPixels;
+            vertically = true;
+        }
+        Rational aspectRatio = new Rational(16,9);
+        Rect rect = new Rect();
+        if(vertically) {
+            rect.top = 0;
+            rect.bottom = min;
+            int width = (int) (aspectRatio.floatValue() * min);
+            rect.left = (displayMetrics.widthPixels - width)/2;
+            rect.right = rect.left + width;
+        }else {
+            int height = (int) (min/aspectRatio.floatValue());
+            rect.top = (displayMetrics.heightPixels - height)/2;
+            rect.bottom = rect.top + height;
+            rect.left = 0;
+            rect.right = min;
+        }
+        pictureInPictureParamsBuilder.setSourceRectHint(rect);
+        pictureInPictureParamsBuilder.setAspectRatio(aspectRatio);
     }
 
     @Override
@@ -274,7 +313,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         if(player.isPlaying())
             return;
         startPlaying();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && getPackageManager().hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 pictureInPictureParamsBuilder.setAutoEnterEnabled(settings.autoEnterPipModeEnabled());
             }
@@ -323,6 +362,10 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
             return;
         if(Build.VERSION.SDK_INT < Build.VERSION_CODES.N)
             return;
+        if(unknownPlayerRect && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            setDefaultPIPRectAndAspectRatio(pictureInPictureParamsBuilder);
+            setPictureInPictureParams(pictureInPictureParamsBuilder.build());
+        }
         if(isInPictureInPictureMode())
             return;
         lastScreenOrientation = newConfig.orientation;
@@ -367,13 +410,16 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
     }
 
     @Override
-    public void enterPlayerIntoPuctureInPictureMode() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                enterPictureInPictureMode(pictureInPictureParamsBuilder.build());
-            }else {
-                enterPictureInPictureMode();
-            }
+    public void enterPlayerIntoPictureInPictureMode() {
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.N)
+            return;
+        PackageManager packageManager = getApplicationContext().getPackageManager();
+        if(!packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE))
+            return;
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            enterPictureInPictureMode(pictureInPictureParamsBuilder.build());
+        }else {
+            enterPictureInPictureMode();
         }
     }
 
@@ -426,7 +472,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         binding.surfaceViewContainer.resetTransformationWithAnimation();
         if (player.isPlaying() && settings.autoEnterPipModeEnabled()
                 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-            enterPlayerIntoPuctureInPictureMode();
+            enterPlayerIntoPictureInPictureMode();
         }
     }
 
@@ -450,7 +496,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
     }
 
     private void onNewVideo() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && getPackageManager().hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 pictureInPictureParamsBuilder.setAutoEnterEnabled(settings.autoEnterPipModeEnabled());
             }
@@ -479,7 +525,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
     private void onPlayingStarted() {
         binding.pBLoading.setVisibility(View.INVISIBLE);
         updateVolumeButtonIcon();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && getPackageManager().hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 pictureInPictureParamsBuilder.setAutoEnterEnabled(settings.autoEnterPipModeEnabled());
             }
@@ -502,7 +548,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
     }
 
     private void onPlayingStopped() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && getPackageManager().hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 pictureInPictureParamsBuilder.setAutoEnterEnabled(false);
             }

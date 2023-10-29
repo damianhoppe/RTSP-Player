@@ -5,10 +5,10 @@ plugins {
     id 'com.google.dagger.hilt.android'
 }
 
-def appVersionCode = 16
+def appVersionCode = 22
 def appSiteUrl = "https://github.com/damianhoppe/RTSP-Player"
 def urlAddModelForm = "https://docs.google.com/forms/d/e/1FAIpQLSdIlcGRIdQSlwCDhrjd2s62ZVPadYcQDpa2At543e9urx2VyQ/viewform?usp=sf_link"
-def appVersionName = "beta 1.7"
+def appVersionName = "1.7"
 def buildTime(String format = "yyyy-MM-dd") {
     def df = new SimpleDateFormat(format)
     df.setTimeZone(TimeZone.getTimeZone("UTC"))

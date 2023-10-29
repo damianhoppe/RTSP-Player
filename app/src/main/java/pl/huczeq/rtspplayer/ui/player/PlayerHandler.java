@@ -4,7 +4,7 @@ public interface PlayerHandler {
     void togglePlayerControlVisibility();
     void reconnect();
     void switchVolume();
-    void enterPlayerIntoPuctureInPictureMode();
+    void enterPlayerIntoPictureInPictureMode();
 
     void back();
 }
