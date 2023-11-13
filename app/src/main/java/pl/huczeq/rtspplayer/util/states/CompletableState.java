@@ -26,11 +26,15 @@ public class CompletableState extends BaseState {
     }
 
     public boolean isCompletedSuccessfully() {
-        return exception == null;
+        return exception == null && type == ProcessingStateType.DONE;
     }
 
     public boolean isProcessing() {
         return this.type == ProcessingStateType.PROCESSING;
+    }
+
+    public boolean isCompleted() {
+        return this.type == ProcessingStateType.DONE;
     }
 
     public static class Builder {

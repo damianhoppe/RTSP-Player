@@ -68,9 +68,11 @@ public class VlcPlayerImpl extends RtspPlayer implements IVLCVout.OnNewVideoLayo
 
     @Override
     public void loadMedia(RtspMedia rtspMedia) {
-        Media vlcMedia = new Media(libVLC, rtspMedia.getUri());
-        initMedia(vlcMedia, rtspMedia);
         executor.execute(() -> {
+            if(libVLC.isReleased())
+                return;
+            Media vlcMedia = new Media(libVLC, rtspMedia.getUri());
+            initMedia(vlcMedia, rtspMedia);
             if(mediaPlayer.isPlaying())
                 mediaPlayer.stop();
             mediaPlayer.setMedia(vlcMedia);

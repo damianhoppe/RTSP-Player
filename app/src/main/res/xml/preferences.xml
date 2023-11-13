@@ -116,14 +116,12 @@
             app:key="actionCreateBackup"
             app:title="@string/label_create_backup"
             app:summary="@string/summary_create_backup"
-            app:iconSpaceReserved="false"
-            app:enabled="false"/>
+            app:iconSpaceReserved="false"/>
         <Preference
             app:key="actionRestoreBackup"
             app:title="@string/label_restore_backup"
             app:summary="@string/summary_restore_backup"
-            app:iconSpaceReserved="false"
-            app:enabled="false"/>
+            app:iconSpaceReserved="false"/>
     </PreferenceCategory>
 
 
@@ -134,8 +132,7 @@
             app:key="actionNewCameraModelRequestForm"
             app:title="@string/label_url_add_model_form"
             app:summary="@string/summary_url_add_model_form"
-            app:iconSpaceReserved="false"
-            app:enabled="false"/>
+            app:iconSpaceReserved="false"/>
     </PreferenceCategory>
 
     <PreferenceCategory

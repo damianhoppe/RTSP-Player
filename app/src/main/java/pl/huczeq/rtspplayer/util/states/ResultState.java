@@ -29,6 +29,11 @@ public class ResultState<T> extends CompletableState {
         this.result = result;
     }
 
+    @Nullable
+    public T getResult() {
+        return result;
+    }
+
     public static class Builder {
 
         public static <T> ResultState<T> idleState() {

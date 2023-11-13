@@ -2,6 +2,8 @@ package pl.huczeq.rtspplayer.ui.start;
 
 import android.app.Application;
 import android.content.Context;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.util.Log;
 
 import androidx.lifecycle.AndroidViewModel;
@@ -57,6 +59,7 @@ public class StartViewModel extends AndroidViewModel {
 
         this.appStarted = new MutableLiveData<>(null);
 
+        settings.verifyDefaultSettings();
         startDataMigration();
     }
 

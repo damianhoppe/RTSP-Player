@@ -3,6 +3,8 @@ package pl.huczeq.rtspplayer.ui.settings;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 
 import androidx.activity.result.ActivityResult;
@@ -43,7 +45,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
     public AppThemeHelper themeHelper;
 
     Preference restoreBackup, createBackup, aboutApp, showLicense, openAddModelForm, dynamicColors;
-    Preference vlcOptions, cachingBufferSize, hardwareAcceleration, forceUseRtspTcp;
+    Preference vlcOptions, cachingBufferSize, hardwareAcceleration, forceUseRtspTcp, autoEnterInPipMode;
     SwitchPreference startingCamera;
 
     private ActivityResultLauncher<Intent> selectAppStartCameraResultLauncher;
@@ -75,6 +77,13 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
         dynamicColors = findPreference(Settings.KEY.DYNAMIC_COLORS);
         if(dynamicColors != null)
             dynamicColors.setEnabled(DynamicColors.isDynamicColorAvailable());
+
+        autoEnterInPipMode = findPreference(Settings.KEY.AUTO_ENTER_PIP_MODE_ENABLED);
+        if(autoEnterInPipMode != null) {
+            if(Build.VERSION.SDK_INT < Build.VERSION_CODES.N || !requireActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
+                autoEnterInPipMode.setEnabled(false);
+            }
+        }
 
         createBackup = findPreference(Settings.ACTION.CREATE_BACKUP);
         restoreBackup = findPreference(Settings.ACTION.RESTORE_BACKUP);

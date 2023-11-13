@@ -1,7 +1,5 @@
 package pl.huczeq.rtspplayer.ui.cameralist;
 
-import android.util.Log;
-
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -14,8 +12,6 @@ import javax.inject.Inject;
 import dagger.hilt.android.lifecycle.HiltViewModel;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.annotations.NonNull;
-import io.reactivex.rxjava3.core.Observer;
-import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.observers.DisposableObserver;
 import pl.huczeq.rtspplayer.data.model.Camera;
 import pl.huczeq.rtspplayer.data.repositories.base.CameraRepository;
@@ -64,7 +60,7 @@ public class CameraListViewModel extends ViewModel {
     }
 
     public LiveData<List<Camera>> getAllCameras() {
-        return this.cameraRepository.getAllCameras();
+        return this.cameraRepository.fetchAllCameras();
     }
 
     public MutableLiveData<LinkedList<String>> getThumbnailsUpdatedList() {

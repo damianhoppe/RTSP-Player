@@ -38,4 +38,7 @@ public abstract class CameraInstanceDao {
 
     @Query("DELETE FROM camerainstance WHERE patternId = :patternId")
     public abstract void deleteCameraInstancesWithPatternId(long patternId);
+
+    @Query("DELETE FROM camerainstance")
+    public abstract void deleteAll();
 }

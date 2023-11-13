@@ -4,6 +4,7 @@ import android.util.Log;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Transformations;
+import androidx.room.Transaction;
 
 import java.util.List;
 import java.util.Objects;
@@ -19,6 +20,7 @@ import pl.huczeq.rtspplayer.data.sources.local.database.CameraDao;
 import pl.huczeq.rtspplayer.data.model.Camera;
 import pl.huczeq.rtspplayer.data.model.CameraInstance;
 import pl.huczeq.rtspplayer.data.model.CameraPattern;
+import pl.huczeq.rtspplayer.data.sources.local.database.CameraGroupDao;
 import pl.huczeq.rtspplayer.data.sources.local.database.CameraInstanceDao;
 import pl.huczeq.rtspplayer.data.sources.local.database.CameraPatternDao;
 
@@ -29,6 +31,7 @@ public class CameraRepositoryImpl implements CameraRepository {
 
     private final AppDatabase database;
     private final CameraDao cameraDao;
+    private final CameraGroupDao cameraGroupDao;
     private final CameraInstanceDao cameraInstanceDao;
     private final CameraPatternDao cameraPatternDao;
     private PublishSubject<CameraInstance> cameraInstanceInvalidatedSubject = PublishSubject.create();
@@ -37,13 +40,19 @@ public class CameraRepositoryImpl implements CameraRepository {
     public CameraRepositoryImpl(AppDatabase database) {
         this.database = database;
         this.cameraDao = this.database.cameraDao();
+        this.cameraGroupDao = this.database.cameraGroupDao();
         this.cameraInstanceDao = this.database.cameraInstanceDao();
         this.cameraPatternDao = this.database.cameraPatternDao();
     }
 
     @Override
-    public LiveData<List<Camera>> getAllCameras() {
+    public LiveData<List<Camera>> fetchAllCameras() {
         return this.cameraDao.getAllCameras();
+    }
+
+    @Override
+    public List<Camera> getAllCameras() {
+        return this.cameraDao.getAllCamerasSync();
     }
 
     @Override
@@ -71,7 +80,9 @@ public class CameraRepositoryImpl implements CameraRepository {
         return this.cameraPatternDao.getAllCameraPatternsSync();
     }
 
+    @Transaction
     private void insertCameraGroupIntoDatabase(CameraGroup cameraGroup) {
+        cameraGroup.getCameraPattern().setNumberOfInstances(cameraGroup.getCameraInstances().size());
         long id = cameraPatternDao.insertCameraPattern(cameraGroup.getCameraPattern());
         for(CameraInstance cameraInstance : cameraGroup.getCameraInstances())
             cameraInstance.setPatternId(id);
@@ -172,5 +183,25 @@ public class CameraRepositoryImpl implements CameraRepository {
     @Override
     public PublishSubject<CameraInstance> getCameraInstancesInvalidatedSubject() {
         return this.cameraInstanceInvalidatedSubject;
+    }
+
+    @Override
+    public List<CameraGroup> getAllCameraGroups() {
+        return cameraGroupDao.getAll();
+    }
+
+    @Transaction
+    @Override
+    public void clearAndInsertCameraGroups(List<CameraGroup> cameraGroups) {
+        this.cameraInstanceDao.deleteAll();
+        this.cameraPatternDao.deleteAll();
+        insertCameraGroupsSync(cameraGroups);
+    }
+
+    @Transaction
+    @Override
+    public void insertCameraGroupsSync(List<CameraGroup> cameraGroups) {
+        for(CameraGroup cameraGroup : cameraGroups)
+            insertCameraGroupIntoDatabase(cameraGroup);
     }
 }

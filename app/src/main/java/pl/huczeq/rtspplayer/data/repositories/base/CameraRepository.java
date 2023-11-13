@@ -12,7 +12,8 @@ import pl.huczeq.rtspplayer.data.model.CameraPattern;
 
 public interface CameraRepository {
 
-    LiveData<List<Camera>> getAllCameras();
+    LiveData<List<Camera>> fetchAllCameras();
+    List<Camera> getAllCameras();
     LiveData<Camera> getCameraById(long id);
     CameraInstance getCameraInstanceByIdSync(Long cameraInstanceId);
     Camera getCameraByIdSync(long id);
@@ -25,4 +26,7 @@ public interface CameraRepository {
     LiveData<Integer> getNumberOfCameras();
     void updateCameraInstanceSync(CameraInstance cameraInstance);
     PublishSubject<CameraInstance> getCameraInstancesInvalidatedSubject();
+    List<CameraGroup> getAllCameraGroups();
+    void clearAndInsertCameraGroups(List<CameraGroup> cameraGroups);
+    void insertCameraGroupsSync(List<CameraGroup> cameraGroups);
 }

@@ -2,14 +2,10 @@ package pl.huczeq.rtspplayer.ui.selectcamera;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.PersistableBundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.widget.PopupMenu;
 import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -26,7 +22,6 @@ import pl.huczeq.rtspplayer.data.model.Camera;
 import pl.huczeq.rtspplayer.data.repositories.base.CameraRepository;
 import pl.huczeq.rtspplayer.data.repositories.base.CameraThumbnailRepository;
 import pl.huczeq.rtspplayer.ui.BaseActivity;
-import pl.huczeq.rtspplayer.util.interfaces.IOnListItemSelected;
 
 @AndroidEntryPoint
 public class SelectCameraActivity extends BaseActivity {
@@ -76,7 +71,7 @@ public class SelectCameraActivity extends BaseActivity {
             }
         });
 
-        this.cameraRepository.getAllCameras().observe(this, new Observer<List<Camera>>() {
+        this.cameraRepository.fetchAllCameras().observe(this, new Observer<List<Camera>>() {
             @Override
             public void onChanged(List<Camera> cameras) {
                 tvEmpty.setVisibility(cameras == null || !cameras.isEmpty()? View.GONE : View.VISIBLE);

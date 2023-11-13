@@ -5,7 +5,7 @@ plugins {
     id 'com.google.dagger.hilt.android'
 }
 
-def appVersionCode = 22
+def appVersionCode = 28
 def appSiteUrl = "https://github.com/damianhoppe/RTSP-Player"
 def urlAddModelForm = "https://docs.google.com/forms/d/e/1FAIpQLSdIlcGRIdQSlwCDhrjd2s62ZVPadYcQDpa2At543e9urx2VyQ/viewform?usp=sf_link"
 def appVersionName = "1.7"

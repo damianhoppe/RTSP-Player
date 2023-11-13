@@ -2,13 +2,20 @@ package pl.huczeq.rtspplayer;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.os.Build;
 
 import androidx.annotation.IntDef;
 import androidx.annotation.MainThread;
 import androidx.preference.PreferenceManager;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 import javax.inject.Inject;
@@ -18,6 +25,43 @@ import dagger.hilt.android.qualifiers.ApplicationContext;
 
 @Singleton
 public class Settings {
+
+    public static void tryLoadPreferences(Settings settings, JsonObject jsonSettings) {
+        Map<String, Class> settingsToImport = new HashMap<>();
+        settingsToImport.put(Settings.KEY.APP_START_CAMERA_ENABLED, Boolean.class);
+        settingsToImport.put(Settings.KEY.APP_START_CAMERA_ID, Long.class);
+        settingsToImport.put(Settings.KEY.THEME, String.class);
+        settingsToImport.put(Settings.KEY.DYNAMIC_COLORS, Boolean.class);
+        settingsToImport.put(Settings.KEY.INITIAL_ORIENTATION, String.class);
+        settingsToImport.put(Settings.KEY.ORIENTATION_MODE, String.class);
+        settingsToImport.put(Settings.KEY.PLAYBACK_LIBRARY, String.class);
+        settingsToImport.put(Settings.KEY.CACHING_BUFFER_SIZE, Integer.class);
+        settingsToImport.put(Settings.KEY.HARDWARE_ACCELERATION_ENABLED, Boolean.class);
+        settingsToImport.put(Settings.KEY.MUTE_AUDIO_DEFAULT_ENABLED, Boolean.class);
+        settingsToImport.put(Settings.KEY.FORCE_USE_RTSP_TCP_ENABLED, Boolean.class);
+        settingsToImport.put(Settings.KEY.AUTO_ENTER_PIP_MODE_ENABLED, Boolean.class);
+
+
+        settings.editSettings();
+        for(Map.Entry<String, Class> settingToImport : settingsToImport.entrySet()) {
+            if(!jsonSettings.has(settingToImport.getKey()))
+                continue;
+            JsonElement jsonElement = jsonSettings.get(settingToImport.getKey());
+            if(jsonElement.isJsonNull())
+                continue;
+            try {
+                if (settingToImport.getValue() == Boolean.class)
+                    settings.settingsEditor.putBoolean(settingToImport.getKey(), jsonElement.getAsBoolean());
+                else if (settingToImport.getValue() == Integer.class)
+                    settings.settingsEditor.putInt(settingToImport.getKey(), jsonElement.getAsInt());
+                else if (settingToImport.getValue() == Long.class)
+                    settings.settingsEditor.putLong(settingToImport.getKey(), jsonElement.getAsLong());
+                else if (settingToImport.getValue() == String.class)
+                    settings.settingsEditor.putString(settingToImport.getKey(), jsonElement.getAsString());
+            }catch (Exception ignored){}
+        }
+        settings.commitSettings();
+    }
 
     public static final class ACTION {
         public static final String NEW_CAMERA_MODEL_REQUEST_FORM = "actionNewCameraModelRequestForm";
@@ -78,6 +122,12 @@ public class Settings {
         this.settings = PreferenceManager.getDefaultSharedPreferences(this.appContext);
     }
 
+    public void verifyDefaultSettings() {
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.N || !appContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
+            setAutoEnterPipModeEnabled(false);
+        }
+    }
+
     public @Theme int getTheme() {
         switch(this.settings.getString(KEY.THEME, "0")) {
             case "1":
@@ -93,8 +143,12 @@ public class Settings {
         return settings.getBoolean(KEY.DYNAMIC_COLORS, true);
     }
 
+    public String getPlaybackLibrary() {
+        return settings.getString(KEY.PLAYBACK_LIBRARY,"0");
+    }
+
     public boolean useExoPlayer() {
-        return Objects.equals(settings.getString(KEY.PLAYBACK_LIBRARY,"0"), "1");
+        return Objects.equals(getPlaybackLibrary(), "1");
     }
 
     public @InitialOrientation int getInitialOrientation() {
@@ -127,6 +181,12 @@ public class Settings {
         return settings.getBoolean(KEY.AUTO_ENTER_PIP_MODE_ENABLED, true);
     }
 
+    public void setAutoEnterPipModeEnabled(boolean enabled) {
+        editSettings();
+        settingsEditor.putBoolean(KEY.AUTO_ENTER_PIP_MODE_ENABLED, enabled);
+        commitSettings();
+    }
+
     private void editSettings() {
         this.settingsEditor = this.settings.edit();
     }
@@ -145,6 +205,10 @@ public class Settings {
         this.settingsEditor.putLong(KEY.APP_START_CAMERA_ID, cameraId);
         this.settingsEditor.putBoolean(KEY.APP_START_CAMERA_ENABLED, cameraId >= 0);
         commitSettings();
+    }
+
+    public Boolean isAppStartCameraEnabled() {
+        return this.settings.getBoolean(KEY.APP_START_CAMERA_ENABLED, false);
     }
 
     public int getCachingBufferSize() {

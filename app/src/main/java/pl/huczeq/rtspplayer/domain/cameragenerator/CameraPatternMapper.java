@@ -32,7 +32,6 @@ public class CameraPatternMapper {
         }
 
         if(urlTemplate == null) {
-            cameraPatternWithVariables.setUrl(findVariablesInText(0, cameraPattern.getUrl(), vars));
             cameraPatternWithVariables.setUserName(cameraPattern.getUserName());
             cameraPatternWithVariables.setAddressIp(cameraPattern.getAddressIp());
             cameraPatternWithVariables.setPort(cameraPattern.getPort());
@@ -40,8 +39,8 @@ public class CameraPatternMapper {
             cameraPatternWithVariables.setServerUrl(cameraPattern.getServerUrl());
             cameraPatternWithVariables.setPassword(cameraPattern.getPassword());
             cameraPatternWithVariables.setStream(cameraPattern.getStream());
+            cameraPatternWithVariables.setUrl(findVariablesInText(0, cameraPattern.getUrl(), vars));
         }else {
-            cameraPatternWithVariables.setUrl(UrlGenerator.generate(urlTemplate, UrlComponentsProvider.of(cameraPatternWithVariables)));
             cameraPatternWithVariables.setUserName(findVariablesInText(0, cameraPattern.getUserName(), vars));
             cameraPatternWithVariables.setAddressIp(findVariablesInText(0, cameraPattern.getAddressIp(), vars));
             cameraPatternWithVariables.setPort(findVariablesInText(0, cameraPattern.getPort(), vars));
@@ -49,6 +48,7 @@ public class CameraPatternMapper {
             cameraPatternWithVariables.setServerUrl(findVariablesInText(0,cameraPattern.getServerUrl(), vars));
             cameraPatternWithVariables.setPassword(cameraPattern.getPassword());
             cameraPatternWithVariables.setStream(String.valueOf(cameraPattern.getStream()));
+            cameraPatternWithVariables.setUrl(UrlGenerator.generate(urlTemplate, UrlComponentsProvider.of(cameraPatternWithVariables)));
         }
         cameraPatternWithVariables.setVariables(vars);
         return cameraPatternWithVariables;
@@ -89,7 +89,8 @@ public class CameraPatternMapper {
 
     public static CameraPattern toCameraPattern(CameraGroupModel model) {
         CameraPattern cameraPattern = new CameraPattern();
-        cameraPattern.setName(namesUnnamedVariables(model.getName()));
+        Integer index = 1;
+        cameraPattern.setName(namesUnnamedVariables(model.getName(), index));
         if(model.getProducer() != null)
             cameraPattern.setProducer(model.getProducer().getName());
         UrlTemplate urlTemplate = null;
@@ -98,32 +99,32 @@ public class CameraPatternMapper {
             urlTemplate = model.getModel().getUrlTemplate();
         }
 
+        cameraPattern.setPassword(model.getPassword());
+        cameraPattern.setStream(String.valueOf(model.getStreamType()));
+
         if(urlTemplate == null) {
-            cameraPattern.setUrl(namesUnnamedVariables(model.getUrl()));
+            cameraPattern.setUrl(namesUnnamedVariables(model.getUrl(), index));
             cameraPattern.setUserName(model.getUserName());
             cameraPattern.setAddressIp(model.getAddressIp());
             cameraPattern.setPort(model.getPort());
             cameraPattern.setChannel(model.getChannel());
             cameraPattern.setServerUrl(model.getServerUrl());
         }else {
+            cameraPattern.setUserName(namesUnnamedVariables(model.getUserName(), index));
+            cameraPattern.setAddressIp(namesUnnamedVariables(model.getAddressIp(), index));
+            cameraPattern.setPort(namesUnnamedVariables(model.getPort(), index));
+            cameraPattern.setChannel(namesUnnamedVariables(model.getChannel(), index));
+            cameraPattern.setServerUrl(namesUnnamedVariables(model.getServerUrl(), index));
             cameraPattern.setUrl(UrlGenerator.generate(urlTemplate, UrlComponentsProvider.of(cameraPattern)));
-            cameraPattern.setUserName(namesUnnamedVariables(model.getUserName()));
-            cameraPattern.setAddressIp(namesUnnamedVariables(model.getAddressIp()));
-            cameraPattern.setPort(namesUnnamedVariables(model.getPort()));
-            cameraPattern.setChannel(namesUnnamedVariables(model.getChannel()));
-            cameraPattern.setServerUrl(namesUnnamedVariables(model.getServerUrl()));
         }
-        cameraPattern.setPassword(model.getPassword());
-        cameraPattern.setStream(String.valueOf(model.getStreamType()));
         return cameraPattern;
     }
 
-    private static String namesUnnamedVariables(String text) {
+    private static String namesUnnamedVariables(String text, Integer index) {
         if(text == null || text.isEmpty())
             return text;
         Pattern pattern = Pattern.compile(REGEX_EXPRESSION);
         Matcher matcher = pattern.matcher(text);
-        int index = 1;
         String newText = text;
         while(matcher.find()) {
             String varContent = matcher.group();

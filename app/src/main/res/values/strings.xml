@@ -38,6 +38,8 @@
     <string name="title_activity_add_camera">Addition</string>
     <string name="title_activity_edit_camera">Editing</string>
     <string name="title_activity_settings">Settings</string>
+    <string name="title_activity_import_backup">Import backup</string>
+    <string name="title_activity_export_backup">Export backup</string>
     <string name="dialog_delete_title">Deleting camera</string>
     <string name="dialog_delete_message">Are you sure?</string>
     <string name="dialog_delete_group_title">Deleting group of cameras</string>
@@ -128,9 +130,9 @@
         <item>1</item>
     </string-array>
 
-    <string name="error_stream_url_not_passed">Application error, stream url not passed</string>
     <string name="label_reconnect">Reconnect</string>
-    <string name="loading_in_progress">Trwa ładowanie</string>
+    <string name="error_stream_url_not_passed">Application error, stream url not passed</string>
+    <string name="loading_in_progress">Loading in progress</string>
     <string name="label_useDynamicColors">Use a system color scheme</string>
     <string name="summary_useDynamicColors">Applies the system color scheme to the application interface elements</string>
     <string name="label_autoEnterPipMode">Auto enter in pip mode when leaving the app</string>
@@ -144,4 +146,17 @@
     <string name="label_force_use_rtsp_tcp">Force use tcp</string>
     <string name="summary_label_force_use_rtsp_tcp">Force use RTSP over TCP</string>
     <string name="no_cameras">No cameras, go back to\nthe home screen and add one</string>
+    <string name="failed">Failed</string>
+    <string name="imported_successfully">Imported successfully</string>
+    <string name="something_went_wrong">Something went wrong</string>
+    <string name="exported_successfully">Exported successfully</string>
+    <string name="cameras">Cameras</string>
+    <string name="export_cameras_summary">Export all cameras and camera groups</string>
+    <string name="export_settings_summary">Export application settings</string>
+    <string name="export">Export</string>
+    <string name="import_cameras_summary">Import all cameras from the loaded backup</string>
+    <string name="import_remove_cameras">Remove cameras</string>
+    <string name="import_remove_cameras_summary">Remove all current cameras before importing</string>
+    <string name="import_settings_summary">Import all settings from the loaded backup</string>
+    <string name="label_load_backup">Load backup</string>
 </resources>

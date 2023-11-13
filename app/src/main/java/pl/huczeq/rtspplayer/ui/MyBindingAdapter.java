@@ -5,12 +5,18 @@ import androidx.databinding.BindingAdapter;
 import com.google.android.material.textfield.TextInputLayout;
 
 import pl.huczeq.rtspplayer.ui.views.ProgressFloatingActionButton;
+import pl.huczeq.rtspplayer.ui.views.ProgressMaterialButton;
 import pl.huczeq.rtspplayer.util.validation.Errors;
 
 public class MyBindingAdapter {
 
     @BindingAdapter(value = {"progressVisible"})
     public static void setProgressVisible(ProgressFloatingActionButton button, boolean progressVisible) {
+        button.setProgressVisible(progressVisible);
+    }
+
+    @BindingAdapter(value = {"progressVisible"})
+    public static void setProgressVisible(ProgressMaterialButton button, boolean progressVisible) {
         button.setProgressVisible(progressVisible);
     }
 

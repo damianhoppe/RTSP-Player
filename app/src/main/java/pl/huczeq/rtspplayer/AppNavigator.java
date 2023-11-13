@@ -18,8 +18,8 @@ import pl.huczeq.rtspplayer.ui.addeditcamera.editcamera.EditCameraActivity;
 import pl.huczeq.rtspplayer.ui.player.PlayerCameraActivity;
 import pl.huczeq.rtspplayer.ui.selectcamera.SelectCameraActivity;
 import pl.huczeq.rtspplayer.ui.settings.SettingsActivity;
-import pl.huczeq.rtspplayer.ui.settings.backup.CreateBackupActivity;
-import pl.huczeq.rtspplayer.ui.settings.backup.RestoreBackupActivity;
+import pl.huczeq.rtspplayer.ui.settings.exportbackup.ExportBackupActivity;
+import pl.huczeq.rtspplayer.ui.settings.importbackup.ImportBackupActivity;
 import pl.huczeq.rtspplayer.ui.settings.info.AboutAppActivity;
 import pl.huczeq.rtspplayer.ui.settings.info.LicenseViewerActivity;
 
@@ -94,11 +94,11 @@ public class AppNavigator {
     }
 
     public void startCreateBackupActivity() {
-        context.startActivity(new Intent(context, CreateBackupActivity.class));
+        context.startActivity(new Intent(context, ExportBackupActivity.class));
     }
 
     public void startRestoreBackupActivity() {
-        context.startActivity(new Intent(context, RestoreBackupActivity.class));
+        context.startActivity(new Intent(context, ImportBackupActivity.class));
     }
 
     public void startAboutAppActivity() {

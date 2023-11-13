@@ -10,35 +10,35 @@ import android.util.TypedValue;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
-import androidx.core.content.res.ResourcesCompat;
 
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
-public class ProgressFloatingActionButton extends FloatingActionButton {
+public class ProgressMaterialButton extends MaterialButton {
 
     private boolean progressVisible = false;
     private Drawable drawable;
     private Drawable progressDrawable;
 
-    public ProgressFloatingActionButton(@NonNull Context context) {
+    public ProgressMaterialButton(@NonNull Context context) {
         super(context);
         init(null);
     }
 
-    public ProgressFloatingActionButton(@NonNull Context context, @Nullable AttributeSet attrs) {
+    public ProgressMaterialButton(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         init(attrs);
     }
 
-    public ProgressFloatingActionButton(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public ProgressMaterialButton(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init(attrs);
     }
 
     private void init(@Nullable AttributeSet attrs) {
         if(attrs != null) {
-            int srcResource = attrs.getAttributeResourceValue("http://schemas.android.com/apk/res/android", "src", 0);
-            this.drawable = ContextCompat.getDrawable(getContext(), srcResource);
+            int iconResource = attrs.getAttributeResourceValue("http://schemas.android.com/apk/res-auto", "icon", 0);
+            this.drawable = ContextCompat.getDrawable(getContext(), iconResource);
         }
 
         this.progressDrawable = getProgressBarDrawable(getContext());
@@ -47,10 +47,10 @@ public class ProgressFloatingActionButton extends FloatingActionButton {
     }
 
     @Override
-    public void setImageDrawable(@Nullable Drawable drawable) {
+    public void setIcon(@Nullable Drawable drawable) {
         if(drawable == this.drawable)
             return;
-        super.setImageDrawable(drawable);
+        super.setIcon(drawable);
         this.drawable = drawable;
         drawableUpdated();
     }
@@ -68,7 +68,7 @@ public class ProgressFloatingActionButton extends FloatingActionButton {
     }
 
     private void updateImage() {
-        super.setImageDrawable((this.progressVisible)? this.progressDrawable : this.drawable);
+        super.setIcon((this.progressVisible)? this.progressDrawable : this.drawable);
     }
 
     private Drawable getProgressBarDrawable(final Context context) {

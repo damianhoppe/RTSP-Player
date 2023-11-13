@@ -22,4 +22,12 @@ public class Camera {
         this.cameraInstance = cameraInstance;
         this.cameraPattern = cameraPattern;
     }
+
+    public CameraInstance getCameraInstance() {
+        return cameraInstance;
+    }
+
+    public CameraPattern getCameraPattern() {
+        return cameraPattern;
+    }
 }

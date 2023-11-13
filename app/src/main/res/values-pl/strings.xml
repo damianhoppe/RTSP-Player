@@ -39,6 +39,8 @@
     <string name="title_activity_add_camera">Dodawanie</string>
     <string name="title_activity_edit_camera">Edycja</string>
     <string name="title_activity_settings">Ustawienia</string>
+    <string name="title_activity_import_backup">Importuj kopię zapasową</string>
+    <string name="title_activity_export_backup">Eksportuj kopię zapasową</string>
     <string name="dialog_delete_title">Usuwanie kamery</string>
     <string name="dialog_delete_message">Jesteś pewny?</string>
     <string name="dialog_delete_group_title">Usuwanie grupy kamer</string>
@@ -109,4 +111,32 @@
     </string-array>
 
     <string name="label_reconnect">Reconnect</string>
+    <string name="error_stream_url_not_passed">Błąd aplikacji, nie przekazano adresu URL strumienia</string>
+    <string name="loading_in_progress">Trwa ładowanie</string>
+    <string name="label_useDynamicColors">Użyj systemowego schematu kolorów</string>
+    <string name="summary_useDynamicColors">Stosuje systemowy schemat kolorów do elementów interfejsu aplikacji</string>
+    <string name="label_autoEnterPipMode">Automatyczne wejście w tryb pip przy opuszczaniu aplikacji</string>
+    <string name="summary_autoEnterPipMode">Automatycznie przełącza odtwarzacz w tryb obrazu w obrazie po opuszczeniu aplikacji</string>
+    <string name="label_playbackLibrary">Biblioteka odtwarzania</string>
+    <string name="summary_playbackLibrary">Możesz zmienić używaną bibliotekę odtwarzania wideo</string>
+    <string name="label_vlc_player">Ustawienia VLC</string>
+    <string name="label_advanced">Zaawansowane</string>
+    <string name="title_mute_audio_default">Domyślne wyciszenie dźwięku</string>
+    <string name="summary_mute_audio_default">Domyślne wyciszenie automatyczne</string>
+    <string name="label_force_use_rtsp_tcp">Wymuś użycie protokołu TCP</string>
+    <string name="summary_label_force_use_rtsp_tcp">Wymuś użycie RTSP przez TCP</string>
+    <string name="no_cameras">Brak kamer. Wróć do\nekranu głównego i dodaj jedną</string>
+    <string name="failed">Wystapił błąd</string>
+    <string name="imported_successfully">Zaimportowano pomyślnie</string>
+    <string name="something_went_wrong">Coś poszło nie tak</string>
+    <string name="exported_successfully">Wyeksportowano pomyślnie</string>
+    <string name="cameras">Kamery</string>
+    <string name="export_cameras_summary">Eksportuj wszystkie kamery i grupy kamer</string>
+    <string name="export_settings_summary">Eksportuj ustawienia aplikacji</string>
+    <string name="export">Eksportuj</string>
+    <string name="import_cameras_summary">Zaimportuj wszystkie kamery z załadowanej kopii zapasowej</string>
+    <string name="import_remove_cameras">Usuń kamery</string>
+    <string name="import_remove_cameras_summary">Przed importem usuń wszystkie bieżące kamery</string>
+    <string name="import_settings_summary">Zaimportuj wszystkie ustawienia z załadowanej kopii zapasowej</string>
+    <string name="label_load_backup">Załaduj kopię</string>
 </resources>

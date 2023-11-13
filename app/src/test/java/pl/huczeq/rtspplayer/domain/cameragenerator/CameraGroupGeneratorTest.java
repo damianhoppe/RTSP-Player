@@ -55,6 +55,35 @@ public class CameraGroupGeneratorTest {
     }
 
     @Test
+    public void cameraGroupGeneration_singleWithUrlTemplate() {
+        CameraGroupModel cameraGroupModel = ModelGeneratorForTests.cameraGroupGeneratorWithUrlTemplate();
+        CameraGroupGenerator generator = new CameraGroupGenerator();
+        CameraGroup cameraGroup = generator.generate(cameraGroupModel);
+
+        basicCameraGroupGeneratorResultTest(cameraGroup);
+
+        assertEquals(1, cameraGroup.getCameraInstances().size());
+
+        CameraInstance cameraInstance = cameraGroup.getCameraInstances().get(0);
+        assertEquals(cameraGroupModel.getName(), cameraInstance.getName());
+        assertEquals(cameraGroupModel.getUrl(), cameraInstance.getUrl());
+
+        CameraPattern cameraPattern = cameraGroup.getCameraPattern();
+        assertEquals(cameraGroupModel.getName(), cameraPattern.getName());
+        assertFalse(Strings.isNullOrEmpty(cameraPattern.getProducer()));
+        assertFalse(Strings.isNullOrEmpty(cameraPattern.getModel()));
+        assertEquals(cameraGroupModel.getUserName(), cameraPattern.getUserName());
+        assertEquals(cameraGroupModel.getPassword(), cameraPattern.getPassword());
+        assertEquals(cameraGroupModel.getAddressIp(), cameraPattern.getAddressIp());
+        assertEquals(cameraGroupModel.getPort(), cameraPattern.getPort());
+        assertEquals(cameraGroupModel.getChannel(), cameraPattern.getChannel());
+
+        assertEquals(cameraGroupModel.getServerUrl(), cameraPattern.getServerUrl());
+        assertEquals(cameraGroupModel.getUrl(), cameraPattern.getUrl());
+    }
+
+
+    @Test
     public void cameraGroupGeneration_many() {
         String cameraName = "Test";
         String cameraUrl = "rtsp://127.0.0.1:{1-5}";

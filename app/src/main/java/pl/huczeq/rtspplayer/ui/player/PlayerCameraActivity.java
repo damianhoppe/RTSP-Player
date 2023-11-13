@@ -4,6 +4,7 @@ import static pl.huczeq.rtspplayer.ui.addeditcamera.BaseCameraFormActivity.EXTRA
 
 import android.animation.LayoutTransition;
 import android.app.ActivityManager;
+import android.app.AppOpsManager;
 import android.app.PictureInPictureParams;
 import android.content.Context;
 import android.content.Intent;
@@ -22,6 +23,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.Process;
 import android.util.DisplayMetrics;
 import android.util.Rational;
 import android.view.OrientationEventListener;
@@ -43,6 +45,7 @@ import java.util.Set;
 import javax.inject.Inject;
 
 import dagger.hilt.android.AndroidEntryPoint;
+import pl.huczeq.rtspplayer.BuildConfig;
 import pl.huczeq.rtspplayer.R;
 import pl.huczeq.rtspplayer.Settings;
 import pl.huczeq.rtspplayer.RtspPlayerProvider;
@@ -85,6 +88,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
     private ConnectivityManager.NetworkCallback networkCallback;
     private int lastScreenOrientation;
     private boolean unknownPlayerRect = true;
+    private boolean isVisible = false;
 
     private Timer playerControlVisibilityTimer = new Timer(3000, new Timer.Callback() {
         @Override
@@ -99,6 +103,19 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
             setPlayerControlVisibile(false);
         }
     });
+
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    private boolean isPipModeAvailable() {
+        AppOpsManager appOpsManager = (AppOpsManager) getSystemService(Context.APP_OPS_SERVICE);
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            if(appOpsManager.unsafeCheckOpNoThrow(AppOpsManager.OPSTR_PICTURE_IN_PICTURE, Process.myUid(), BuildConfig.APPLICATION_ID) != AppOpsManager.MODE_ALLOWED)
+                return false;
+        }else {
+            if(appOpsManager.checkOpNoThrow(AppOpsManager.OPSTR_PICTURE_IN_PICTURE, Process.myUid(), BuildConfig.APPLICATION_ID) != AppOpsManager.MODE_ALLOWED)
+                return false;
+        }
+        return getPackageManager().hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -143,7 +160,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         playerControlVisibilityTimer.start();
         lastScreenOrientation = getResources().getConfiguration().orientation;
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && getPackageManager().hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isPipModeAvailable()) {
             pictureInPictureParamsBuilder = new PictureInPictureParams.Builder();
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 pictureInPictureParamsBuilder.setSeamlessResizeEnabled(true);
@@ -224,14 +241,14 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
                     return;
                 if(rect.width() == oldRect.width() && rect.height() == oldRect.height())
                     return;
-                int maxDiff = 1;
+                int maxDiff = 2;
                 if(Math.abs(rect.width() - oldRect.width()) <= maxDiff && Math.abs(rect.height() - oldRect.height()) <= maxDiff)
                     return;
                 if (binding == null)
                     return;
                 if(isDestroyed())
                     return;
-                if(!getPackageManager().hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE))
+                if(!isPipModeAvailable())
                     return;
 
                 Rational rational = clamp(new Rational(rect.width(), rect.height()));
@@ -245,8 +262,9 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
 
         this.binding.playerControl.buttonEnterPictureInPictureMode
                 .setVisibility(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &&
-                getPackageManager().hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)?
-                    View.VISIBLE : View.INVISIBLE);
+                    getPackageManager().hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)?
+                        View.VISIBLE : View.INVISIBLE
+                );
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -313,7 +331,13 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         if(player.isPlaying())
             return;
         startPlaying();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && getPackageManager().hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
+        updatePictureInPicturesParams();
+    }
+
+    private void updatePictureInPicturesParams() {
+        if(pictureInPictureParamsBuilder == null)
+            return;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isPipModeAvailable()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 pictureInPictureParamsBuilder.setAutoEnterEnabled(settings.autoEnterPipModeEnabled());
             }
@@ -324,6 +348,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
     @Override
     protected void onStart() {
         super.onStart();
+        isVisible = true;
         if(orientationListener != null)
             orientationListener.enable();
     }
@@ -331,9 +356,11 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
     @Override
     protected void onStop() {
         super.onStop();
+        isVisible = false;
         player.stop();
         if(orientationListener != null)
             orientationListener.disable();
+        disableNetworkCallback();
     }
 
     @Override
@@ -362,7 +389,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
             return;
         if(Build.VERSION.SDK_INT < Build.VERSION_CODES.N)
             return;
-        if(unknownPlayerRect && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if(unknownPlayerRect && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isPipModeAvailable()) {
             setDefaultPIPRectAndAspectRatio(pictureInPictureParamsBuilder);
             setPictureInPictureParams(pictureInPictureParamsBuilder.build());
         }
@@ -470,8 +497,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
     protected void onUserLeaveHint() {
         super.onUserLeaveHint();
         binding.surfaceViewContainer.resetTransformationWithAnimation();
-        if (player.isPlaying() && settings.autoEnterPipModeEnabled()
-                && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+        if (player.isPlaying() && settings.autoEnterPipModeEnabled() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
             enterPlayerIntoPictureInPictureMode();
         }
     }
@@ -496,12 +522,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
     }
 
     private void onNewVideo() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && getPackageManager().hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                pictureInPictureParamsBuilder.setAutoEnterEnabled(settings.autoEnterPipModeEnabled());
-            }
-            setPictureInPictureParams(pictureInPictureParamsBuilder.build());
-        }
+        updatePictureInPicturesParams();
         binding.pBLoading.setVisibility(View.INVISIBLE);
     }
 
@@ -514,10 +535,10 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         }
         RtspPlayer.RtspMedia media = new RtspPlayer.RtspMedia(Uri.parse(params.getUrl()), params.isForceTcpEnabled());
         player.loadMedia(media);
+        binding.pBLoading.setVisibility(View.VISIBLE);
     }
 
     private void startPlaying() {
-        binding.pBLoading.setVisibility(View.VISIBLE);
         binding.bReconnect.setVisibility(View.INVISIBLE);
         player.play();
     }
@@ -525,12 +546,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
     private void onPlayingStarted() {
         binding.pBLoading.setVisibility(View.INVISIBLE);
         updateVolumeButtonIcon();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && getPackageManager().hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                pictureInPictureParamsBuilder.setAutoEnterEnabled(settings.autoEnterPipModeEnabled());
-            }
-            setPictureInPictureParams(pictureInPictureParamsBuilder.build());
-        }
+        updatePictureInPicturesParams();
     }
 
     private boolean isNetworkAvailable() {
@@ -548,18 +564,15 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
     }
 
     private void onPlayingStopped() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && getPackageManager().hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                pictureInPictureParamsBuilder.setAutoEnterEnabled(false);
-            }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && isPipModeAvailable()) {
+            pictureInPictureParamsBuilder.setAutoEnterEnabled(false);
             setPictureInPictureParams(pictureInPictureParamsBuilder.build());
         }
         binding.pBLoading.setVisibility(View.INVISIBLE);
+        binding.bReconnect.setVisibility(View.VISIBLE);
         if(isNetworkAvailable()) {
-            binding.bReconnect.setVisibility(View.VISIBLE);
             return;
         }
-        binding.bReconnect.setVisibility(View.GONE);
         reconnectOnNetworkAvailable();
     }
 
@@ -587,7 +600,8 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        reconnect();
+                        if(isVisible)
+                            reconnect();
                     }
                 });
             }

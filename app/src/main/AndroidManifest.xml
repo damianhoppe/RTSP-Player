@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest
-    xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -12,7 +12,8 @@
 
     <application
         android:name=".RtspPlayerApp"
-        android:allowBackup="true"
+        android:allowBackup="false"
+        tools:replace="android:allowBackup"
         android:label="@string/app_name"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -52,8 +53,10 @@
 
         <activity android:name=".ui.settings.info.AboutAppActivity" />
         <activity android:name=".ui.settings.info.LicenseViewerActivity" />
-        <activity android:name=".ui.settings.backup.RestoreBackupActivity" />
-        <activity android:name=".ui.settings.backup.CreateBackupActivity" />
+        <activity android:name=".ui.settings.importbackup.ImportBackupActivity"
+            android:label="@string/title_activity_import_backup"/>
+        <activity android:name=".ui.settings.exportbackup.ExportBackupActivity"
+            android:label="@string/title_activity_export_backup"/>
         <activity android:name=".ui.selectcamera.SelectCameraActivity"
             android:label="@string/title_activity_select_camera"/>
     </application>

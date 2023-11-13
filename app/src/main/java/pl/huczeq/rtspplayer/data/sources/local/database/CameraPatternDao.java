@@ -27,4 +27,7 @@ public abstract class CameraPatternDao {
 
     @Query("DELETE FROM camerapattern WHERE id = :id")
     public abstract void deleteCameraPattern(long id);
+
+    @Query("DELETE FROM camerapattern")
+    public abstract void deleteAll();
 }

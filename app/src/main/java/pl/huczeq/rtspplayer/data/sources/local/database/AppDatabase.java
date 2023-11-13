@@ -15,4 +15,5 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract CameraDao cameraDao();
     public abstract CameraInstanceDao cameraInstanceDao();
     public abstract CameraPatternDao cameraPatternDao();
+    public abstract CameraGroupDao cameraGroupDao();
 }
