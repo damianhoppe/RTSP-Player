@@ -69,9 +69,9 @@ public class ExportBackupActivity extends BaseActivity implements ExportBackupHa
                     viewModel.isExportCompletedSuccessfully()?
                             R.string.exported_successfully : R.string.failed,
                     Toast.LENGTH_SHORT).show();
-            viewModel.resetExportCompletedSuccessfully();
             if(viewModel.isExportCompletedSuccessfully())
                 finish();
+            viewModel.resetExportCompletedSuccessfully();
         });
     }
 

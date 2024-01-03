@@ -440,8 +440,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
     public void enterPlayerIntoPictureInPictureMode() {
         if(Build.VERSION.SDK_INT < Build.VERSION_CODES.N)
             return;
-        PackageManager packageManager = getApplicationContext().getPackageManager();
-        if(!packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE))
+        if(!isPipModeAvailable())
             return;
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             enterPictureInPictureMode(pictureInPictureParamsBuilder.build());
