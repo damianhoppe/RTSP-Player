@@ -129,4 +129,42 @@ public class CameraGroupGeneratorTest {
         assertEquals("rtsp://127.0.0.21:554", cameraGroup.getCameraInstances().get(0).getUrl());
         assertEquals("rtsp://127.0.0.24:554", cameraGroup.getCameraInstances().get(3).getUrl());
     }
+
+    @Test
+    public void cameraGroupGeneration_many_VariableInIp_With_NumberedNamesAtTheEnd() {
+        String cameraName = "Camera {i}";
+        String cameraUrl = "rtsp://127.0.0.2{1-4}:554";
+
+        CameraGroupModel model = new CameraGroupModel();
+        model.setName(cameraName);
+        model.setUrl(cameraUrl);
+        CameraGroupGenerator generator = new CameraGroupGenerator();
+        CameraGroup cameraGroup = generator.generate(model);
+
+        basicCameraGroupGeneratorResultTest(cameraGroup);
+        assertEquals(4, cameraGroup.getCameraInstances().size());
+        for(int i = 0; i < cameraGroup.getCameraInstances().size(); i++) {
+            assertEquals("Camera " + (i + 1), cameraGroup.getCameraInstances().get(i).getName());
+            assertEquals("rtsp://127.0.0.2" + (i+1) + ":554", cameraGroup.getCameraInstances().get(i).getUrl());
+        }
+    }
+
+    @Test
+    public void cameraGroupGeneration_many_VariableInIp_With_NumberedNamesAtTheBeginning() {
+        String cameraName = "{i}.";
+        String cameraUrl = "rtsp://127.0.0.2{1-4}:554";
+
+        CameraGroupModel model = new CameraGroupModel();
+        model.setName(cameraName);
+        model.setUrl(cameraUrl);
+        CameraGroupGenerator generator = new CameraGroupGenerator();
+        CameraGroup cameraGroup = generator.generate(model);
+
+        basicCameraGroupGeneratorResultTest(cameraGroup);
+        assertEquals(4, cameraGroup.getCameraInstances().size());
+        for(int i = 0; i < cameraGroup.getCameraInstances().size(); i++) {
+            assertEquals((i + 1) + ".", cameraGroup.getCameraInstances().get(i).getName());
+            assertEquals("rtsp://127.0.0.2" + (i+1) + ":554", cameraGroup.getCameraInstances().get(i).getUrl());
+        }
+    }
 }

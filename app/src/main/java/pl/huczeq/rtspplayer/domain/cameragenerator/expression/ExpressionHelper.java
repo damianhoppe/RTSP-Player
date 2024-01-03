@@ -39,10 +39,16 @@ public class ExpressionHelper<T> {
         }
         if(!tempExpression.isEmpty())
             partialyExpression.add(tempExpression);
-        for(int i = 1; i < partialyExpression.size(); i += 2) {
+        int i = 1;
+        if(!partialyExpression.isEmpty() && partialyExpression.get(0).charAt(0) == '{')
+            i = 0;
+        for(; i < partialyExpression.size(); i += 2) {
             String str = partialyExpression.get(i).substring(1);
             if(!variables.containsKey(str) && !specialNames.contains(str)) {
-                partialyExpression.set(i-1, partialyExpression.get(i-1) + partialyExpression.get(i) + "}" + safeGetFromList(partialyExpression, i+1));
+                if(i == 0)
+                    partialyExpression.set(i, partialyExpression.get(i) + "}");
+                else
+                    partialyExpression.set(i-1, partialyExpression.get(i-1) + partialyExpression.get(i) + "}" + safeGetFromList(partialyExpression, i+1));
                 if(i < partialyExpression.size())
                     partialyExpression.remove(i);
                 if(i < partialyExpression.size())

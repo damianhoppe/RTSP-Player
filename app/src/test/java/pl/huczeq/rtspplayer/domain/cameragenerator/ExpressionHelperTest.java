@@ -22,6 +22,7 @@ public class ExpressionHelperTest {
     public void expressionHelper_splitExpression_test() {
         ExpressionHelper<String> helper = new ExpressionHelper<>();
         HashMap<String, String> vars = new HashMap<>();
+        expressionHelper_splitExpression_testHelper(helper, "{var1}abc", vars, new String[]{"{var1}abc"});
         expressionHelper_splitExpression_testHelper(helper, "{var1", vars, new String[]{"{var1"});
         expressionHelper_splitExpression_testHelper(helper, "elo{var1}xd2{var2xd}elo2", vars, new String[]{"elo{var1}xd2{var2xd}elo2"});
         expressionHelper_splitExpression_testHelper(helper, "elo{var1", vars, new String[]{"elo{var1"});
@@ -30,6 +31,7 @@ public class ExpressionHelperTest {
         expressionHelper_splitExpression_testHelper(helper, "", vars, new String[]{});
 
         vars.put("var1", "value");
+        expressionHelper_splitExpression_testHelper(helper, "{var1}abc", vars, new String[]{"{var1","abc"});
         expressionHelper_splitExpression_testHelper(helper, "var1{i}", vars, new String[]{"var1","{i"});
         expressionHelper_splitExpression_testHelper(helper, "elo{var1}xd2{var2xd}elo2", vars, new String[]{"elo","{var1","xd2{var2xd}elo2"});
         expressionHelper_splitExpression_testHelper(helper, "elo{var1", vars, new String[]{"elo{var1"});
