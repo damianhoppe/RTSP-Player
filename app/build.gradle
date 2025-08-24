@@ -5,7 +5,7 @@ plugins {
     id 'com.google.dagger.hilt.android'
 }
 
-def appVersionCode = 28
+def appVersionCode = 30
 def appSiteUrl = "https://github.com/damianhoppe/RTSP-Player"
 def urlAddModelForm = "https://docs.google.com/forms/d/e/1FAIpQLSdIlcGRIdQSlwCDhrjd2s62ZVPadYcQDpa2At543e9urx2VyQ/viewform?usp=sf_link"
 def appVersionName = "1.7"
@@ -16,14 +16,13 @@ def buildTime(String format = "yyyy-MM-dd") {
 }
 
 android {
-    compileSdkVersion 33
-    buildToolsVersion "32.1.0-rc1"
     android.ndkVersion "21.0.6113669"
 
     defaultConfig {
+        compileSdk 36
         applicationId "pl.huczeq.rtspplayer"
         minSdkVersion 23
-        targetSdkVersion 33
+        targetSdkVersion 36
         versionCode appVersionCode
         versionName "${appVersionName}"
 
@@ -40,14 +39,21 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            buildConfigField("String", "BUILD_TIME", "\"${buildTime("yyyy-MM-dd HH:mm:ss")}\"")
+            buildConfigField("String", "SITE_URL", "\"${appSiteUrl}\"")
+            buildConfigField("String", "URL_ADD_MODEL_FORM", "\"${urlAddModelForm}\"")
         }
         debug {
             versionNameSuffix "-debug"
+            buildConfigField("String", "BUILD_TIME", "\"${buildTime("yyyy-MM-dd HH:mm:ss")}\"")
+            buildConfigField("String", "SITE_URL", "\"${appSiteUrl}\"")
+            buildConfigField("String", "URL_ADD_MODEL_FORM", "\"${urlAddModelForm}\"")
         }
     }
 
     buildFeatures {
         dataBinding true
+        buildConfig true
     }
 
     testOptions {
@@ -62,21 +68,6 @@ android {
             reset()
             include "x86", "x86_64", "armeabi-v7a", "arm64-v8a"
             universalApk true
-        }
-    }
-
-    signingConfigs {
-        buildTypes {
-            debug {
-                buildConfigField("String", "BUILD_TIME", "\"${buildTime("yyyy-MM-dd HH:mm:ss")}\"")
-                buildConfigField("String", "SITE_URL", "\"${appSiteUrl}\"")
-                buildConfigField("String", "URL_ADD_MODEL_FORM", "\"${urlAddModelForm}\"")
-            }
-            release {
-                buildConfigField("String", "BUILD_TIME", "\"${buildTime("yyyy-MM-dd HH:mm:ss")}\"")
-                buildConfigField("String", "SITE_URL", "\"${appSiteUrl}\"")
-                buildConfigField("String", "URL_ADD_MODEL_FORM", "\"${urlAddModelForm}\"")
-            }
         }
     }
 
@@ -149,4 +140,6 @@ dependencies {
     implementation 'com.google.android.exoplayer:exoplayer:2.18.2'
 
     implementation 'androidx.core:core-splashscreen:1.0.0-beta02'
+
+    implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.8.0"))
 }
