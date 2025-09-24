@@ -5,7 +5,7 @@ plugins {
     id 'com.google.dagger.hilt.android'
 }
 
-def appVersionCode = 30
+def appVersionCode = 31
 def appSiteUrl = "https://github.com/damianhoppe/RTSP-Player"
 def urlAddModelForm = "https://docs.google.com/forms/d/e/1FAIpQLSdIlcGRIdQSlwCDhrjd2s62ZVPadYcQDpa2At543e9urx2VyQ/viewform?usp=sf_link"
 def appVersionName = "1.7"
@@ -16,7 +16,7 @@ def buildTime(String format = "yyyy-MM-dd") {
 }
 
 android {
-    android.ndkVersion "21.0.6113669"
+    android.ndkVersion "29.0.14033849"
 
     defaultConfig {
         compileSdk 36
