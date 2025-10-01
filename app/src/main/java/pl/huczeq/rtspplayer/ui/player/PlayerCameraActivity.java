@@ -254,9 +254,11 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
                 Rational rational = clamp(new Rational(rect.width(), rect.height()));
                 unknownPlayerRect = false;
 
-                pictureInPictureParamsBuilder.setAspectRatio(rational);
-                pictureInPictureParamsBuilder.setSourceRectHint(rect);
-                setPictureInPictureParams(pictureInPictureParamsBuilder.build());
+                if(pictureInPictureParamsBuilder != null) {
+                    pictureInPictureParamsBuilder.setAspectRatio(rational);
+                    pictureInPictureParamsBuilder.setSourceRectHint(rect);
+                    setPictureInPictureParams(pictureInPictureParamsBuilder.build());
+                }
             }
         });
 
@@ -366,6 +368,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        pictureInPictureParamsBuilder = null;
         if(player != null)
             player.release();
     }
@@ -389,7 +392,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
             return;
         if(Build.VERSION.SDK_INT < Build.VERSION_CODES.N)
             return;
-        if(unknownPlayerRect && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isPipModeAvailable()) {
+        if(unknownPlayerRect && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isPipModeAvailable() && pictureInPictureParamsBuilder != null) {
             setDefaultPIPRectAndAspectRatio(pictureInPictureParamsBuilder);
             setPictureInPictureParams(pictureInPictureParamsBuilder.build());
         }
@@ -442,7 +445,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
             return;
         if(!isPipModeAvailable())
             return;
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && pictureInPictureParamsBuilder != null) {
             enterPictureInPictureMode(pictureInPictureParamsBuilder.build());
         }else {
             enterPictureInPictureMode();
@@ -563,7 +566,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
     }
 
     private void onPlayingStopped() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && isPipModeAvailable()) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && isPipModeAvailable() && pictureInPictureParamsBuilder != null) {
             pictureInPictureParamsBuilder.setAutoEnterEnabled(false);
             setPictureInPictureParams(pictureInPictureParamsBuilder.build());
         }
