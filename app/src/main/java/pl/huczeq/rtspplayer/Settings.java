@@ -15,6 +15,7 @@ import com.google.gson.JsonObject;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -38,7 +39,7 @@ public class Settings {
         settingsToImport.put(Settings.KEY.CACHING_BUFFER_SIZE, Integer.class);
         settingsToImport.put(Settings.KEY.HARDWARE_ACCELERATION_ENABLED, Boolean.class);
         settingsToImport.put(Settings.KEY.MUTE_AUDIO_DEFAULT_ENABLED, Boolean.class);
-        settingsToImport.put(Settings.KEY.FORCE_USE_RTSP_TCP_ENABLED, Boolean.class);
+        settingsToImport.put(Settings.KEY.PREFER_USE_RTSP_TCP_ENABLED, Boolean.class);
         settingsToImport.put(Settings.KEY.AUTO_ENTER_PIP_MODE_ENABLED, Boolean.class);
 
 
@@ -84,8 +85,13 @@ public class Settings {
         public static final String CACHING_BUFFER_SIZE = "cachingBufferSize";
         public static final String HARDWARE_ACCELERATION_ENABLED = "hardwareAccelerationEnabled";
         public static final String MUTE_AUDIO_DEFAULT_ENABLED = "muteAutoDefaultEnabled";
-        public static final String FORCE_USE_RTSP_TCP_ENABLED = "forceUseRtspTcpEnabled";
+        public static final String PREFER_USE_RTSP_TCP_ENABLED = "preferUseRtspTcpEnabled";
         public static final String AUTO_ENTER_PIP_MODE_ENABLED = "autoEnterPipModeEnabled";
+
+        public static boolean isRelatedToPlayerSetting(String key) {
+            List<String> keysRelatedToPlayerSetting = List.of(PLAYBACK_LIBRARY, CACHING_BUFFER_SIZE, HARDWARE_ACCELERATION_ENABLED, PREFER_USE_RTSP_TCP_ENABLED);
+            return keysRelatedToPlayerSetting.contains(key);
+        }
     }
 
     @Retention(RetentionPolicy.SOURCE)
@@ -173,8 +179,8 @@ public class Settings {
         return this.settings.getBoolean(KEY.MUTE_AUDIO_DEFAULT_ENABLED, false);
     }
 
-    public boolean isForceUseRtspTcpEnabled() {
-        return this.settings.getBoolean(KEY.FORCE_USE_RTSP_TCP_ENABLED, false);
+    public boolean isPreferUseRtspTcpEnabled() {
+        return this.settings.getBoolean(KEY.PREFER_USE_RTSP_TCP_ENABLED, true);
     }
 
     public boolean autoEnterPipModeEnabled() {
@@ -217,5 +223,9 @@ public class Settings {
 
     public boolean isEnabledHardwareAcceleration() {
         return this.settings.getBoolean(KEY.HARDWARE_ACCELERATION_ENABLED, false);
+    }
+
+    public SharedPreferences getSharedPreferences() {
+        return this.settings;
     }
 }

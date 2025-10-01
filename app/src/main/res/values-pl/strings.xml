@@ -123,8 +123,8 @@
     <string name="label_advanced">Zaawansowane</string>
     <string name="title_mute_audio_default">Domyślne wyciszenie dźwięku</string>
     <string name="summary_mute_audio_default">Domyślne wyciszenie automatyczne</string>
-    <string name="label_force_use_rtsp_tcp">Wymuś użycie protokołu TCP</string>
-    <string name="summary_label_force_use_rtsp_tcp">Wymuś użycie RTSP przez TCP</string>
+    <string name="label_prefer_use_rtsp_tcp">Preferuj użycie protokołu TCP</string>
+    <string name="summary_label_prefer_use_rtsp_tcp">Preferuj użycie TCP do połączenia RTSP. UDP może działać wydajniej przy niestabilnym połączeniu, ale może powodować długie buforowanie i problemy z synchronizacją obrazu na niektórych urządzeniach.</string>
     <string name="no_cameras">Brak kamer. Wróć do\nekranu głównego i dodaj jedną</string>
     <string name="failed">Wystapił błąd</string>
     <string name="imported_successfully">Zaimportowano pomyślnie</string>

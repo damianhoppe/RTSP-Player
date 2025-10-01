@@ -101,11 +101,11 @@
             app:defaultValue="false"
             app:widgetLayout="@layout/pref_m3_checkbox"/>
         <pl.huczeq.rtspplayer.ui.views.materialpreferences.SwitchPreferenceMaterial
-            app:key="forceUseRtspTcpEnabled"
-            app:title="@string/label_force_use_rtsp_tcp"
+            app:key="preferUseRtspTcpEnabled"
+            app:title="@string/label_prefer_use_rtsp_tcp"
             app:iconSpaceReserved="false"
-            app:summary="@string/summary_label_force_use_rtsp_tcp"
-            app:defaultValue="false"
+            app:summary="@string/summary_label_prefer_use_rtsp_tcp"
+            app:defaultValue="true"
             app:widgetLayout="@layout/pref_m3_checkbox"/>
     </PreferenceCategory>
 

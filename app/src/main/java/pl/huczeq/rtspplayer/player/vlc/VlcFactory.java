@@ -13,7 +13,7 @@ import pl.huczeq.rtspplayer.Settings;
 public class VlcFactory {
 
     public static ArrayList<String> buildArgumentList(Settings settings, String... params) {
-        ArrayList<String> args = new ArrayList<>(Arrays.asList("--vout=android-display,none", "-vvv"));
+        ArrayList<String> args = new ArrayList<>(Arrays.asList("--vout=android-display,none"));
 
         args.add("--avcodec-skiploopfilter");
         args.add("0");
@@ -21,6 +21,15 @@ public class VlcFactory {
         args.add("0");
         args.add("--avcodec-skip-idct");
         args.add("0");
+
+        if(settings.isPreferUseRtspTcpEnabled()) {
+            args.add("--rtsp-tcp");
+        }
+
+        int cachingBufferSize = settings.getCachingBufferSize();
+        args.add("--live-caching=" + cachingBufferSize);
+        args.add("--network-caching=" + cachingBufferSize);
+        args.add("--file-caching=" + cachingBufferSize);
 
         Collections.addAll(args, params);
         return args;

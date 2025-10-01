@@ -2,7 +2,6 @@ package pl.huczeq.rtspplayer.domain.backup;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 
 import java.io.OutputStream;
@@ -83,7 +82,7 @@ public class ExportBackupTask implements Runnable {
         jsonSettings.addProperty(Settings.KEY.CACHING_BUFFER_SIZE, settings.getCachingBufferSize());
         jsonSettings.addProperty(Settings.KEY.HARDWARE_ACCELERATION_ENABLED, settings.isEnabledHardwareAcceleration());
         jsonSettings.addProperty(Settings.KEY.MUTE_AUDIO_DEFAULT_ENABLED, settings.isMuteAudioDefaultEnabled());
-        jsonSettings.addProperty(Settings.KEY.FORCE_USE_RTSP_TCP_ENABLED, settings.isForceUseRtspTcpEnabled());
+        jsonSettings.addProperty(Settings.KEY.PREFER_USE_RTSP_TCP_ENABLED, settings.isPreferUseRtspTcpEnabled());
         jsonSettings.addProperty(Settings.KEY.AUTO_ENTER_PIP_MODE_ENABLED, settings.autoEnterPipModeEnabled());
 
         return jsonSettings;

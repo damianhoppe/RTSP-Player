@@ -143,8 +143,8 @@
     <string name="label_advanced">Advanced</string>
     <string name="title_mute_audio_default">Mute audio default</string>
     <string name="summary_mute_audio_default">Mute autio default</string>
-    <string name="label_force_use_rtsp_tcp">Force use tcp</string>
-    <string name="summary_label_force_use_rtsp_tcp">Force use RTSP over TCP</string>
+    <string name="label_prefer_use_rtsp_tcp">Prefer use tcp</string>
+    <string name="summary_label_prefer_use_rtsp_tcp">I prefer to use TCP for RTSP connection. UDP may perform better on unstable connections, but may cause long buffering and image synchronization issues on some devices</string>
     <string name="no_cameras">No cameras, go back to\nthe home screen and add one</string>
     <string name="failed">Failed</string>
     <string name="imported_successfully">Imported successfully</string>

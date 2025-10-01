@@ -51,7 +51,7 @@ public class AppNavigator {
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         }
         intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        PlayerCameraActivity.putCameraIntoIntent(intent, camera.getCameraInstance().getUrl(), settings.isForceUseRtspTcpEnabled(), camera.getCameraInstance().getId());
+        PlayerCameraActivity.putCameraIntoIntent(intent, camera.getCameraInstance().getUrl(), settings.isPreferUseRtspTcpEnabled(), camera.getCameraInstance().getId());
         return intent;
     }
 

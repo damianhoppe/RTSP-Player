@@ -70,7 +70,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
         vlcOptions = findPreference(Settings.KEY.CATEGORY_VLC_OPTIONS);
         cachingBufferSize = findPreference(Settings.KEY.CACHING_BUFFER_SIZE);
         hardwareAcceleration = findPreference(Settings.KEY.HARDWARE_ACCELERATION_ENABLED);
-        forceUseRtspTcp = findPreference(Settings.KEY.FORCE_USE_RTSP_TCP_ENABLED);
+        forceUseRtspTcp = findPreference(Settings.KEY.PREFER_USE_RTSP_TCP_ENABLED);
 
         updateVlcOptionsState();
 
@@ -98,13 +98,13 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
         if(showLicense != null) showLicense.setOnPreferenceClickListener(this);
         if(openAddModelForm != null) openAddModelForm.setOnPreferenceClickListener(this);
 
-        PreferenceManager.getDefaultSharedPreferences(getContext()).registerOnSharedPreferenceChangeListener(this);
+        settings.getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        PreferenceManager.getDefaultSharedPreferences(getContext()).unregisterOnSharedPreferenceChangeListener(this);
+        settings.getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
     }
 
     @Override
