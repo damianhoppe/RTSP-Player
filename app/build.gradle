@@ -108,7 +108,7 @@ dependencies {
     implementation 'com.google.android.material:material:1.8.0'
     implementation 'com.google.code.gson:gson:2.9.1'
     implementation 'org.jetbrains:annotations:15.0'
-    implementation 'org.videolan.android:libvlc-all:3.3.4'
+        implementation 'org.videolan.android:libvlc-all:3.6.4'
 
     implementation "io.reactivex.rxjava3:rxjava:3.1.5"
     implementation 'io.reactivex.rxjava3:rxandroid:3.0.0'
