@@ -157,6 +157,17 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
 
         this.viewModel.setStreamParams(params);
 
+        this.binding.surfaceViewContainer.setOnSwipeListener(direction ->
+                viewModel.loadAdjacentCamera(direction, camera -> {
+                    if(isDestroyed())
+                        return;
+                    switchStream(PlayerCameraViewModel.Params.builder()
+                            .url(camera.getCameraInstance().getUrl())
+                            .forceTcpEnabled(settings.isForceUseRtspTcpEnabled())
+                            .cameraId(camera.getCameraInstance().getId())
+                            .build());
+                }));
+
         playerControlVisibilityTimer.start();
         lastScreenOrientation = getResources().getConfiguration().orientation;
 
@@ -308,7 +319,11 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
             finish();
             return;
         }
+        switchStream(params);
+        probablyBackstackLost = false;
+    }
 
+    private void switchStream(PlayerCameraViewModel.Params params) {
         binding.surfaceViewContainer.resetTransformation();
         binding.surfaceView.resetTransformations();
         binding.surfaceView.clearSurface();
@@ -319,7 +334,6 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         }
         startPlaying();
         takePicture();
-        probablyBackstackLost = false;
     }
 
     @Override
