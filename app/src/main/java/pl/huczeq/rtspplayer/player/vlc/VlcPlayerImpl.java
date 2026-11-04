@@ -50,7 +50,8 @@ public class VlcPlayerImpl extends RtspPlayer implements IVLCVout.OnNewVideoLayo
 
                 switch (event.type) {
                     case MediaPlayer.Event.Vout:
-                        eventListener.onStartRendering();
+                        if(event.getVoutCount() > 0)
+                            eventListener.onStartRendering();
                         break;
                     case MediaPlayer.Event.Playing:
                         eventListener.onPlaying();
