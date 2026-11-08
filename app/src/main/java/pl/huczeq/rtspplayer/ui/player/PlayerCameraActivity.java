@@ -239,6 +239,12 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
             }
         });
 
+        pendingSlideIn = () -> binding.surfaceView.animate()
+                .translationX(0f)
+                .alpha(1f)
+                .setDuration(150)
+                .start();
+        binding.surfaceView.setAlpha(0f);
         loadMedia();
         startPlaying();
         this.binding.surfaceView.setOnImageCapturedListener(this);
@@ -372,21 +378,14 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
                 .setDuration(150)
                 .withEndAction(() -> {
                     view.clearSurface();
-                    if(settings.isCameraSlideInAnimationEnabled()) {
-                        view.setTranslationX(distance);
-                        pendingSlideIn = () -> view.animate()
-                                .translationX(0f)
-                                .alpha(1f)
-                                .setDuration(150)
-                                .withEndAction(() -> switchAnimating = false)
-                                .start();
-                        switchAction.run();
-                    }else {
-                        switchAction.run();
-                        view.setTranslationX(0);
-                        view.setAlpha(1f);
-                        switchAnimating = false;
-                    }
+                    view.setTranslationX(settings.isCameraSlideInAnimationEnabled()? distance : 0f);
+                    pendingSlideIn = () -> view.animate()
+                            .translationX(0f)
+                            .alpha(1f)
+                            .setDuration(150)
+                            .withEndAction(() -> switchAnimating = false)
+                            .start();
+                    switchAction.run();
                 })
                 .start();
     }
