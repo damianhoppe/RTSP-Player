@@ -56,6 +56,18 @@ public class ProcessedVariableTest {
     }
 
     @Test
+    public void ProcessedVariable_parsing_4_singleValue() {
+        String data = "10";
+        try {
+            ProcessedVariable ProcessedVariable = new ProcessedVariable("Test", data);
+            assertEquals(1, ProcessedVariable.getValues().size());
+            assertEquals(data, ProcessedVariable.getValues().get(0));
+        }catch (ParsingException e) {
+            fail();
+        }
+    }
+
+    @Test
     public void ProcessedVariable_parsing_overload() {
         //Values 1-4 in 3 modes together
         String data = "1,2,3,4,1-4,1/4";

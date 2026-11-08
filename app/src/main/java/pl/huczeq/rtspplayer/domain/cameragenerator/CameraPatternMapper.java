@@ -141,7 +141,7 @@ public class CameraPatternMapper {
             }
             if(isSystemVariable(varName))
                 continue;
-            if(varContent.length() <= 4 || Character.isAlphabetic(varContent.charAt(2)))
+            if(varContent.length() <= 2 || Character.isAlphabetic(varContent.charAt(2)))
                 continue;
             varName = SPECIAL_VARIABLE_PREFIX + "" + index++;
             String replaceWith = varName + "=" + varContent.substring(1, varContent.length() - 1);
