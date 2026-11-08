@@ -1,36 +1,94 @@
 package pl.huczeq.rtspplayer.ui.player;
 
 import android.graphics.Bitmap;
-import android.util.Log;
+import android.util.Pair;
 
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MediatorLiveData;
+import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModel;
+import androidx.core.util.Consumer;
 
 import java.util.Objects;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.inject.Inject;
 
 import io.reactivex.rxjava3.annotations.NonNull;
-import io.reactivex.rxjava3.core.CompletableObserver;
-import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.observers.DisposableCompletableObserver;
 import io.reactivex.rxjava3.observers.DisposableSingleObserver;
 import lombok.Builder;
 import lombok.Getter;
-import pl.huczeq.rtspplayer.data.model.CameraInstance;
-import pl.huczeq.rtspplayer.data.repositories.base.CameraRepository;
-import pl.huczeq.rtspplayer.data.repositories.base.CameraThumbnailRepository;
-import pl.huczeq.rtspplayer.domain.usecases.LoadCameraUseCase;
+import pl.huczeq.rtspplayer.AppExecutors;
+import pl.huczeq.rtspplayer.data.model.Camera;
+import pl.huczeq.rtspplayer.domain.usecases.LoadAdjacentCamerasUseCase;
 import pl.huczeq.rtspplayer.domain.usecases.SaveCameraThumbnailUseCase;
 
 public class PlayerCameraViewModel extends ViewModel {
 
     private final MediatorLiveData<Params> streamParams = new MediatorLiveData<>();
-    private SaveCameraThumbnailUseCase saveCameraThumbnailUseCase;
+    private final SaveCameraThumbnailUseCase saveCameraThumbnailUseCase;
+    private final LoadAdjacentCamerasUseCase loadAdjacentCamerasUseCase;
+    private final AppExecutors executors;
+    private final MutableLiveData<Pair<Camera, Camera>> adjacentCameras = new MediatorLiveData<>();
 
     @Inject
-    public PlayerCameraViewModel(SaveCameraThumbnailUseCase saveCameraThumbnailUseCase) {
+    public PlayerCameraViewModel(SaveCameraThumbnailUseCase saveCameraThumbnailUseCase, LoadAdjacentCamerasUseCase loadAdjacentCamerasUseCase, AppExecutors executors) {
         this.saveCameraThumbnailUseCase = saveCameraThumbnailUseCase;
+        this.loadAdjacentCamerasUseCase = loadAdjacentCamerasUseCase;
+        this.executors = executors;
+    }
+
+    private Pair<Camera, Camera> awaitAdjacentCamera() {
+        Semaphore semaphore = new Semaphore(0);
+        AtomicReference<Pair<Camera, Camera>> result = new AtomicReference<>();
+
+        Observer<Pair<Camera, Camera>> observer = new Observer<>() {
+            @Override
+            public void onChanged(Pair<Camera, Camera> value) {
+                if(value != null) {
+                    result.set(value);
+                    semaphore.release();
+                    adjacentCameras.removeObserver(this);
+                }
+            }
+        };
+
+        executors.mainThread().execute(() -> adjacentCameras.observeForever(observer));
+        try {
+            if(!semaphore.tryAcquire(5, TimeUnit.SECONDS)) {
+                return null;
+            }
+            return result.get();
+        } catch (InterruptedException ignored) {
+        } finally {
+            executors.mainThread().execute(() -> adjacentCameras.removeObserver(observer));
+        }
+
+        return null;
+    }
+
+    /** Finds the next (1) or previous (-1) camera in list order, wrapping around, and returns it on the main thread. */
+    public void loadAdjacentCamera(int direction, Consumer<Camera> callback) {
+        this.executors.dbIO().execute(() -> {
+            Pair<Camera, Camera> cameraPair = awaitAdjacentCamera();
+
+            if(cameraPair == null) {
+                executors.mainThread().execute(() -> callback.accept(null));
+                return;
+            }
+
+            executors.mainThread().execute(() -> {
+                if(direction < 0) {
+                    callback.accept(cameraPair.first);
+                }else if(direction > 0) {
+                    callback.accept(cameraPair.second);
+                }
+            });
+        });
     }
 
     @Override
@@ -46,6 +104,23 @@ public class PlayerCameraViewModel extends ViewModel {
             return;
 
         streamParams.setValue(newParams);
+
+        adjacentCameras.setValue(null);
+        loadAdjacentCamerasUseCase.execute(newParams.getCameraId(), new DisposableSingleObserver<Pair<Camera, Camera>>() {
+            @Override
+            public void onSuccess(Pair<Camera, Camera> adjacentCameras) {
+                if(adjacentCameras == null) {
+                    PlayerCameraViewModel.this.adjacentCameras.postValue(Pair.create(null, null));
+                }else {
+                    PlayerCameraViewModel.this.adjacentCameras.postValue(adjacentCameras);
+                }
+            }
+
+            @Override
+            public void onError(@NonNull Throwable e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     public void saveCameraThumbnail(Bitmap bitmap) {
@@ -62,6 +137,10 @@ public class PlayerCameraViewModel extends ViewModel {
 
     public Params getStreamParams() {
         return this.streamParams.getValue();
+    }
+
+    public LiveData<Pair<Camera, Camera>> getAdjacentCamera() {
+        return this.adjacentCameras;
     }
 
     @Getter

@@ -117,6 +117,8 @@
     <string name="summary_useDynamicColors">Stosuje systemowy schemat kolorów do elementów interfejsu aplikacji</string>
     <string name="label_autoEnterPipMode">Automatyczne wejście w tryb pip przy opuszczaniu aplikacji</string>
     <string name="summary_autoEnterPipMode">Automatycznie przełącza odtwarzacz w tryb obrazu w obrazie po opuszczeniu aplikacji</string>
+    <string name="label_cameraSlideInAnimationEnabled">Animacja wsuwania kamery</string>
+    <string name="summary_cameraSlideInAnimationEnabled">Podczas przełączania kamer nowy widok płynnie wsuwa się na ekran z lewej lub prawej strony</string>
     <string name="label_playbackLibrary">Biblioteka odtwarzania</string>
     <string name="summary_playbackLibrary">Możesz zmienić używaną bibliotekę odtwarzania wideo</string>
     <string name="label_vlc_player">Ustawienia VLC</string>
