@@ -157,6 +157,23 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
 
         this.viewModel.setStreamParams(params);
 
+        this.binding.surfaceViewContainer.setOnSwipeListener(direction -> {
+            if(switchAnimating)
+                return;
+            viewModel.loadAdjacentCamera(direction, camera -> {
+                if(isDestroyed() || switchAnimating)
+                    return;
+                PlayerCameraViewModel.Params newParams = PlayerCameraViewModel.Params.builder()
+                        .url(camera.getCameraInstance().getUrl())
+                        .forceTcpEnabled(settings.isPreferUseRtspTcpEnabled())
+                        .cameraId(camera.getCameraInstance().getId())
+                        .build();
+                if(newParams.equals(viewModel.getStreamParams()))
+                    return;
+                animateSwitch(direction, () -> switchStream(newParams));
+            });
+        });
+
         playerControlVisibilityTimer.start();
         lastScreenOrientation = getResources().getConfiguration().orientation;
 
@@ -310,7 +327,48 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
             finish();
             return;
         }
+        switchStream(params);
+        probablyBackstackLost = false;
+    }
 
+    private boolean switchAnimating = false;
+    private Runnable pendingSlideIn;
+
+    /**
+     * Shows the loading spinner and slides the current stream out. The new stream is loaded while the
+     * player stays hidden, and slides in from the opposite side once it starts rendering (or fails).
+     */
+    private void animateSwitch(int direction, Runnable switchAction) {
+        final View view = binding.surfaceViewContainer;
+        final float distance = view.getWidth() * direction;
+        switchAnimating = true;
+        binding.bReconnect.setVisibility(View.INVISIBLE);
+        binding.pBLoading.setVisibility(View.VISIBLE);
+        view.animate()
+                .translationX(-distance)
+                .alpha(0f)
+                .setDuration(150)
+                .withEndAction(() -> {
+                    view.setTranslationX(distance);
+                    pendingSlideIn = () -> view.animate()
+                            .translationX(0f)
+                            .alpha(1f)
+                            .setDuration(150)
+                            .withEndAction(() -> switchAnimating = false)
+                            .start();
+                    switchAction.run();
+                })
+                .start();
+    }
+
+    private void runPendingSlideIn() {
+        Runnable slideIn = pendingSlideIn;
+        pendingSlideIn = null;
+        if(slideIn != null)
+            slideIn.run();
+    }
+
+    private void switchStream(PlayerCameraViewModel.Params params) {
         binding.surfaceViewContainer.resetTransformation();
         binding.surfaceView.resetTransformations();
         binding.surfaceView.clearSurface();
@@ -321,7 +379,6 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         }
         startPlaying();
         takePicture();
-        probablyBackstackLost = false;
     }
 
     @Override
@@ -359,6 +416,11 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
     protected void onStop() {
         super.onStop();
         isVisible = false;
+        binding.surfaceViewContainer.animate().cancel();
+        binding.surfaceViewContainer.setTranslationX(0f);
+        binding.surfaceViewContainer.setAlpha(1f);
+        switchAnimating = false;
+        pendingSlideIn = null;
         player.stop();
         if(orientationListener != null)
             orientationListener.disable();
@@ -547,6 +609,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
 
     private void onPlayingStarted() {
         binding.pBLoading.setVisibility(View.INVISIBLE);
+        runPendingSlideIn();
         updateVolumeButtonIcon();
         updatePictureInPicturesParams();
     }
@@ -572,6 +635,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         }
         binding.pBLoading.setVisibility(View.INVISIBLE);
         binding.bReconnect.setVisibility(View.VISIBLE);
+        runPendingSlideIn();
         if(isNetworkAvailable()) {
             return;
         }

@@ -82,6 +82,22 @@ public class PlayerViewContainer extends FrameLayout {
             }
 
             @Override
+            public boolean onFling(MotionEvent e1, @NonNull MotionEvent e2, float velocityX, float velocityY) {
+                if(onSwipeListener == null || e1 == null || mScaleDetector.isInProgress())
+                    return false;
+                if(Math.abs(presentScale - DEFAULT_SCALE) > 0.05f)
+                    return false;
+                float minDistance = 100 * getResources().getDisplayMetrics().density;
+                float dx = e2.getX() - e1.getX();
+                float dy = e2.getY() - e1.getY();
+                if(Math.abs(dx) > minDistance && Math.abs(dx) > Math.abs(dy) * 2) {
+                    onSwipeListener.onSwipe(dx < 0 ? 1 : -1);
+                    return true;
+                }
+                return false;
+            }
+
+            @Override
             public boolean onScroll(@NonNull MotionEvent e1, @NonNull MotionEvent e2, float distanceX, float distanceY) {
                 matrix.postTranslate(-distanceX, -distanceY);
                 matrixUpdated = true;
@@ -126,6 +142,17 @@ public class PlayerViewContainer extends FrameLayout {
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         resetTransformation();
+    }
+
+    public interface OnSwipeListener {
+        /** @param direction 1 for next (swipe left), -1 for previous (swipe right) */
+        void onSwipe(int direction);
+    }
+
+    private OnSwipeListener onSwipeListener;
+
+    public void setOnSwipeListener(OnSwipeListener listener) {
+        this.onSwipeListener = listener;
     }
 
     public void setPlayerView(PlayerSurfaceView playerView) {
