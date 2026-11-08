@@ -64,6 +64,12 @@
             app:summary="@string/summary_autoEnterPipMode"
             app:defaultValue="true"
             app:widgetLayout="@layout/pref_m3_checkbox"/>
+        <pl.huczeq.rtspplayer.ui.views.materialpreferences.SwitchPreferenceMaterial
+            app:key="cameraSlideInAnimationEnabled"
+            app:title="@string/label_cameraSlideInAnimationEnabled"
+            app:summary="@string/summary_cameraSlideInAnimationEnabled"
+            app:iconSpaceReserved="false"
+            app:defaultValue="false"/>
     </PreferenceCategory>
 
     <PreferenceCategory

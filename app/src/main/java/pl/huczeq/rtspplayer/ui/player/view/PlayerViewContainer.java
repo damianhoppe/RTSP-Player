@@ -4,7 +4,6 @@ import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Matrix;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
@@ -12,7 +11,6 @@ import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.view.animation.Transformation;
 import android.widget.FrameLayout;
-import android.widget.OverScroller;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -25,7 +23,14 @@ public class PlayerViewContainer extends FrameLayout {
     private ScaleGestureDetector mScaleDetector;
     private GestureDetector gestureDetector;
 
-    private ValueAnimator valueAnimator;
+    private ValueAnimator scaleAnimator;
+    private ValueAnimator translationAnimator;
+    private boolean hasScalingGestureOccurredDuringTouchInteraction = false;
+    private boolean swipeGestureAvailable = true;
+    int swipeDirection = 0;// 0 -NONE, <0 - LEFT, >0 - RIGHT
+    private boolean isClampingEnabled = true;
+
+    float swipeThreshold = 300;
     private View playerView;
     public static final float MIN_SCALE = 0.5f;
     public static final float MAX_SCALE = 5f;
@@ -37,6 +42,10 @@ public class PlayerViewContainer extends FrameLayout {
 
     float pointScaleOffset = 0.15f;
     float pointScale = 1f;
+
+    private static final float MIN_EDGE_RESISTANCE = 0.15f;
+
+    private float edgeDragX = 0f;
 
     public PlayerViewContainer(@NonNull Context context) {
         super(context);
@@ -63,6 +72,7 @@ public class PlayerViewContainer extends FrameLayout {
         setStaticTransformationsEnabled(true);
         this.mScaleDetector = new ScaleGestureDetector(getContext(), new ScaleListener());
         this.gestureDetector = new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener(){
+
             @Override
             public boolean onSingleTapConfirmed(@NonNull MotionEvent e) {
                 performClick();
@@ -72,39 +82,92 @@ public class PlayerViewContainer extends FrameLayout {
             @Override
             public boolean onDown(@NonNull MotionEvent e) {
                 clearScaleAnimation();
+                clearTranslationAnimation();
                 return true;
             }
 
             @Override
             public boolean onDoubleTapEvent(@NonNull MotionEvent e) {
-                resetTransformationWithAnimation();
-                return true;
-            }
+                if(e.getActionMasked() == MotionEvent.ACTION_DOWN)
+                    return false;
 
-            @Override
-            public boolean onFling(MotionEvent e1, @NonNull MotionEvent e2, float velocityX, float velocityY) {
-                if(onSwipeListener == null || e1 == null || mScaleDetector.isInProgress())
+                if(mScaleDetector.isInProgress())
                     return false;
-                if(Math.abs(presentScale - DEFAULT_SCALE) > 0.05f)
-                    return false;
-                float minDistance = 100 * getResources().getDisplayMetrics().density;
-                float dx = e2.getX() - e1.getX();
-                float dy = e2.getY() - e1.getY();
-                if(Math.abs(dx) > minDistance && Math.abs(dx) > Math.abs(dy) * 2) {
-                    onSwipeListener.onSwipe(dx < 0 ? 1 : -1);
+
+                if(e.getActionMasked() == MotionEvent.ACTION_UP) {
+                    isClampingEnabled = true;
+                    resetScaleWithAnimation();
                     return true;
                 }
+
                 return false;
+            }
+
+            private float easeOutCubic(float t) {
+                return 1f - (float) Math.pow(1f - t, 3);
+            }
+
+            private float getEdgeResistance(float drag) {
+                float t = Math.min(1f, drag / swipeThreshold);
+
+                float eased = 1f - easeOutCubic(t);
+
+                return MIN_EDGE_RESISTANCE + (1f - MIN_EDGE_RESISTANCE) * eased;
             }
 
             @Override
             public boolean onScroll(@NonNull MotionEvent e1, @NonNull MotionEvent e2, float distanceX, float distanceY) {
-                matrix.postTranslate(-distanceX, -distanceY);
+                matrix.getValues(matrixValue);
+
+                float currentX = matrixValue[Matrix.MTRANS_X];
+                float newX = currentX - distanceX;
+                float overflow = -getTranslationXOverflow(newX);
+
+                float effectiveDistanceX = distanceX;
+                if(!isClampingEnabled && isTranslationXAtLimit() && overflow != 0) {
+                    edgeDragX += distanceX;
+                    float resistance = getEdgeResistance(Math.abs(edgeDragX));
+                    effectiveDistanceX = distanceX * resistance;
+                }else {
+                    edgeDragX = 0f;
+                }
+
+                matrix.postTranslate(-effectiveDistanceX, -distanceY);
                 matrixUpdated = true;
-                return true;
+
+                if(overflow == 0 && !isTranslationXAtLimit()) {
+                    isClampingEnabled = true;
+                    edgeDragX = 0.f;
+                }
+
+                if(!swipeGestureAvailable) {
+                    return false;
+                }
+
+                int currentSwipeDirection;
+
+                if(mScaleDetector.isInProgress()) {
+                    currentSwipeDirection = 0;
+                    hasScalingGestureOccurredDuringTouchInteraction = true;
+                }else {
+                    currentSwipeDirection = (edgeDragX > swipeThreshold * 0.5f) ?
+                            1
+                            : (edgeDragX < -(swipeThreshold * 0.5f)) ?
+                                -1 : 0;
+                }
+
+                if(currentSwipeDirection != swipeDirection) {
+                    if(currentSwipeDirection != 0)
+                        performHapticFeedback(HapticFeedbackConstants.GESTURE_THRESHOLD_ACTIVATE);
+                    else
+                        performHapticFeedback(HapticFeedbackConstants.GESTURE_THRESHOLD_DEACTIVATE);
+                    swipeDirection = currentSwipeDirection;
+                }
+
+                return false;
             }
         });
-        resetTransformation();
+        reset();
         setHapticFeedbackEnabled(true);
     }
 
@@ -119,11 +182,33 @@ public class PlayerViewContainer extends FrameLayout {
 
     @Override
     public boolean onTouchEvent(MotionEvent motionEvent) {
+        if(motionEvent.getActionMasked() == MotionEvent.ACTION_DOWN && motionEvent.getPointerCount() == 1) {
+            if(isTranslationXAtLimit()) {
+                isClampingEnabled = false;
+            }
+        }
         gestureDetector.onTouchEvent(motionEvent);
         mScaleDetector.onTouchEvent(motionEvent);
 
+        if(motionEvent.getActionMasked() == MotionEvent.ACTION_UP) {
+            edgeDragX = 0.0f;
+            matrix.getValues(matrixValue);
+            float x = calculateClampedXTranslation(matrixValue[Matrix.MTRANS_X]);
+            if(swipeDirection != 0 && !hasScalingGestureOccurredDuringTouchInteraction) {
+                onSwipeListener.onSwipe(swipeDirection < 0 ? -1 : 1);
+                swipeDirection = 0;
+                matrixUpdated = false;
+            }
+            if(x != 0) {
+                animateToX(matrixValue[Matrix.MTRANS_X] + x);
+                matrixUpdated = true;
+                isClampingEnabled = true;
+            }
+            hasScalingGestureOccurredDuringTouchInteraction = false;
+        }
+
         if(matrixUpdated) {
-            clampDxDy();
+            clampMatrixTranslation(isClampingEnabled || !swipeGestureAvailable, true);
             applyTransformation();
         }
         return true;
@@ -141,7 +226,64 @@ public class PlayerViewContainer extends FrameLayout {
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        resetTransformation();
+        swipeThreshold = 300 * getResources().getDisplayMetrics().density;
+        reset();
+    }
+
+    private boolean isTranslationXAtLimit() {
+        return isTranslationXAtLimit(5f);
+    }
+
+    private boolean isTranslationXAtLimit(float tolerance) {
+        matrix.getValues(matrixValue);
+
+        float translationX = matrixValue[Matrix.MTRANS_X];
+
+        float leftOffset = (getMeasuredWidth() - playerView.getMeasuredWidth()) / 2f;
+
+        float center = (getMeasuredWidth()
+                - playerView.getMeasuredWidth() * presentScale) / 2f - leftOffset;
+
+        float min = center;
+        float max = center;
+
+        if(playerView.getMeasuredWidth() * presentScale > getMeasuredWidth()) {
+            float space = (playerView.getMeasuredWidth() * presentScale
+                    - getMeasuredWidth()) / 2f;
+
+            min -= space;
+            max += space;
+        }
+
+        return translationX <= min + tolerance || translationX >= max - tolerance;
+    }
+
+    private float getTranslationXOverflow(float translationX) {
+        float leftOffset = (getMeasuredWidth() - playerView.getMeasuredWidth()) / 2f;
+
+        float center = (getMeasuredWidth()
+                - playerView.getMeasuredWidth() * presentScale) / 2f - leftOffset;
+
+        float min = center;
+        float max = center;
+
+        if(playerView.getMeasuredWidth() * presentScale > getMeasuredWidth()) {
+            float space = (playerView.getMeasuredWidth() * presentScale
+                    - getMeasuredWidth()) / 2f;
+
+            min -= space;
+            max += space;
+        }
+
+        if(translationX < min) {
+            return translationX - min;
+        }
+
+        if(translationX > max) {
+            return translationX - max;
+        }
+
+        return 0f;
     }
 
     public interface OnSwipeListener {
@@ -157,43 +299,85 @@ public class PlayerViewContainer extends FrameLayout {
 
     public void setPlayerView(PlayerSurfaceView playerView) {
         this.playerView = playerView;
-        resetTransformation();
+        reset();
     }
 
-    public void resetTransformation() {
+    public void reset() {
         this.matrix = new Matrix();
         this.presentScale = DEFAULT_SCALE;
         this.matrix.setScale(presentScale, presentScale,0,0);
+
+        this.edgeDragX = 0;
+        this.hasScalingGestureOccurredDuringTouchInteraction = false;
+        this.swipeDirection = 0;
+        this.isClampingEnabled = true;
+
+        clearScaleAnimation();
+        clearTranslationAnimation();
+
         if(playerView != null)
             applyTransformation();
     }
 
-    public void resetTransformationWithAnimation() {
+    public void resetScaleWithAnimation() {
         animateToScale(1f);
     }
 
+    public void resetTranslationWithAnimation() {
+        matrix.getValues(matrixValue);
+        float x = calculateClampedXTranslation(matrixValue[Matrix.MTRANS_X]);
+        animateToX(matrixValue[Matrix.MTRANS_X] + x);
+    }
+
     private void clearScaleAnimation() {
-        if(valueAnimator != null)
-            valueAnimator.pause();
+        if(scaleAnimator != null)
+            scaleAnimator.pause();
     }
 
     public void animateToScale(float scale) {
         clearScaleAnimation();
 
-        valueAnimator = ValueAnimator.ofFloat(presentScale, scale);
-        valueAnimator.setDuration(200);
-        valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+        scaleAnimator = ValueAnimator.ofFloat(presentScale, scale);
+        scaleAnimator.setDuration(200);
+        scaleAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
                 float newScale = (float) animation.getAnimatedValue();
                 float scaleFactor = newScale/presentScale;
                 presentScale = (float) animation.getAnimatedValue();
                 matrix.postScale(scaleFactor, scaleFactor, playerView.getMeasuredWidth()/2f, playerView.getMeasuredHeight()/2f);
-                clampDxDy();
+                clampMatrixTranslation(isClampingEnabled || !swipeGestureAvailable, true);
                 applyTransformation();
             }
         });
-        valueAnimator.start();
+        scaleAnimator.start();
+    }
+
+    private void clearTranslationAnimation() {
+        if(translationAnimator != null)
+            translationAnimator.pause();
+    }
+
+    private void animateToX(float x) {
+        clearTranslationAnimation();
+
+        translationAnimator = ValueAnimator.ofFloat(matrixValue[Matrix.MTRANS_X], x);
+        translationAnimator.setDuration(200);
+        translationAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                float newX = (float) animation.getAnimatedValue();
+
+                matrix.getValues(matrixValue);
+
+                float currentX = matrixValue[Matrix.MTRANS_X];
+                matrix.postTranslate(newX - currentX, 0);
+                clampMatrixTranslation(false, true);
+
+                applyTransformation();
+            }
+        });
+        translationAnimator.start();
     }
 
     private float getFittedTranslation(float mTranslate, float vSize, float cSize, float scale, float offset) {
@@ -205,39 +389,48 @@ public class PlayerViewContainer extends FrameLayout {
             minimumTranslation -= space;
             maximumTranslation += space;
         }
-        if (mTranslate < minimumTranslation)
+        if(mTranslate < minimumTranslation)
             return -mTranslate + minimumTranslation;
-        if (mTranslate > maximumTranslation)
+        if(mTranslate > maximumTranslation)
             return -mTranslate + maximumTranslation;
         return 0f;
     }
 
-    private void clampDxDy() {
-        matrix.getValues(matrixValue);
-        float dx = matrixValue[Matrix.MTRANS_X];
-        float dy = matrixValue[Matrix.MTRANS_Y];
-
-        float topOffset = (getMeasuredHeight() - playerView.getMeasuredHeight()) / 2f;
+    private float calculateClampedXTranslation(float presentXTranslation) {
         float leftOffset = (getMeasuredWidth() - playerView.getMeasuredWidth()) / 2f;
+        return getFittedTranslation(presentXTranslation, getMeasuredWidth(), playerView.getMeasuredWidth(), presentScale, leftOffset);
+    }
 
-        dx = getFittedTranslation(dx, getMeasuredWidth(), playerView.getMeasuredWidth(), presentScale, leftOffset);
-        dy = getFittedTranslation(dy, getMeasuredHeight(), playerView.getMeasuredHeight(), presentScale, topOffset);
+    private float calculateClampedYTranslation(float presentYTranslation) {
+        float topOffset = (getMeasuredHeight() - playerView.getMeasuredHeight()) / 2f;
+        return getFittedTranslation(presentYTranslation, getMeasuredHeight(), playerView.getMeasuredHeight(), presentScale, topOffset);
+    }
+
+    private void clampMatrixTranslation(boolean clampX, boolean clampY) {
+        matrix.getValues(matrixValue);
+
+        float dx = 0, dy = 0;
+
+        if(clampX) {
+            dx = calculateClampedXTranslation(matrixValue[Matrix.MTRANS_X]);
+        }
+
+        if(clampY) {
+            dy = calculateClampedYTranslation(matrixValue[Matrix.MTRANS_Y]);
+        }
+
         matrix.postTranslate(dx, dy);
     }
 
     public class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
-
-        private boolean changed = false;
         private boolean isInPoint = false;
 
         @Override
         public boolean onScaleBegin(@NonNull ScaleGestureDetector detector) {
-
             this.isInPoint = presentScale >= pointScale-pointScaleOffset && presentScale <= pointScale+pointScaleOffset;
             if(this.isInPoint) {
                 performHapticFeedback(HapticFeedbackConstants.GESTURE_START);
             }
-            this.changed = false;
             return super.onScaleBegin(detector);
         }
 
@@ -268,7 +461,6 @@ public class PlayerViewContainer extends FrameLayout {
             boolean presentInPoint = presentScale >= pointScale-pointScaleOffset && presentScale <= pointScale+pointScaleOffset;
             if(previousInPoint != presentInPoint) {
                 performHapticFeedback(presentInPoint? HapticFeedbackConstants.GESTURE_START : HapticFeedbackConstants.GESTURE_END);
-                this.changed = true;
             }
             return true;
         }
@@ -278,13 +470,16 @@ public class PlayerViewContainer extends FrameLayout {
             super.onScaleEnd(detector);
             if(presentScale >= pointScale-pointScaleOffset && presentScale <= pointScale+pointScaleOffset) {
                 animateToScale(pointScale);
-//                if(!changed)
-                    performHapticFeedback(HapticFeedbackConstants.CONFIRM);
+                performHapticFeedback(HapticFeedbackConstants.CONFIRM);
             }
         }
     }
 
     private void applyTransformation() {
         this.playerView.invalidate();
+    }
+
+    public void setSwipeGestureAvailable(boolean available) {
+        this.swipeGestureAvailable = available;
     }
 }

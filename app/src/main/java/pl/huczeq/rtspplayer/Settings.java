@@ -41,6 +41,7 @@ public class Settings {
         settingsToImport.put(Settings.KEY.MUTE_AUDIO_DEFAULT_ENABLED, Boolean.class);
         settingsToImport.put(Settings.KEY.PREFER_USE_RTSP_TCP_ENABLED, Boolean.class);
         settingsToImport.put(Settings.KEY.AUTO_ENTER_PIP_MODE_ENABLED, Boolean.class);
+        settingsToImport.put(Settings.KEY.CAMERA_SLIDE_IN_ANIMATION_ENABLED, Boolean.class);
 
 
         settings.editSettings();
@@ -87,6 +88,7 @@ public class Settings {
         public static final String MUTE_AUDIO_DEFAULT_ENABLED = "muteAutoDefaultEnabled";
         public static final String PREFER_USE_RTSP_TCP_ENABLED = "preferUseRtspTcpEnabled";
         public static final String AUTO_ENTER_PIP_MODE_ENABLED = "autoEnterPipModeEnabled";
+        public static final String CAMERA_SLIDE_IN_ANIMATION_ENABLED = "cameraSlideInAnimationEnabled";
 
         public static boolean isRelatedToPlayerSetting(String key) {
             List<String> keysRelatedToPlayerSetting = List.of(PLAYBACK_LIBRARY, CACHING_BUFFER_SIZE, HARDWARE_ACCELERATION_ENABLED, PREFER_USE_RTSP_TCP_ENABLED);
@@ -223,6 +225,10 @@ public class Settings {
 
     public boolean isEnabledHardwareAcceleration() {
         return this.settings.getBoolean(KEY.HARDWARE_ACCELERATION_ENABLED, false);
+    }
+
+    public boolean isCameraSlideInAnimationEnabled() {
+        return settings.getBoolean(KEY.CAMERA_SLIDE_IN_ANIMATION_ENABLED, false);
     }
 
     public SharedPreferences getSharedPreferences() {

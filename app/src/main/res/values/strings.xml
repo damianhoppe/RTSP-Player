@@ -137,6 +137,8 @@
     <string name="summary_useDynamicColors">Applies the system color scheme to the application interface elements</string>
     <string name="label_autoEnterPipMode">Auto enter in pip mode when leaving the app</string>
     <string name="summary_autoEnterPipMode">Automatically switches the player to picture in picture mode when leaving the application</string>
+    <string name="label_cameraSlideInAnimationEnabled">Camera Slide-In Animation</string>
+    <string name="summary_cameraSlideInAnimationEnabled">The new camera view smoothly slides in from the left or right side of the screen when switching cameras</string>
     <string name="label_playbackLibrary">Playback library</string>
     <string name="summary_playbackLibrary">You can change which video playback library is used</string>
     <string name="label_vlc_player">VLC Player settings</string>

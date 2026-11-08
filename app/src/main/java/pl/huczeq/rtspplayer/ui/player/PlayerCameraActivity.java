@@ -25,7 +25,9 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Process;
 import android.util.DisplayMetrics;
+import android.util.Pair;
 import android.util.Rational;
+import android.view.HapticFeedbackConstants;
 import android.view.OrientationEventListener;
 import android.view.View;
 import android.view.WindowInsets;
@@ -36,6 +38,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.databinding.DataBindingUtil;
+import androidx.lifecycle.Observer;
 
 import com.google.common.base.Strings;
 
@@ -49,8 +52,10 @@ import pl.huczeq.rtspplayer.BuildConfig;
 import pl.huczeq.rtspplayer.R;
 import pl.huczeq.rtspplayer.Settings;
 import pl.huczeq.rtspplayer.RtspPlayerProvider;
+import pl.huczeq.rtspplayer.data.model.Camera;
 import pl.huczeq.rtspplayer.databinding.ActivityPreviewCameraSurfaceviewGlBinding;
 import pl.huczeq.rtspplayer.ui.BaseActivity;
+import pl.huczeq.rtspplayer.ui.player.view.PlayerSurfaceView;
 import pl.huczeq.rtspplayer.ui.player.view.renderer.OnImageCapturedListener;
 import pl.huczeq.rtspplayer.ui.player.view.renderer.PlayerRendererCallback;
 import pl.huczeq.rtspplayer.util.Timer;
@@ -89,6 +94,9 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
     private int lastScreenOrientation;
     private boolean unknownPlayerRect = true;
     private boolean isVisible = false;
+
+    private boolean switchAnimating = false;
+    private Runnable pendingSlideIn;
 
     private Timer playerControlVisibilityTimer = new Timer(3000, new Timer.Callback() {
         @Override
@@ -163,6 +171,11 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
             viewModel.loadAdjacentCamera(direction, camera -> {
                 if(isDestroyed() || switchAnimating)
                     return;
+                if(camera == null) {
+                    binding.surfaceViewContainer.resetTranslationWithAnimation();
+                    binding.surfaceViewContainer.performHapticFeedback(HapticFeedbackConstants.REJECT);
+                    return;
+                }
                 PlayerCameraViewModel.Params newParams = PlayerCameraViewModel.Params.builder()
                         .url(camera.getCameraInstance().getUrl())
                         .forceTcpEnabled(settings.isPreferUseRtspTcpEnabled())
@@ -284,6 +297,16 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
                     getPackageManager().hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)?
                         View.VISIBLE : View.INVISIBLE
                 );
+
+        this.viewModel.getAdjacentCamera().observe(this, new Observer<Pair<Camera, Camera>>() {
+            @Override
+            public void onChanged(Pair<Camera, Camera> cameraPair) {
+                if(cameraPair != null) {
+                    binding.surfaceViewContainer.setSwipeGestureAvailable(cameraPair.first != null && cameraPair.second != null);
+                    viewModel.getAdjacentCamera().removeObserver(this);
+                }
+            }
+        });
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -331,15 +354,14 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         probablyBackstackLost = false;
     }
 
-    private boolean switchAnimating = false;
-    private Runnable pendingSlideIn;
-
     /**
-     * Shows the loading spinner and slides the current stream out. The new stream is loaded while the
-     * player stays hidden, and slides in from the opposite side once it starts rendering (or fails).
+     * Shows the loading spinner and slides the current stream out.
+     * The previous camera preview is cleared using view.clearSurface() and remains black until rendering starts.
+     * If the slide-in animation is enabled, the new preview slides in once rendering starts;
+     * otherwise, playback resumes normally with the preview immediately visible.
      */
     private void animateSwitch(int direction, Runnable switchAction) {
-        final View view = binding.surfaceViewContainer;
+        final PlayerSurfaceView view = binding.surfaceView;
         final float distance = view.getWidth() * direction;
         switchAnimating = true;
         binding.bReconnect.setVisibility(View.INVISIBLE);
@@ -349,14 +371,22 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
                 .alpha(0f)
                 .setDuration(150)
                 .withEndAction(() -> {
-                    view.setTranslationX(distance);
-                    pendingSlideIn = () -> view.animate()
-                            .translationX(0f)
-                            .alpha(1f)
-                            .setDuration(150)
-                            .withEndAction(() -> switchAnimating = false)
-                            .start();
-                    switchAction.run();
+                    view.clearSurface();
+                    if(settings.isCameraSlideInAnimationEnabled()) {
+                        view.setTranslationX(distance);
+                        pendingSlideIn = () -> view.animate()
+                                .translationX(0f)
+                                .alpha(1f)
+                                .setDuration(150)
+                                .withEndAction(() -> switchAnimating = false)
+                                .start();
+                        switchAction.run();
+                    }else {
+                        switchAction.run();
+                        view.setTranslationX(0);
+                        view.setAlpha(1f);
+                        switchAnimating = false;
+                    }
                 })
                 .start();
     }
@@ -369,9 +399,8 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
     }
 
     private void switchStream(PlayerCameraViewModel.Params params) {
-        binding.surfaceViewContainer.resetTransformation();
+        binding.surfaceViewContainer.reset();
         binding.surfaceView.resetTransformations();
-        binding.surfaceView.clearSurface();
 
         if(!params.equals(viewModel.getStreamParams()) || !player.isPlaying()) {
             this.viewModel.setStreamParams(params);
@@ -463,7 +492,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         lastScreenOrientation = newConfig.orientation;
 
         binding.surfaceView.resetTransformations();
-        binding.surfaceViewContainer.resetTransformation();
+        binding.surfaceViewContainer.reset();
     }
 
     @Override
@@ -560,7 +589,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
     @Override
     protected void onUserLeaveHint() {
         super.onUserLeaveHint();
-        binding.surfaceViewContainer.resetTransformationWithAnimation();
+        binding.surfaceViewContainer.resetScaleWithAnimation();
         if (player.isPlaying() && settings.autoEnterPipModeEnabled() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
             enterPlayerIntoPictureInPictureMode();
         }
