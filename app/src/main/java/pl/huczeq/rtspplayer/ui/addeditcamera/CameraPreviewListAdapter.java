@@ -17,6 +17,7 @@ import java.util.List;
 
 import pl.huczeq.rtspplayer.R;
 import pl.huczeq.rtspplayer.data.model.CameraInstance;
+import pl.huczeq.rtspplayer.util.UrlUtils;
 import pl.huczeq.rtspplayer.util.interfaces.IOnListItemSelected;
 
 public class CameraPreviewListAdapter extends RecyclerView.Adapter<CameraPreviewListAdapter.ViewHolder> {
@@ -52,7 +53,7 @@ public class CameraPreviewListAdapter extends RecyclerView.Adapter<CameraPreview
     public void onBindViewHolder(@NonNull @NotNull ViewHolder holder, int position) {
         CameraInstance cameraInstance = cameraInstances.get(position);
         holder.tvName.setText(Strings.isNullOrEmpty(cameraInstance.getName())? String.valueOf(position + 1) : cameraInstance.getName());
-        holder.tvUrl.setText(cameraInstance.getUrl());
+        holder.tvUrl.setText(UrlUtils.maskCredentials(cameraInstance.getUrl()));
     }
 
     @Override

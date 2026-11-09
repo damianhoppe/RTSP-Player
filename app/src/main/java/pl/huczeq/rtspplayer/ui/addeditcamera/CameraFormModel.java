@@ -20,6 +20,7 @@ import pl.huczeq.rtspplayer.data.model.urltemplates.UrlTemplate;
 import pl.huczeq.rtspplayer.domain.urlgenerator.UrlComponentsProvider;
 import pl.huczeq.rtspplayer.domain.urlgenerator.UrlGenerator;
 import pl.huczeq.rtspplayer.domain.model.CameraGroupModel;
+import pl.huczeq.rtspplayer.util.UrlUtils;
 import pl.huczeq.rtspplayer.util.validation.FieldRules;
 import pl.huczeq.rtspplayer.util.validation.RuleWithValueTransform;
 import pl.huczeq.rtspplayer.util.validation.interfaces.BasicCondition;
@@ -188,6 +189,7 @@ public class CameraFormModel extends BaseObservable {
 
     private boolean advancedVisible;
     private boolean formVisible;
+    private boolean maskCredentialsInUrl = true;
     private boolean channelInputVisibile;
     private boolean streamTypeInputVisibile;
     private boolean serverUrlInputVisibile;
@@ -274,7 +276,7 @@ public class CameraFormModel extends BaseObservable {
             return;
         if(!isValidUrlTemplateForm())
             return;
-        setUrlWithoutResetingUrlTemplate(UrlGenerator.generate(modelSelected.getUrlTemplate(), this.fieldProvider));
+        setUrlWithoutResettingUrlTemplate(UrlGenerator.generate(modelSelected.getUrlTemplate(), this.fieldProvider));
     }
 
     private void updateAdditionalFieldsVisibility() {
@@ -404,21 +406,30 @@ public class CameraFormModel extends BaseObservable {
         this.streamType.setValue(streamType);
     }
 
+    public void setMaskCredentialsInUrl(boolean enabled) {
+        if(enabled == this.maskCredentialsInUrl)
+            return;
+        this.maskCredentialsInUrl = enabled;
+        notifyPropertyChanged(BR.url);
+    }
+
     @Bindable
     public String getUrl() {
+        if(maskCredentialsInUrl)
+            return url != null ? UrlUtils.maskCredentials(url) : url;
         return url;
     }
 
-    public void setUrlWithoutResetingUrlTemplate(String url) {
+    public void setUrlWithoutResettingUrlTemplate(String url) {
         this.url = url;
         notifyPropertyChanged(BR.url);
     }
 
     public void setUrl(String url) {
-        if(url != null && url.equals(this.url) ||
+        if(maskCredentialsInUrl || url != null && url.equals(this.url) ||
                 url == null && this.url == null)
             return;
-        setUrlWithoutResetingUrlTemplate(url);
+        setUrlWithoutResettingUrlTemplate(url);
         setProducer(null);
         setModel(null);
     }
@@ -506,7 +517,7 @@ public class CameraFormModel extends BaseObservable {
         }catch (NumberFormatException e) {
             setStreamType(UrlTemplate.StreamType.MAIN_STREAM);
         }
-        setUrlWithoutResetingUrlTemplate(cameraPattern.getUrl());
+        setUrlWithoutResettingUrlTemplate(cameraPattern.getUrl());
     }
 
     public void clearNameWithoutErrorMessage() {

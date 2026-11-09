@@ -159,6 +159,18 @@ public abstract class BaseCameraFormActivity extends BaseActivity implements Cam
                 }
             }
         });
+
+        this.binding.etUrl.setOnFocusChangeListener((view, hasFocus) -> {
+            int selection = binding.etUrl.getSelectionStart();
+
+            viewModel.cameraFormModel.setMaskCredentialsInUrl(!hasFocus);
+
+            if(hasFocus) {
+                this.binding.etUrl.post(() -> {
+                    this.binding.etUrl.setSelection(selection);
+                });
+            }
+        });
     }
 
     protected abstract CameraFormViewModel buildViewModel();
