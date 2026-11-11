@@ -2,14 +2,12 @@ package pl.huczeq.rtspplayer.ui.cameralist;
 
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.content.res.AppCompatResources;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.content.res.ResourcesCompat;
 import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -28,9 +26,11 @@ import pl.huczeq.rtspplayer.data.model.Camera;
 import pl.huczeq.rtspplayer.data.repositories.base.CameraThumbnailRepository;
 import pl.huczeq.rtspplayer.databinding.ActivityMainBinding;
 import pl.huczeq.rtspplayer.ui.BaseActivity;
+import pl.huczeq.rtspplayer.util.AppForegroundDetector;
 import pl.huczeq.rtspplayer.util.interfaces.IOnMenuItemListSelected;
 import pl.huczeq.rtspplayer.R;
 import pl.huczeq.rtspplayer.util.interfaces.IOnListItemSelected;
+import pl.huczeq.rtspplayer.util.Event;
 
 @AndroidEntryPoint
 public class CameraListActivity extends BaseActivity implements IOnListItemSelected<Camera>, IOnMenuItemListSelected<Camera> {
@@ -39,11 +39,15 @@ public class CameraListActivity extends BaseActivity implements IOnListItemSelec
     public AppNavigator navigator;
     @Inject
     public CameraThumbnailRepository cameraThumbnailRepository;
+    @Inject
+    public AppForegroundDetector appForegroundDetector;
 
     private CameraListAdapter cameraListAdapter;
 
     private CameraListViewModel viewModel;
     private ActivityMainBinding binding;
+
+    private boolean waitingForAppStartCamera = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,6 +72,7 @@ public class CameraListActivity extends BaseActivity implements IOnListItemSelec
                 cameraListAdapter.updateDataSet(cameras);
             }
         });
+
         this.viewModel.getThumbnailsUpdatedList().observe(this, new Observer<LinkedList<String>>() {
             @Override
             public void onChanged(LinkedList<String> thumbnailsUpdated) {
@@ -88,6 +93,41 @@ public class CameraListActivity extends BaseActivity implements IOnListItemSelec
                 }
             }
         });
+
+        viewModel.getAppStartCamera().observe(this, new Observer<Event<Camera>>() {
+            @Override
+            public void onChanged(Event<Camera> event) {
+                if(!waitingForAppStartCamera)
+                    return;
+
+                if(event == null)
+                    return;
+
+                if(!settings.isAppStartCameraEnabled())
+                    return;
+
+                Camera camera = event.getContentIfNotHandled();
+
+                 if(camera == null || settings.getAppStartCameraId() != camera.getCameraInstance().getId())
+                     return;
+
+                waitingForAppStartCamera = false;
+                navigator.startPlayerCameraActivity(camera);
+            }
+        });
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        if(appForegroundDetector.isReturnedFromBackground() &&
+                settings.isAppStartCameraEnabled() &&
+                settings.isAutoStartCameraOnReturnEnabled()) {
+
+            this.waitingForAppStartCamera = true;
+            viewModel.loadAppStartCamera(settings.getAppStartCameraId());
+        }
     }
 
     @Override

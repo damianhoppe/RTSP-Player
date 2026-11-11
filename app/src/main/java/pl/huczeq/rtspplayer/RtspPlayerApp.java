@@ -7,11 +7,11 @@ import javax.inject.Inject;
 
 import dagger.hilt.android.HiltAndroidApp;
 import io.reactivex.rxjava3.plugins.RxJavaPlugins;
-import pl.huczeq.rtspplayer.data.repositories.base.CameraRepository;
 import pl.huczeq.rtspplayer.data.sources.cache.ThumbnailCache;
 import pl.huczeq.rtspplayer.domain.CameraThumbnailsIntegrityHelper;
 import pl.huczeq.rtspplayer.domain.StartingCameraIntegrityHelper;
 import pl.huczeq.rtspplayer.ui.start.DataMigrationViewModel;
+import pl.huczeq.rtspplayer.util.AppForegroundDetector;
 
 @HiltAndroidApp
 public class RtspPlayerApp extends Application {
@@ -30,9 +30,10 @@ public class RtspPlayerApp extends Application {
     public AppThemeHelper appThemeHelper;
     @Inject
     public CameraThumbnailsIntegrityHelper cameraThumbnailsIntegrityHelper;
-
     @Inject
     public StartingCameraIntegrityHelper startingCameraIntegrityHelper;
+    @Inject
+    public AppForegroundDetector appForegroundDetector;
 
     @Override
     public void onCreate() {
@@ -40,6 +41,7 @@ public class RtspPlayerApp extends Application {
         RxJavaPlugins.setErrorHandler(Throwable::printStackTrace);
         this.appThemeHelper.applyDarkLightTheme();
         this.dataMigrationManager.startProcessing();
+        registerActivityLifecycleCallbacks(appForegroundDetector);
     }
 
     @Override
