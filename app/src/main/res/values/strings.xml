@@ -48,6 +48,10 @@
     <string name="none">None</string>
 
     <!--Activity Preview Camera-->
+    <plurals name="message_reconnect">
+        <item quantity="one">Reconnecting in %1$d second</item>
+        <item quantity="other">Reconnecting in %1$d seconds</item>
+    </plurals>
 
     <!--Activity App Info-->
     <string name="app_info">RTSP Player allows you to play network streams using the libVLC library. The application is licensed under LGPL 3.0 and offers open source code.</string>
@@ -132,7 +136,7 @@
         <item>1</item>
     </string-array>
 
-    <string name="label_reconnect">Reconnect</string>
+    <string name="label_reconnect">Reconnect now</string>
     <string name="error_stream_url_not_passed">Application error, stream url not passed</string>
     <string name="loading_in_progress">Loading in progress</string>
     <string name="label_useDynamicColors">Use a system color scheme</string>
@@ -143,6 +147,10 @@
     <string name="summary_cameraSlideInAnimationEnabled">The new camera view smoothly slides in from the left or right side of the screen when switching cameras</string>
     <string name="label_playbackLibrary">Playback library</string>
     <string name="summary_playbackLibrary">You can change which video playback library is used</string>
+    <string name="label_reconnectTimerEnabled">Automatic reconnection</string>
+    <string name="summary_reconnectTimerEnabled">Automatically reconnect after the specified time when playback stops</string>
+    <string name="label_reconnectTimer">Reconnection delay</string>
+    <string name="summary_reconnectTimer">reconnecting</string>
     <string name="label_vlc_player">VLC Player settings</string>
     <string name="label_advanced">Advanced</string>
     <string name="title_mute_audio_default">Mute audio default</string>

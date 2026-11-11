@@ -42,6 +42,8 @@ public class Settings {
         settingsToImport.put(Settings.KEY.PREFER_USE_RTSP_TCP_ENABLED, Boolean.class);
         settingsToImport.put(Settings.KEY.AUTO_ENTER_PIP_MODE_ENABLED, Boolean.class);
         settingsToImport.put(Settings.KEY.CAMERA_SLIDE_IN_ANIMATION_ENABLED, Boolean.class);
+        settingsToImport.put(Settings.KEY.RECONNECT_TIMER_ENABLED, Boolean.class);
+        settingsToImport.put(Settings.KEY.RECONNECT_TIMER, Integer.class);
 
 
         settings.editSettings();
@@ -89,6 +91,8 @@ public class Settings {
         public static final String PREFER_USE_RTSP_TCP_ENABLED = "preferUseRtspTcpEnabled";
         public static final String AUTO_ENTER_PIP_MODE_ENABLED = "autoEnterPipModeEnabled";
         public static final String CAMERA_SLIDE_IN_ANIMATION_ENABLED = "cameraSlideInAnimationEnabled";
+        public static final String RECONNECT_TIMER_ENABLED = "reconnectTimerEnabled";
+        public static final String RECONNECT_TIMER = "reconnectTimer";
         public static final String AUTO_START_CAMERA_ON_RETURN_ENABLED = "autoStartCameraOnReturnEnabled";
 
         public static boolean isRelatedToPlayerSetting(String key) {
@@ -231,6 +235,14 @@ public class Settings {
     public boolean isCameraSlideInAnimationEnabled() {
         return settings.getBoolean(KEY.CAMERA_SLIDE_IN_ANIMATION_ENABLED, false);
     }
+  
+    public boolean isReconnectTimerEnabled() {
+        return settings.getBoolean(KEY.RECONNECT_TIMER_ENABLED, true);
+    }
+
+    public int getReconnectTimer() {
+        return settings.getInt(KEY.RECONNECT_TIMER, 30);
+    }  
 
     public boolean isAutoStartCameraOnReturnEnabled() {
         return settings.getBoolean(KEY.AUTO_START_CAMERA_ON_RETURN_ENABLED, false);

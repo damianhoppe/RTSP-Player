@@ -49,6 +49,12 @@
     <string name="none">Brak</string>
 
     <!--Activity Preview Camera-->
+    <plurals name="message_reconnect">
+        <item quantity="one">Ponowne połączenie za %1$d sekundę</item>
+        <item quantity="few">Ponowne połączenie za %1$d sekundy</item>
+        <item quantity="many">Ponowne połączenie za %1$d sekund</item>
+        <item quantity="other">Ponowne połączenie za %1$d sekundy</item>
+    </plurals>
 
     <!--Activity App Info-->
     <string name="app_info">RTSP Player pozwala na odtwarzanie strumieni sieciowych wykorzystując bibliotekę libVLC. Aplikacja jest objęta licencją LGPL 3.0 oraz oferuje otwarty kod źródłowy.</string>
@@ -112,7 +118,7 @@
         <item>Zablokowany</item>
     </string-array>
 
-    <string name="label_reconnect">Reconnect</string>
+    <string name="label_reconnect">Ponów połączenie teraz</string>
     <string name="error_stream_url_not_passed">Błąd aplikacji, nie przekazano adresu URL strumienia</string>
     <string name="loading_in_progress">Trwa ładowanie</string>
     <string name="label_useDynamicColors">Użyj systemowego schematu kolorów</string>
@@ -123,6 +129,10 @@
     <string name="summary_cameraSlideInAnimationEnabled">Podczas przełączania kamer nowy widok płynnie wsuwa się na ekran z lewej lub prawej strony</string>
     <string name="label_playbackLibrary">Biblioteka odtwarzania</string>
     <string name="summary_playbackLibrary">Możesz zmienić używaną bibliotekę odtwarzania wideo</string>
+    <string name="label_reconnectTimerEnabled">Automatyczne ponowne połączenie</string>
+    <string name="summary_reconnectTimerEnabled">Automatycznie nawiąż ponowne połączenie po określonym czasie od zatrzymania odtwarzania</string>
+    <string name="label_reconnectTimer">Czas do ponownego połączenia</string>
+    <string name="summary_reconnectTimer">Czas oczekiwania przed automatycznym ponownym połączeniem</string>
     <string name="label_vlc_player">Ustawienia VLC</string>
     <string name="label_advanced">Zaawansowane</string>
     <string name="title_mute_audio_default">Domyślne wyciszenie dźwięku</string>

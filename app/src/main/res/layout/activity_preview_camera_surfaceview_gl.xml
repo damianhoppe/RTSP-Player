@@ -40,18 +40,29 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
 
-            <com.google.android.material.button.MaterialButton
-                android:animateLayoutChanges="true"
-                android:id="@+id/bReconnect"
+            <LinearLayout
+                android:id="@+id/llReconnect"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/label_reconnect"
-                android:visibility="gone"
-                android:onClick="@{(v) -> handler.reconnect()}"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"/>
+                app:layout_constraintTop_toTopOf="parent"
+                android:orientation="vertical"
+                android:gravity="center_horizontal">
+                <TextView
+                    android:id="@+id/tvReconnectTimer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="12dp"
+                    android:textAlignment="center"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/label_reconnect"
+                    android:onClick="@{(v) -> handler.reconnect()}"/>
+            </LinearLayout>
 
             <ProgressBar
                 android:animateLayoutChanges="true"
