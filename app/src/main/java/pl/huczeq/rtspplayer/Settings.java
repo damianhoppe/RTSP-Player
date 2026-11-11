@@ -93,6 +93,7 @@ public class Settings {
         public static final String CAMERA_SLIDE_IN_ANIMATION_ENABLED = "cameraSlideInAnimationEnabled";
         public static final String RECONNECT_TIMER_ENABLED = "reconnectTimerEnabled";
         public static final String RECONNECT_TIMER = "reconnectTimer";
+        public static final String AUTO_START_CAMERA_ON_RETURN_ENABLED = "autoStartCameraOnReturnEnabled";
 
         public static boolean isRelatedToPlayerSetting(String key) {
             List<String> keysRelatedToPlayerSetting = List.of(PLAYBACK_LIBRARY, CACHING_BUFFER_SIZE, HARDWARE_ACCELERATION_ENABLED, PREFER_USE_RTSP_TCP_ENABLED);
@@ -234,13 +235,17 @@ public class Settings {
     public boolean isCameraSlideInAnimationEnabled() {
         return settings.getBoolean(KEY.CAMERA_SLIDE_IN_ANIMATION_ENABLED, false);
     }
-
+  
     public boolean isReconnectTimerEnabled() {
         return settings.getBoolean(KEY.RECONNECT_TIMER_ENABLED, true);
     }
 
     public int getReconnectTimer() {
         return settings.getInt(KEY.RECONNECT_TIMER, 30);
+    }  
+
+    public boolean isAutoStartCameraOnReturnEnabled() {
+        return settings.getBoolean(KEY.AUTO_START_CAMERA_ON_RETURN_ENABLED, false);
     }
 
     public SharedPreferences getSharedPreferences() {

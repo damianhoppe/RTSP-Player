@@ -76,6 +76,8 @@
     <string name="label_general">Ogólne</string>
     <string name="title_starting_camera">Kamera startowa</string>
     <string name="summary_starting_camera">Uruchomienie podglądu kamery wraz z startem aplikacji</string>
+    <string name="title_autoStartCameraOnReturnEnabled">Uruchamiaj podgląd po powrocie do listy kamer</string>
+    <string name="summary_autoStartCameraOnReturnEnabled">Jeśli kamera startowa jest aktywna, automatycznie uruchamiaj jej podgląd po powrocie do listy kamer, gdy aplikacja była wcześniej w tle</string>
 
     <string name="label_theme">Motyw</string>
     <string name="summary_theme">Wybierz motyw aplikacji</string>

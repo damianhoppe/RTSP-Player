@@ -15,6 +15,12 @@
             app:summary="@string/summary_starting_camera"
             app:defaultValue="false"/>
         <pl.huczeq.rtspplayer.ui.views.materialpreferences.SwitchPreferenceMaterial
+            app:key="autoStartCameraOnReturnEnabled"
+            app:title="@string/title_autoStartCameraOnReturnEnabled"
+            app:iconSpaceReserved="false"
+            app:summary="@string/summary_autoStartCameraOnReturnEnabled"
+            app:defaultValue="false"/>
+        <pl.huczeq.rtspplayer.ui.views.materialpreferences.SwitchPreferenceMaterial
             app:key="muteAutoDefaultEnabled"
             app:title="@string/title_mute_audio_default"
             app:iconSpaceReserved="false"

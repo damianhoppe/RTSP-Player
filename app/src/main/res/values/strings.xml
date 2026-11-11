@@ -73,6 +73,8 @@
     <string name="label_general">General</string>
     <string name="title_starting_camera">Starting camera</string>
     <string name="summary_starting_camera">Launching the camera preview with the start of the application</string>
+    <string name="title_autoStartCameraOnReturnEnabled">Start camera preview when returning to the app</string>
+    <string name="summary_autoStartCameraOnReturnEnabled">If a startup camera is enabled, automatically start its preview when returning to the camera list after the app has been in the background</string>
 
     <string name="label_theme">Theme</string>
     <string name="summary_theme">Select an application theme</string>
