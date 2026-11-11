@@ -7,6 +7,7 @@ import androidx.annotation.CallSuper;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -80,6 +81,10 @@ public class AppExecutors {
         @Override
         public void execute(Runnable runnable) {
             this.executor.execute(runnable);
+        }
+
+        public void executeDelayed(Runnable runnable, int delay, TimeUnit unit) {
+            this.scheduler.scheduleDirect(runnable, delay, unit);
         }
     }
 }
