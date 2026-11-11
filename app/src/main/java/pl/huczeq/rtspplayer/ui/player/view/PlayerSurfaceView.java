@@ -90,8 +90,7 @@ public class PlayerSurfaceView extends GLSurfaceView implements OnVideoLayoutCha
         setRenderer(renderer);
         setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
 
-        setBackgroundColor(Color.argb(0x00,0,0,0));
-        getHolder().setFormat(PixelFormat.TRANSPARENT);
+        getHolder().setFormat(PixelFormat.OPAQUE);
 
         getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
