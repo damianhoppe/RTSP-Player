@@ -1,6 +1,7 @@
 package pl.huczeq.rtspplayer.ui.player;
 
 import android.graphics.Bitmap;
+import android.os.SystemClock;
 import android.util.Pair;
 
 import androidx.lifecycle.LiveData;
@@ -23,6 +24,7 @@ import io.reactivex.rxjava3.observers.DisposableSingleObserver;
 import lombok.Builder;
 import lombok.Getter;
 import pl.huczeq.rtspplayer.AppExecutors;
+import pl.huczeq.rtspplayer.Settings;
 import pl.huczeq.rtspplayer.data.model.Camera;
 import pl.huczeq.rtspplayer.domain.usecases.LoadAdjacentCamerasUseCase;
 import pl.huczeq.rtspplayer.domain.usecases.SaveCameraThumbnailUseCase;
@@ -33,13 +35,45 @@ public class PlayerCameraViewModel extends ViewModel {
     private final SaveCameraThumbnailUseCase saveCameraThumbnailUseCase;
     private final LoadAdjacentCamerasUseCase loadAdjacentCamerasUseCase;
     private final AppExecutors executors;
-    private final MutableLiveData<Pair<Camera, Camera>> adjacentCameras = new MediatorLiveData<>();
+    private final Settings settings;
+    private final MutableLiveData<Pair<Camera, Camera>> adjacentCameras = new MutableLiveData<>();
+    private final MutableLiveData<Integer> reconnectTimer = new MutableLiveData<>(null);
+    private boolean timerRunning = false;
+    private long reconnectDeadlineSeconds;
+    private final Runnable timerRunnable;
 
     @Inject
-    public PlayerCameraViewModel(SaveCameraThumbnailUseCase saveCameraThumbnailUseCase, LoadAdjacentCamerasUseCase loadAdjacentCamerasUseCase, AppExecutors executors) {
+    public PlayerCameraViewModel(SaveCameraThumbnailUseCase saveCameraThumbnailUseCase, LoadAdjacentCamerasUseCase loadAdjacentCamerasUseCase, AppExecutors executors, Settings settings) {
         this.saveCameraThumbnailUseCase = saveCameraThumbnailUseCase;
         this.loadAdjacentCamerasUseCase = loadAdjacentCamerasUseCase;
         this.executors = executors;
+        this.settings = settings;
+        this.timerRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if(!timerRunning)
+                    return;
+
+                if(!settings.isReconnectTimerEnabled()) {
+                    timerRunning = false;
+                    reconnectTimer.setValue(null);
+                    return;
+                }
+
+                long remainingMillis = reconnectDeadlineSeconds - SystemClock.elapsedRealtime();
+
+                int remainingSeconds = (int) Math.ceil(remainingMillis / 1000.0);
+
+                reconnectTimer.setValue(remainingSeconds);
+
+                if(remainingSeconds == 0) {
+                    timerRunning = false;
+                    return;
+                }
+
+                executors.mainThread().executeDelayed(this, 1, TimeUnit.SECONDS);
+            }
+        };
     }
 
     private Pair<Camera, Camera> awaitAdjacentCamera() {
@@ -95,6 +129,29 @@ public class PlayerCameraViewModel extends ViewModel {
     protected void onCleared() {
         super.onCleared();
         this.saveCameraThumbnailUseCase.dispose();
+        this.loadAdjacentCamerasUseCase.dispose();
+    }
+
+    public void startReconnectTimer() {
+        if(timerRunning)
+            return;
+
+        int userReconnectTimer = this.settings.getReconnectTimer();
+
+        timerRunning = true;
+        reconnectDeadlineSeconds = SystemClock.elapsedRealtime() + userReconnectTimer * 1000L;
+        reconnectTimer.setValue(userReconnectTimer);
+
+        executors.mainThread().executeDelayed(timerRunnable, 1, TimeUnit.SECONDS);
+    }
+
+    public void stopReconnectTimer() {
+        timerRunning = false;
+        reconnectTimer.setValue(null);
+    }
+
+    public boolean isReconnectTimerRunning() {
+        return this.timerRunning && reconnectDeadlineSeconds > SystemClock.elapsedRealtime();
     }
 
     public void setStreamParams(Params newParams) {
@@ -141,6 +198,10 @@ public class PlayerCameraViewModel extends ViewModel {
 
     public LiveData<Pair<Camera, Camera>> getAdjacentCamera() {
         return this.adjacentCameras;
+    }
+
+    public LiveData<Integer> getReconnectTimer() {
+        return this.reconnectTimer;
     }
 
     @Getter

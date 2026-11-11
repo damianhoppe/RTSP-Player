@@ -83,6 +83,23 @@
             app:entryValues="@array/pref_playback_library_values"
             app:defaultValue="0"
             app:iconSpaceReserved="false"/>
+        <pl.huczeq.rtspplayer.ui.views.materialpreferences.SwitchPreferenceMaterial
+            app:key="reconnectTimerEnabled"
+            app:title="@string/label_reconnectTimerEnabled"
+            app:summary="@string/summary_reconnectTimerEnabled"
+            app:iconSpaceReserved="false"
+            app:defaultValue="true"/>
+        <SeekBarPreference
+            app:key="reconnectTimer"
+            app:title="@string/label_reconnectTimer"
+            app:summary="@string/summary_reconnectTimer"
+            app:defaultValue="30"
+            app:min="0"
+            app:dependency="reconnectTimerEnabled"
+            android:max="120"
+            app:seekBarIncrement="1"
+            app:showSeekBarValue="true"
+            app:iconSpaceReserved="false"/>
     </PreferenceCategory>
 
     <PreferenceCategory

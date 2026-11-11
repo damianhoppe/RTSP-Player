@@ -313,6 +313,23 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
                 }
             }
         });
+
+        this.viewModel.getReconnectTimer().observe(this, timer -> {
+            if(timer == null) {
+                binding.tvReconnectTimer.setVisibility(View.GONE);
+                return;
+            }
+            if(timer > 0) {
+                binding.tvReconnectTimer.setText(getResources().getQuantityString(R.plurals.message_reconnect, timer, timer));
+                binding.llReconnect.setVisibility(View.VISIBLE);
+                binding.tvReconnectTimer.setVisibility(View.VISIBLE);
+                return;
+            }
+            if(timer == 0) {
+                reconnect();
+                viewModel.stopReconnectTimer();
+            }
+        });
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -370,7 +387,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         final PlayerSurfaceView view = binding.surfaceView;
         final float distance = view.getWidth() * direction;
         switchAnimating = true;
-        binding.bReconnect.setVisibility(View.INVISIBLE);
+        binding.llReconnect.setVisibility(View.GONE);
         binding.pBLoading.setVisibility(View.VISIBLE);
         view.animate()
                 .translationX(-distance)
@@ -417,7 +434,10 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         }
         if(player.isPlaying())
             return;
-        startPlaying();
+        if(!viewModel.isReconnectTimerRunning()) {
+            player.stop();
+            startPlaying();
+        }
         updatePictureInPicturesParams();
     }
 
@@ -517,7 +537,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
 
     @Override
     public void reconnect() {
-        binding.bReconnect.setVisibility(View.INVISIBLE);
+        binding.llReconnect.setVisibility(View.GONE);
         loadMedia();
         startPlaying();
     }
@@ -631,7 +651,9 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
     }
 
     private void startPlaying() {
-        binding.bReconnect.setVisibility(View.INVISIBLE);
+        binding.llReconnect.setVisibility(View.GONE);
+        binding.pBLoading.setVisibility(View.VISIBLE);
+        viewModel.stopReconnectTimer();
         player.play();
     }
 
@@ -662,8 +684,11 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
             setPictureInPictureParams(pictureInPictureParamsBuilder.build());
         }
         binding.pBLoading.setVisibility(View.INVISIBLE);
-        binding.bReconnect.setVisibility(View.VISIBLE);
+        binding.llReconnect.setVisibility(View.VISIBLE);
         runPendingSlideIn();
+        if(settings.isReconnectTimerEnabled()) {
+            viewModel.startReconnectTimer();
+        }
         if(isNetworkAvailable()) {
             return;
         }
