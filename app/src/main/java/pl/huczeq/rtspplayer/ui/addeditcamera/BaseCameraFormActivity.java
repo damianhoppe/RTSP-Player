@@ -1,6 +1,7 @@
 package pl.huczeq.rtspplayer.ui.addeditcamera;
 
 import android.os.Bundle;
+import android.text.Editable;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
@@ -167,7 +168,10 @@ public abstract class BaseCameraFormActivity extends BaseActivity implements Cam
 
             if(hasFocus) {
                 this.binding.etUrl.post(() -> {
-                    this.binding.etUrl.setSelection(selection);
+                    Editable text = this.binding.etUrl.getText();
+                    int textLength = text != null ? text.length() : 0;
+
+                    this.binding.etUrl.setSelection(Math.min(selection, textLength));
                 });
             }
         });
