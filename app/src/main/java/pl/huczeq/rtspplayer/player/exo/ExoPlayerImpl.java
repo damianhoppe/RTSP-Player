@@ -131,6 +131,8 @@ public class ExoPlayerImpl extends RtspPlayer {
 
     @Override
     public void play() {
+        if(player.getPlaybackState() == Player.STATE_IDLE)
+            player.prepare();
         player.play();
     }
 

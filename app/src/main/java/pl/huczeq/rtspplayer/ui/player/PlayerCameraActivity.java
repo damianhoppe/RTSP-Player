@@ -435,7 +435,6 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         if(player.isPlaying())
             return;
         if(!viewModel.isReconnectTimerRunning()) {
-            player.stop();
             startPlaying();
         }
         updatePictureInPicturesParams();
