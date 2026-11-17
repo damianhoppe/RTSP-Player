@@ -92,15 +92,17 @@ public class PlayerRenderer implements GLSurfaceView.Renderer, OnVideoLayoutChan
         if(textureAvailable && viewSizeMeasured && surfaceTextureHeight*surfaceTextureWidth != 0) {
             if(takePictureId > 0 && onImageCapturedListener != null && textureUpdated) {
                 Bitmap bitmap = drawFrameToBitmap();
-                long pictureId = takePictureId;
-                AndroidSchedulers.mainThread().scheduleDirect(new Runnable() {
-                    @Override
-                    public void run() {
-                        onImageCapturedListener.onImageCaptured(bitmap, pictureId);
-                    }
-                });
-                takePictureId = 0;
                 GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+                if(bitmap != null) {
+                    long pictureId = takePictureId;
+                    AndroidSchedulers.mainThread().scheduleDirect(new Runnable() {
+                        @Override
+                        public void run() {
+                            onImageCapturedListener.onImageCaptured(bitmap, pictureId);
+                        }
+                    });
+                    takePictureId = 0;
+                }
             }
             drawFrame();
         }
@@ -125,6 +127,9 @@ public class PlayerRenderer implements GLSurfaceView.Renderer, OnVideoLayoutChan
     private Bitmap drawFrameToBitmap() {
         int oldSurfaceTextureWidth = surfaceTextureWidth;
         int oldSurfaceTextureHeight = surfaceTextureHeight;
+
+        if(oldSurfaceTextureWidth * oldSurfaceTextureHeight == 0)
+            return null;
 
         surfaceTextureHeight = 520;
         surfaceTextureWidth = surfaceTextureHeight * oldSurfaceTextureWidth / oldSurfaceTextureHeight;
