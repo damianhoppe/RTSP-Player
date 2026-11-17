@@ -12,8 +12,6 @@ import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.google.android.exoplayer2.util.MimeTypes;
-
 import java.io.FileNotFoundException;
 import java.io.OutputStream;
 import java.text.DateFormat;
@@ -31,7 +29,7 @@ public class ExportBackupActivity extends BaseActivity implements ExportBackupHa
 
     public ExportBackupViewModel viewModel;
     public ActivityCreateBackupBinding binding;
-    public ActivityResultLauncher<String> createDocumentAction = registerForActivityResult(new ActivityResultContracts.CreateDocument(MimeTypes.normalizeMimeType("*/*")), new ActivityResultCallback<Uri>() {
+    public ActivityResultLauncher<String> createDocumentAction = registerForActivityResult(new ActivityResultContracts.CreateDocument("*/*"), new ActivityResultCallback<Uri>() {
         @Override
         public void onActivityResult(Uri result) {
             if(result == null)

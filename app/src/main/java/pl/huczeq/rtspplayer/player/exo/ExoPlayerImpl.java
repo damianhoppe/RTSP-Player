@@ -5,18 +5,24 @@ import android.util.Log;
 import android.view.Surface;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.OptIn;
+import androidx.media3.common.C;
+import androidx.media3.common.Format;
+import androidx.media3.common.MediaItem;
+import androidx.media3.common.PlaybackException;
+import androidx.media3.common.Player;
+import androidx.media3.common.Tracks;
+import androidx.media3.common.VideoSize;
+import androidx.media3.common.util.UnstableApi;
+import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.exoplayer.rtsp.RtspMediaSource;
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
+import androidx.media3.exoplayer.source.MediaSource;
+import androidx.media3.exoplayer.util.EventLogger;
 
-import com.google.android.exoplayer2.ExoPlayer;
-import com.google.android.exoplayer2.MediaItem;
-import com.google.android.exoplayer2.PlaybackException;
-import com.google.android.exoplayer2.Player;
-import com.google.android.exoplayer2.source.DefaultMediaSourceFactory;
-import com.google.android.exoplayer2.source.MediaSource;
-import com.google.android.exoplayer2.source.rtsp.RtspMediaSource;
-import com.google.android.exoplayer2.upstream.HttpDataSource;
-import com.google.android.exoplayer2.video.VideoSize;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -39,11 +45,12 @@ public class ExoPlayerImpl extends RtspPlayer {
 
     private ExoPlayer player;
 
-    @AssistedInject
+    @OptIn(markerClass = UnstableApi.class) @AssistedInject
     public ExoPlayerImpl(@ApplicationContext Context context, Settings settings, @Assisted String ...args) {
         this.context = context;
         this.settings = settings;
-        this.player = new ExoPlayer.Builder(context).build();
+        this.player = new ExoPlayer.Builder(context)
+                .build();
         this.player.setRepeatMode(Player.REPEAT_MODE_OFF);
         this.player.addListener(new Player.Listener() {
 
@@ -83,23 +90,39 @@ public class ExoPlayerImpl extends RtspPlayer {
                 surfaceSizeChangedListener.onVideoLayoutChanged(new VideoLayout(videoSize.width, videoSize.height));
             }
         });
+
+        player.addAnalyticsListener(new EventLogger());
     }
 
     @Override
     public void loadMedia(RtspMedia rtspMedia) {
         if(player.isPlaying())
             player.stop();
+
+        loadMediaSource(rtspMedia);
+        //Alternative:
+        /*
+        MediaItem mediaItem = MediaItem.fromUri(rtspMedia.getUri());
+        player.setMediaItem(mediaItem);
+         */
+
+        player.prepare();
+    }
+
+    @OptIn(markerClass = UnstableApi.class)
+    private void loadMediaSource(RtspMedia rtspMedia) {
         MediaSource mediaSource;
-        if(rtspMedia.getUri().toString().startsWith("http://") || rtspMedia.getUri().toString().startsWith("https://")) {
-            mediaSource = new DefaultMediaSourceFactory(context)
-                    .createMediaSource(MediaItem.fromUri(rtspMedia.getUri()));
-        }else {
-            mediaSource = new RtspMediaSource.Factory()
+
+        if("rtsp".equalsIgnoreCase(rtspMedia.getUri().getScheme())) {
+            mediaSource =new RtspMediaSource.Factory()
                     .setForceUseRtpTcp(rtspMedia.isForceTcpEnabled())
                     .createMediaSource(MediaItem.fromUri(rtspMedia.getUri()));
+        }else {
+            mediaSource = new DefaultMediaSourceFactory(context)
+                    .createMediaSource(MediaItem.fromUri(rtspMedia.getUri()));
         }
+
         player.setMediaSource(mediaSource);
-        player.prepare();
     }
 
     private boolean areViewsAttached = false;
@@ -118,10 +141,25 @@ public class ExoPlayerImpl extends RtspPlayer {
         player.setVideoSurface(surface);
         areViewsAttached = true;
         surfaceSizeChangedListener = view;
-        if(player.getVideoFormat() == null)
+        Format videoFormat = getActiveVideoFormat();
+        if(videoFormat == null)
             return;
         if(surfaceSizeChangedListener != null)
-            surfaceSizeChangedListener.onVideoLayoutChanged(new VideoLayout(player.getVideoFormat().width, player.getVideoFormat().height));
+            surfaceSizeChangedListener.onVideoLayoutChanged(new VideoLayout(videoFormat.width, videoFormat.height));
+    }
+
+    private Format getActiveVideoFormat() {
+        for (Tracks.Group trackGroup : player.getCurrentTracks().getGroups()) {
+            if(trackGroup.isSelected() && trackGroup.getType() == C.TRACK_TYPE_VIDEO) {
+                for(int i = 0; i < trackGroup.length; i++) {
+                    if(trackGroup.isTrackSelected(i)) {
+                        return trackGroup.getTrackFormat(i);
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 
     @Override

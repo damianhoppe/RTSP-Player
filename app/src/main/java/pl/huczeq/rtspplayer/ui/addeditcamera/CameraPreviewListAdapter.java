@@ -41,9 +41,9 @@ public class CameraPreviewListAdapter extends RecyclerView.Adapter<CameraPreview
         view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(holder.getBindingAdapterPosition() < 0)
+                if(holder.getAdapterPosition() < 0)
                     return;
-                onItemSelectedListener.onCameraItemSelected(cameraInstances.get(holder.getBindingAdapterPosition()));
+                onItemSelectedListener.onCameraItemSelected(cameraInstances.get(holder.getAdapterPosition()));
             }
         });
         return holder;

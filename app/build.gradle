@@ -137,7 +137,8 @@ dependencies {
     testImplementation 'androidx.arch.core:core-testing:2.1.0'
     implementation 'org.awaitility:awaitility:4.2.0'
 
-    implementation 'com.google.android.exoplayer:exoplayer:2.18.2'
+    implementation("androidx.media3:media3-exoplayer:1.11.1")
+    implementation("androidx.media3:media3-exoplayer-rtsp:1.11.1")
 
     implementation 'androidx.core:core-splashscreen:1.0.0-beta02'
 

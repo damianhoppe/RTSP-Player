@@ -70,7 +70,7 @@ public class CameraListAdapter extends BaseRecyclerViewAdapter<Camera, CameraVie
             holder.disposableObserver = new DisposableObserver<String>() {
                 @Override
                 public void onNext(@io.reactivex.rxjava3.annotations.NonNull String thumbnailName) {
-                    Camera camera = dataSet.get(holder.getBindingAdapterPosition());
+                    Camera camera = dataSet.get(holder.getAdapterPosition());
                     if(camera == null)
                         return;
                     if(thumbnailName.equals(camera.getCameraInstance().getPreviewImg()))
@@ -106,7 +106,7 @@ public class CameraListAdapter extends BaseRecyclerViewAdapter<Camera, CameraVie
         cameraViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                onItemSelectedListener.onCameraItemSelected(dataSet.get(cameraViewHolder.getBindingAdapterPosition()));
+                onItemSelectedListener.onCameraItemSelected(dataSet.get(cameraViewHolder.getAdapterPosition()));
             }
         });
         cameraViewHolder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
@@ -157,9 +157,9 @@ public class CameraListAdapter extends BaseRecyclerViewAdapter<Camera, CameraVie
     }
 
     private void showPopupMenu(CameraViewHolder holder) {
-        if(holder.getBindingAdapterPosition() < 0)
+        if(holder.getAdapterPosition() < 0)
             return;
-        Camera camera = dataSet.get(holder.getBindingAdapterPosition());
+        Camera camera = dataSet.get(holder.getAdapterPosition());
         showPopupMenu(holder.imageButtonMenu, camera, context)
                 .setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                     @Override

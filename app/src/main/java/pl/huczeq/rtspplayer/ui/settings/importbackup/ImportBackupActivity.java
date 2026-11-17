@@ -12,8 +12,6 @@ import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.google.android.exoplayer2.util.MimeTypes;
-
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 
@@ -78,7 +76,7 @@ public class ImportBackupActivity extends BaseActivity implements ImportBackupHa
 
     @Override
     public void selectBackupFile() {
-        openDocumentAction.launch(new String[]{MimeTypes.normalizeMimeType("*/*")});
+        openDocumentAction.launch(new String[]{"*/*"});
     }
 
     @Override

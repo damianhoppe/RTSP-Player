@@ -46,16 +46,16 @@ public class SelectCameraListAdapter extends BaseRecyclerViewAdapter<Camera, Sel
         cameraViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(cameraViewHolder.getBindingAdapterPosition() == RecyclerView.NO_POSITION)
+                if(cameraViewHolder.getAdapterPosition() == RecyclerView.NO_POSITION)
                     return;
-                if(cameraViewHolder.getBindingAdapterPosition() == 0) {
+                if(cameraViewHolder.getAdapterPosition() == 0) {
                     selectedId = 0;
                 }else {
-                    Camera camera = dataSet.get(cameraViewHolder.getBindingAdapterPosition()-1);
+                    Camera camera = dataSet.get(cameraViewHolder.getAdapterPosition()-1);
                     selectedId = camera.getCameraInstance().getId();
                 }
                 notifyItemChanged(lastSelectedIndex);
-                lastSelectedIndex = cameraViewHolder.getBindingAdapterPosition();
+                lastSelectedIndex = cameraViewHolder.getAdapterPosition();
                 cameraViewHolder.radioButton.setChecked(true);
             }
         });
@@ -82,7 +82,7 @@ public class SelectCameraListAdapter extends BaseRecyclerViewAdapter<Camera, Sel
         }
         holder.radioButton.setChecked(selected);
         if(selected)
-            lastSelectedIndex = holder.getBindingAdapterPosition();
+            lastSelectedIndex = holder.getAdapterPosition();
     }
 
     @Override
