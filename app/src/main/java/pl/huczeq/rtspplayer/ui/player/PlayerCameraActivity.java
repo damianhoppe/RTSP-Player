@@ -2,6 +2,8 @@ package pl.huczeq.rtspplayer.ui.player;
 
 import static pl.huczeq.rtspplayer.ui.addeditcamera.BaseCameraFormActivity.EXTRA_CAMERA_INSTANCE_ID;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.animation.LayoutTransition;
 import android.app.ActivityManager;
 import android.app.AppOpsManager;
@@ -393,6 +395,12 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
                 .translationX(-distance)
                 .alpha(0f)
                 .setDuration(150)
+                .setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationCancel(Animator animation) {
+                        switchAnimating = false;
+                    }
+                })
                 .withEndAction(() -> {
                     view.clearSurface();
                     view.setTranslationX(settings.isCameraSlideInAnimationEnabled()? distance : 0f);
