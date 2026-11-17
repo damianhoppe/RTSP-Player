@@ -166,16 +166,12 @@ public class PlayerCameraViewModel extends ViewModel {
         loadAdjacentCamerasUseCase.execute(newParams.getCameraId(), new DisposableSingleObserver<Pair<Camera, Camera>>() {
             @Override
             public void onSuccess(Pair<Camera, Camera> adjacentCameras) {
-                if(adjacentCameras == null) {
-                    PlayerCameraViewModel.this.adjacentCameras.postValue(Pair.create(null, null));
-                }else {
-                    PlayerCameraViewModel.this.adjacentCameras.postValue(adjacentCameras);
-                }
+                PlayerCameraViewModel.this.adjacentCameras.postValue(adjacentCameras);
             }
 
             @Override
             public void onError(@NonNull Throwable e) {
-                e.printStackTrace();
+                PlayerCameraViewModel.this.adjacentCameras.postValue(Pair.create(null, null));
             }
         });
     }
