@@ -411,6 +411,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
                             .withEndAction(() -> switchAnimating = false)
                             .start();
                     switchAction.run();
+                    switchAnimating = false;
                 })
                 .start();
     }
