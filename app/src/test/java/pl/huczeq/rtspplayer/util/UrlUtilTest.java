@@ -50,4 +50,11 @@ public class UrlUtilTest {
         String result = UrlUtils.maskCredentials(url);
         assertEquals(url, result);
     }
+
+    @Test
+    public void encodedUri_UrlWithAtSignInPassword_ShouldEncodeCredentials() {
+        String url = "rtsp://user:p@ssword@example.com/stream";
+        String result = UrlUtils.encodedUri(url).toString();
+        assertEquals("rtsp://user:p%40ssword@example.com/stream", result);
+    }
 }

@@ -5,6 +5,7 @@ import android.net.Uri;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import pl.huczeq.rtspplayer.ui.player.view.PlayerSurfaceView;
+import pl.huczeq.rtspplayer.util.UrlUtils;
 
 public abstract class RtspPlayer {
 
@@ -30,10 +31,14 @@ public abstract class RtspPlayer {
     public abstract boolean isMute();
     public abstract void setMute(boolean isMuted);
 
-    @AllArgsConstructor
     @Getter
     public static class RtspMedia {
-        private Uri uri;
-        private boolean forceTcpEnabled;
+        private final Uri uri;
+        private final boolean forceTcpEnabled;
+
+        public RtspMedia(Uri uri, boolean forceTcpEnabled) {
+            this.uri = UrlUtils.encodedUri(uri.toString());
+            this.forceTcpEnabled = forceTcpEnabled;
+        }
     }
 }
