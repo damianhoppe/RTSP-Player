@@ -4,9 +4,9 @@ import android.opengl.GLES20;
 
 public class FrameShader extends Shader {
 
-
     public static final String vertexShader =
             "#extension GL_OES_EGL_image_external : require\n" +
+                    "precision highp float;\n" +
                     "uniform mat4 mvpMatrix;\n" +
                     "uniform mat4 stMatrix;\n" +
                     "attribute  vec2 vertexPosition;\n" +
@@ -19,7 +19,7 @@ public class FrameShader extends Shader {
 
     public static final String fragmentShader =
             "#extension GL_OES_EGL_image_external : require\n" +
-                    "precision mediump float;\n" +
+                    "precision highp float;\n" +
                     "uniform samplerExternalOES texture;\n" +
                     "uniform vec2 textureScale;\n" +
                     "varying vec2 finalTextureCoords;\n" +
@@ -35,7 +35,7 @@ public class FrameShader extends Shader {
     private int textureCoordsAttrib;
 
     public FrameShader() {
-        super(vertexShader, fragmentShader);
+        super(getShader(vertexShader), getShader(fragmentShader));
 
         this.mvpMatrixUniform = GLES20.glGetUniformLocation(program, "mvpMatrix");
         this.stMatrixUniform = GLES20.glGetUniformLocation(program, "stMatrix");
@@ -43,6 +43,8 @@ public class FrameShader extends Shader {
         this.textureScaleUniform = GLES20.glGetUniformLocation(program, "textureScale");
         this.vertexPositionAttrib = GLES20.glGetAttribLocation(program, "vertexPosition");
         this.textureCoordsAttrib = GLES20.glGetAttribLocation(program, "textureCoords");
+
+
     }
 
     public void loadMVPMatrix(float[] matrix) {
@@ -66,5 +68,28 @@ public class FrameShader extends Shader {
 
     public int getTextureCoordsAttrib() {
         return textureCoordsAttrib;
+    }
+
+    private static String getShader(String shaderSource) {
+        int[] range = new int[2];
+        int[] precision = new int[1];
+
+        GLES20.glGetShaderPrecisionFormat(
+                GLES20.GL_FRAGMENT_SHADER,
+                GLES20.GL_HIGH_FLOAT,
+                range, 0,
+                precision, 0
+        );
+
+        boolean highpSupported = precision[0] > 0;
+
+        if (!highpSupported) {
+            return shaderSource.replace(
+                    "precision highp float;",
+                    "precision mediump float;"
+            );
+        }
+
+        return shaderSource;
     }
 }
