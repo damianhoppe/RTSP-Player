@@ -8,6 +8,7 @@ import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
+import android.widget.OverScroller;
 
 import androidx.annotation.NonNull;
 import androidx.core.math.MathUtils;
@@ -46,6 +47,43 @@ public class PlayerTransformController implements View.OnTouchListener {
     private final View view;
     private View playerView;
     private OnTransformationMatrixChanged onTransformationMatrixChanged;
+    private final OverScroller overScroller;
+    private int lastFlingX;
+    private int lastFlingY;
+    private boolean flingRunning;
+
+    private final Runnable flingRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if(!flingRunning || overScroller.isFinished()) {
+                flingRunning = false;
+                return;
+            }
+
+            if(overScroller.computeScrollOffset()) {
+                int currentX = overScroller.getCurrX();
+                int currentY = overScroller.getCurrY();
+
+                float dx = currentX - lastFlingX;
+                float dy = currentY - lastFlingY;
+
+                lastFlingX = currentX;
+                lastFlingY = currentY;
+
+                matrix.postTranslate(dy, dx);
+
+                if(clampMatrixTranslation(true, true)) {
+                    overScroller.forceFinished(true);
+                    return;
+                }
+                applyTransformation();
+
+                view.postOnAnimation(this);
+            }else {
+                flingRunning = false;
+            }
+        }
+    };
 
     public PlayerTransformController(View view, OnTransformationMatrixChanged onTransformationMatrixChanged) {
         this.onTransformationMatrixChanged = onTransformationMatrixChanged;
@@ -54,6 +92,7 @@ public class PlayerTransformController implements View.OnTouchListener {
         this.DEFAULT_SCALE = MathUtils.clamp(DEFAULT_SCALE, MIN_SCALE, MAX_SCALE);
         this.scaleDetector = new ScaleGestureDetector(context, new ScaleListener());
         this.gestureDetector = new GestureDetector(context, new GestureListener());
+        this.overScroller = new OverScroller(context);
         this.swipeThreshold = 300 * view.getResources().getDisplayMetrics().density;
         reset();
     }
@@ -353,6 +392,11 @@ public class PlayerTransformController implements View.OnTouchListener {
 
         @Override
         public boolean onDown(@NonNull MotionEvent e) {
+            if(overScroller != null) {
+                overScroller.forceFinished(true);
+            }
+            flingRunning = false;
+
             clearScaleAnimation();
             clearTranslationAnimation();
             if(isTranslationXAtLimit()) {
@@ -376,6 +420,27 @@ public class PlayerTransformController implements View.OnTouchListener {
             }
 
             return false;
+        }
+
+        @Override
+        public boolean onFling(MotionEvent e1, @NonNull MotionEvent e2, float velocityX, float velocityY) {
+            overScroller.forceFinished(true);
+
+            lastFlingX = 0;
+            lastFlingY = 0;
+
+            overScroller.fling(
+                    0, 0,
+                    (int) velocityY,
+                    (int) velocityX,
+                    -100000, 100000,
+                    -100000, 100000
+            );
+
+            flingRunning = true;
+            view.postOnAnimation(flingRunnable);
+
+            return true;
         }
 
         @Override
