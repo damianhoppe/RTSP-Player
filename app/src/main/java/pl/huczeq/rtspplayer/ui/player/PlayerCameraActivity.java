@@ -58,6 +58,7 @@ import pl.huczeq.rtspplayer.data.model.Camera;
 import pl.huczeq.rtspplayer.databinding.ActivityPreviewCameraSurfaceviewGlBinding;
 import pl.huczeq.rtspplayer.ui.BaseActivity;
 import pl.huczeq.rtspplayer.ui.player.view.PlayerSurfaceView;
+import pl.huczeq.rtspplayer.ui.player.view.PlayerTransformController;
 import pl.huczeq.rtspplayer.ui.player.view.PlayerView;
 import pl.huczeq.rtspplayer.ui.player.view.renderer.OnFrameCaptureListener;
 import pl.huczeq.rtspplayer.util.Timer;
@@ -458,7 +459,22 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         if(isInPictureInPictureMode())
             return;
         lastScreenOrientation = newConfig.orientation;
-        binding.playerView.getTransformController().reset();
+
+        PlayerTransformController controller = binding.playerView.getTransformController();
+        PlayerTransformController.ZoomState zoomState = controller.captureZoomState();
+        binding.playerView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(
+                    View v,
+                    int left, int top, int right, int bottom,
+                    int oldLeft, int oldTop, int oldRight, int oldBottom
+            ) {
+                if (right - left <= 0 || bottom - top <= 0)
+                    return;
+                v.removeOnLayoutChangeListener(this);
+                controller.restoreZoomState(zoomState);
+            }
+        });
     }
 
     @Override
