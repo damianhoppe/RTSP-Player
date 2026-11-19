@@ -398,7 +398,28 @@ public class PlayerTransformController implements View.OnTouchListener {
 
         return dx > 0 && dy > 0;
     }
-    
+
+    private float calculateFillScale() {
+        float viewportWidth = view.getMeasuredWidth();
+        float viewportHeight = view.getMeasuredHeight();
+
+        float videoWidth = playerView.getMeasuredWidth();
+        float videoHeight = playerView.getMeasuredHeight();
+
+        if(viewportWidth <= 0 || viewportHeight <= 0 ||
+                videoWidth <= 0 || videoHeight <= 0) {
+            return DEFAULT_SCALE;
+        }
+
+        float widthScale = viewportWidth / videoWidth;
+        float heightScale = viewportHeight / videoHeight;
+
+        float fitScale = Math.min(widthScale, heightScale);
+        float fillScale = Math.max(widthScale, heightScale);
+
+        return fillScale / fitScale;
+    }
+
     private float easeOutCubic(float t) {
         return 1f - (float) Math.pow(1f - t, 3);
     }
@@ -495,8 +516,29 @@ public class PlayerTransformController implements View.OnTouchListener {
                 return false;
 
             if(e.getActionMasked() == MotionEvent.ACTION_UP) {
+                float topSurfaceOffset = (view.getMeasuredHeight() - playerView.getMeasuredHeight())/2f;
+                float leftSurfaceOffset = (view.getMeasuredWidth() - playerView.getMeasuredWidth())/2f;
+
+                float pointX = e.getX() - leftSurfaceOffset;
+                float pointY = e.getY() - topSurfaceOffset;
+
+                float firstStep = Math.max(calculateFillScale(), 2f);
+                if(Math.abs(presentScale - DEFAULT_SCALE) <= 0.1f) {
+                    animateToScale(firstStep,pointX,pointY);
+                }else if(Math.abs(presentScale - firstStep) <= 0.1f) {
+                    animateToScale(presentScale * 2f,pointX,pointY);
+                }else {
+                    animateToScale(DEFAULT_SCALE, pointX, pointY);
+                }
                 isClampingEnabled = true;
-                resetScaleWithAnimation();
+                return true;
+            }
+            
+            if(e.getActionMasked() == MotionEvent.ACTION_UP) {
+                isClampingEnabled = true;
+                float pointX = e.getX();
+                float pointY = e.getY();
+                animateToScale(DEFAULT_SCALE, pointX, pointY);
                 return true;
             }
 
