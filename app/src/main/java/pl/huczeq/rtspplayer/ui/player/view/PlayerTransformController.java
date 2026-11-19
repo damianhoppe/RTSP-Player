@@ -88,9 +88,10 @@ public class PlayerTransformController implements View.OnTouchListener {
         }
     };
 
-    public PlayerTransformController(View view, OnTransformationMatrixChanged onTransformationMatrixChanged) {
+    public PlayerTransformController(View view, View playerView, OnTransformationMatrixChanged onTransformationMatrixChanged) {
         this.onTransformationMatrixChanged = onTransformationMatrixChanged;
         this.view = view;
+        this.playerView = playerView;
         this.context = view.getContext();
         this.DEFAULT_SCALE = MathUtils.clamp(DEFAULT_SCALE, MIN_SCALE, MAX_SCALE);
         this.scaleDetector = new ScaleGestureDetector(context, new ScaleListener());
@@ -98,10 +99,6 @@ public class PlayerTransformController implements View.OnTouchListener {
         this.overScroller = new OverScroller(context);
         this.swipeThreshold = 300 * view.getResources().getDisplayMetrics().density;
         reset();
-    }
-
-    public void setPlayerView(View playerView) {
-        this.playerView = playerView;
     }
 
     @Override

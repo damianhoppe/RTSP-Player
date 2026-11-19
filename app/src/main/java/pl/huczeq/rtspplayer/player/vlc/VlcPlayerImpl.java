@@ -1,7 +1,7 @@
 package pl.huczeq.rtspplayer.player.vlc;
 
 import android.content.Context;
-import android.util.Log;
+import android.graphics.SurfaceTexture;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
@@ -18,11 +18,11 @@ import dagger.assisted.AssistedFactory;
 import dagger.assisted.AssistedInject;
 import dagger.hilt.android.qualifiers.ApplicationContext;
 import pl.huczeq.rtspplayer.Settings;
+import pl.huczeq.rtspplayer.player.PlayerEventListener;
 import pl.huczeq.rtspplayer.player.RtspPlayer;
 import pl.huczeq.rtspplayer.player.VideoLayout;
-import pl.huczeq.rtspplayer.ui.player.view.PlayerSurfaceView;
 
-public class VlcPlayerImpl extends RtspPlayer implements IVLCVout.OnNewVideoLayoutListener {
+public class VlcPlayerImpl extends RtspPlayer {
 
     private static final String TAG = "VlcRtspPlayer";
 
@@ -32,6 +32,12 @@ public class VlcPlayerImpl extends RtspPlayer implements IVLCVout.OnNewVideoLayo
     private LibVLC libVLC;
     private MediaPlayer mediaPlayer;
     private IVLCVout vlcOut;
+    private final IVLCVout.OnNewVideoLayoutListener onNewVideoLayout = new IVLCVout.OnNewVideoLayoutListener() {
+        @Override
+        public void onNewVideoLayout(IVLCVout vlcVout, int width, int height, int visibleWidth, int visibleHeight, int sarNum, int sarDen) {
+            onNewNewVideoLayout(new VideoLayout(width, height, visibleWidth, visibleHeight));
+        }
+    };
 
     @AssistedInject
     public VlcPlayerImpl(@ApplicationContext Context context, Settings settings, @Assisted String ...args) {
@@ -45,22 +51,30 @@ public class VlcPlayerImpl extends RtspPlayer implements IVLCVout.OnNewVideoLayo
         mediaPlayer.setEventListener(new MediaPlayer.EventListener() {
             @Override
             public void onEvent(MediaPlayer.Event event) {
-                if(eventListener == null)
+                if(eventListeners.isEmpty())
                     return;
 
                 switch (event.type) {
                     case MediaPlayer.Event.Vout:
                         if(event.getVoutCount() > 0)
-                            eventListener.onStartRendering();
+                            for(PlayerEventListener listener : eventListeners) {
+                                listener.onStartRendering();
+                            }
                         break;
                     case MediaPlayer.Event.Playing:
-                        eventListener.onPlaying();
+                        for(PlayerEventListener listener : eventListeners) {
+                            listener.onPlaying();
+                        }
                         break;
                     case MediaPlayer.Event.EndReached:
-                        eventListener.onEndReached();
+                        for(PlayerEventListener listener : eventListeners) {
+                            listener.onEndReached();
+                        }
                         break;
                     case MediaPlayer.Event.EncounteredError:
-                        eventListener.onEncounteredError();
+                        for(PlayerEventListener listener : eventListeners) {
+                            listener.onEncounteredError();
+                        }
                         break;
                 }
             }
@@ -94,22 +108,21 @@ public class VlcPlayerImpl extends RtspPlayer implements IVLCVout.OnNewVideoLayo
     }
 
     @Override
-    public boolean isViewAttached() {
+    public boolean isSurfaceAttached() {
         return vlcOut.areViewsAttached();
     }
 
     @Override
-    public void attachView(PlayerSurfaceView view) {
-        if(isViewAttached()) {
+    public void attachSurface(SurfaceTexture surfaceTexture) {
+        if(isSurfaceAttached()) {
            throw new RuntimeException("View is attached.");
         }
-        surfaceSizeChangedListener = view;
-        vlcOut.setVideoSurface(view.getSurfaceTexture());
-        vlcOut.attachViews(this);
+        vlcOut.setVideoSurface(surfaceTexture);
+        vlcOut.attachViews(this.onNewVideoLayout);
     }
 
     @Override
-    public void detachView() {
+    public void detachSurface() {
         mediaPlayer.detachViews();
     }
 
@@ -169,13 +182,6 @@ public class VlcPlayerImpl extends RtspPlayer implements IVLCVout.OnNewVideoLayo
     @Override
     public void setMute(boolean isMuted) {
         this.mediaPlayer.setVolume(isMuted? 0 : 100);
-    }
-
-    @Override
-    public void onNewVideoLayout(IVLCVout vlcVout, int width, int height, int visibleWidth, int visibleHeight, int sarNum, int sarDen) {
-        if(surfaceSizeChangedListener == null)
-            return;
-        surfaceSizeChangedListener.onVideoLayoutChanged(new VideoLayout(width, height, visibleWidth, visibleHeight));
     }
 
     @AssistedFactory

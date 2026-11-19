@@ -1,7 +1,7 @@
 package pl.huczeq.rtspplayer.player.exo;
 
 import android.content.Context;
-import android.util.Log;
+import android.graphics.SurfaceTexture;
 import android.view.Surface;
 
 import androidx.annotation.Nullable;
@@ -22,7 +22,6 @@ import androidx.media3.exoplayer.util.EventLogger;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
-import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -31,24 +30,19 @@ import dagger.assisted.AssistedFactory;
 import dagger.assisted.AssistedInject;
 import dagger.hilt.android.qualifiers.ApplicationContext;
 import pl.huczeq.rtspplayer.Settings;
+import pl.huczeq.rtspplayer.player.PlayerEventListener;
 import pl.huczeq.rtspplayer.player.RtspPlayer;
-import pl.huczeq.rtspplayer.ui.player.view.PlayerSurfaceView;
 import pl.huczeq.rtspplayer.player.VideoLayout;
 
 public class ExoPlayerImpl extends RtspPlayer {
 
     private static final String TAG = "ExoPlayer";
-
-    private ExecutorService executor = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat(TAG + "-THREAD").build());
-    private Context context;
-    private Settings settings;
-
-    private ExoPlayer player;
+    private final Context context;
+    private final ExoPlayer player;
 
     @OptIn(markerClass = UnstableApi.class) @AssistedInject
-    public ExoPlayerImpl(@ApplicationContext Context context, Settings settings, @Assisted String ...args) {
+    public ExoPlayerImpl(@ApplicationContext Context context, @Assisted String ...args) {
         this.context = context;
-        this.settings = settings;
         this.player = new ExoPlayer.Builder(context)
                 .build();
         this.player.setRepeatMode(Player.REPEAT_MODE_OFF);
@@ -57,37 +51,43 @@ public class ExoPlayerImpl extends RtspPlayer {
             @Override
             public void onIsPlayingChanged(boolean isPlaying) {
                 Player.Listener.super.onIsPlayingChanged(isPlaying);
-                if(eventListener == null)
+                if(eventListeners.isEmpty())
                     return;
                 if(isPlaying) {
-                    eventListener.onStartRendering();
-                    eventListener.onPlaying();
+                    for(PlayerEventListener listener : eventListeners) {
+                        listener.onStartRendering();
+                    }
+                    for(PlayerEventListener listener : eventListeners) {
+                        listener.onPlaying();
+                    }
                 }
             }
 
             @Override
             public void onPlayerError(PlaybackException error) {
                 Player.Listener.super.onPlayerError(error);
-                if(eventListener == null)
+                if(eventListeners.isEmpty())
                     return;
-                eventListener.onEncounteredError();
+                for(PlayerEventListener listener : eventListeners) {
+                    listener.onEncounteredError();
+                }
             }
 
             @Override
             public void onPlayerErrorChanged(@Nullable PlaybackException error) {
                 Player.Listener.super.onPlayerErrorChanged(error);
                 Player.Listener.super.onPlayerError(error);
-                if(eventListener == null)
+                if(eventListeners.isEmpty())
                     return;
-                eventListener.onEncounteredError();
+                for(PlayerEventListener listener : eventListeners) {
+                    listener.onEncounteredError();
+                }
             }
 
             @Override
             public void onVideoSizeChanged(VideoSize videoSize) {
                 Player.Listener.super.onVideoSizeChanged(videoSize);
-                if(surfaceSizeChangedListener == null)
-                    return;
-                surfaceSizeChangedListener.onVideoLayoutChanged(new VideoLayout(videoSize.width, videoSize.height));
+                ExoPlayerImpl.this.onNewNewVideoLayout(new VideoLayout(videoSize.width, videoSize.height));
             }
         });
 
@@ -125,34 +125,11 @@ public class ExoPlayerImpl extends RtspPlayer {
         player.setMediaSource(mediaSource);
     }
 
-    private boolean areViewsAttached = false;
-
-    @Override
-    public boolean isViewAttached() {
-        return areViewsAttached;
-    }
-
-    @Override
-    public void attachView(PlayerSurfaceView view) {
-        if(isViewAttached()) {
-           throw new RuntimeException("View is attached.");
-        }
-        Surface surface = new Surface(view.getSurfaceTexture());
-        player.setVideoSurface(surface);
-        areViewsAttached = true;
-        surfaceSizeChangedListener = view;
-        Format videoFormat = getActiveVideoFormat();
-        if(videoFormat == null)
-            return;
-        if(surfaceSizeChangedListener != null)
-            surfaceSizeChangedListener.onVideoLayoutChanged(new VideoLayout(videoFormat.width, videoFormat.height));
-    }
-
     private Format getActiveVideoFormat() {
         for (Tracks.Group trackGroup : player.getCurrentTracks().getGroups()) {
-            if(trackGroup.isSelected() && trackGroup.getType() == C.TRACK_TYPE_VIDEO) {
-                for(int i = 0; i < trackGroup.length; i++) {
-                    if(trackGroup.isTrackSelected(i)) {
+            if (trackGroup.isSelected() && trackGroup.getType() == C.TRACK_TYPE_VIDEO) {
+                for (int i = 0; i < trackGroup.length; i++) {
+                    if (trackGroup.isTrackSelected(i)) {
                         return trackGroup.getTrackFormat(i);
                     }
                 }
@@ -161,10 +138,33 @@ public class ExoPlayerImpl extends RtspPlayer {
 
         return null;
     }
+    protected void notifyVideoInfoIfAvailable() {
+        VideoSize videoSize = player.getVideoSize();
+        if(videoSize.width <= 0 || videoSize.height <= 0)
+            return;
+        this.onNewNewVideoLayout(new VideoLayout(videoSize.width, videoSize.height));
+    }
+
+    private Surface surface = null;
+    @Override
+    public boolean isSurfaceAttached() {
+        return surface != null;
+    }
 
     @Override
-    public void detachView() {
+    public void attachSurface(SurfaceTexture surfaceTexture) {
+        if(isSurfaceAttached()) {
+           detachSurface();
+        }
+        this.surface = new Surface(surfaceTexture);
+        player.setVideoSurface(surface);
+    }
+
+    @Override
+    public void detachSurface() {
         player.clearVideoSurface();
+        this.surface.release();
+        this.surface = null;
     }
 
     @Override

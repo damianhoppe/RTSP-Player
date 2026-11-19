@@ -1,7 +1,8 @@
 package pl.huczeq.rtspplayer.ui.player.view.renderer;
 
+import android.graphics.SurfaceTexture;
+
 public interface PlayerRendererCallback {
 
-    void onSurfaceCreated();
-    void onVideoLayoutChanged(int width, int height);
+    void onSurfaceCreated(SurfaceTexture surfaceTexture);
 }

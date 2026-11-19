@@ -24,7 +24,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.os.Process;
 import android.util.DisplayMetrics;
 import android.util.Pair;
@@ -40,6 +39,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.databinding.DataBindingUtil;
+import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.Observer;
 
 import com.google.common.base.Strings;
@@ -58,14 +58,14 @@ import pl.huczeq.rtspplayer.data.model.Camera;
 import pl.huczeq.rtspplayer.databinding.ActivityPreviewCameraSurfaceviewGlBinding;
 import pl.huczeq.rtspplayer.ui.BaseActivity;
 import pl.huczeq.rtspplayer.ui.player.view.PlayerSurfaceView;
-import pl.huczeq.rtspplayer.ui.player.view.renderer.OnImageCapturedListener;
-import pl.huczeq.rtspplayer.ui.player.view.renderer.PlayerRendererCallback;
+import pl.huczeq.rtspplayer.ui.player.view.PlayerView;
+import pl.huczeq.rtspplayer.ui.player.view.renderer.OnFrameCaptureListener;
 import pl.huczeq.rtspplayer.util.Timer;
 import pl.huczeq.rtspplayer.player.PlayerEventListener;
 import pl.huczeq.rtspplayer.player.RtspPlayer;
 
 @AndroidEntryPoint
-public class PlayerCameraActivity extends BaseActivity implements PlayerHandler, OnImageCapturedListener {
+public class PlayerCameraActivity extends BaseActivity implements PlayerHandler, OnFrameCaptureListener, PlayerView.OnVideoBoundsChangeListener {
 
     private static final String TAG = PlayerCameraActivity.class.getSimpleName();
 
@@ -94,23 +94,24 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
     private PictureInPictureParams.Builder pictureInPictureParamsBuilder;
     private ConnectivityManager.NetworkCallback networkCallback;
     private int lastScreenOrientation;
-    private boolean unknownPlayerRect = true;
-    private boolean isVisible = false;
-
     private boolean switchAnimating = false;
     private Runnable pendingSlideIn;
 
-    private Timer playerControlVisibilityTimer = new Timer(3000, new Timer.Callback() {
+    private final Rational MIN_PIP_ASPECT_RATION = new Rational(100,239);
+    private final Rational MAX_PIP_ASPECT_RATION = new Rational(239,100);
+    private final Rational DEFAULT_PIP_ASPECT_RATION = new Rational(16,9);
+
+    private final Timer playerControlVisibilityTimer = new Timer(3000, new Timer.Callback() {
         @Override
         public void onStart() {
-            if(!isPlayerControlVisibile()) {
-                setPlayerControlVisibile(true);
+            if(!isPlayerControlVisible()) {
+                setPlayerControlVisibility(true);
             }
         }
 
         @Override
         public void onFinished() {
-            setPlayerControlVisibile(false);
+            setPlayerControlVisibility(false);
         }
     });
 
@@ -156,7 +157,6 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         this.binding = DataBindingUtil.setContentView(this, R.layout.activity_preview_camera_surfaceview_gl);
         this.binding.setHandler(this);
         this.binding.playerControl.setHandler(this);
-        this.binding.surfaceViewContainer.setPlayerView(binding.surfaceView);
 
         PlayerCameraViewModel.Params params = buildParams(getIntent());
         if(params == null) {
@@ -167,15 +167,15 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
 
         this.viewModel.setStreamParams(params);
 
-        this.binding.surfaceViewContainer.setOnSwipeListener(direction -> {
+        this.binding.playerView.setOnSwipeListener(direction -> {
             if(switchAnimating)
                 return;
             viewModel.loadAdjacentCamera(direction, camera -> {
                 if(isDestroyed() || switchAnimating)
                     return;
                 if(camera == null) {
-                    binding.surfaceViewContainer.getTransformController().resetTranslationWithAnimation();
-                    binding.surfaceViewContainer.performHapticFeedback(HapticFeedbackConstants.REJECT);
+                    binding.playerView.getTransformController().resetTranslationWithAnimation();
+                    binding.playerView.performHapticFeedback(HapticFeedbackConstants.REJECT);
                     return;
                 }
                 PlayerCameraViewModel.Params newParams = PlayerCameraViewModel.Params.builder()
@@ -195,7 +195,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isPipModeAvailable()) {
             pictureInPictureParamsBuilder = new PictureInPictureParams.Builder();
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                pictureInPictureParamsBuilder.setSeamlessResizeEnabled(true);
+                pictureInPictureParamsBuilder.setSeamlessResizeEnabled(false);
                 pictureInPictureParamsBuilder.setAutoEnterEnabled(settings.autoEnterPipModeEnabled());
             }
             setDefaultPIPRectAndAspectRatio(pictureInPictureParamsBuilder);
@@ -206,22 +206,9 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         this.player.setMute(this.settings.isMuteAudioDefaultEnabled());
         updateVolumeButtonIcon();
 
-        this.binding.surfaceView.setRendererCallback(new PlayerRendererCallback() {
-            @Override
-            public void onSurfaceCreated() {
-                new Handler(Looper.getMainLooper()).post(() -> {
-                    if(!player.isViewAttached()) {
-                        player.attachView(binding.surfaceView);
-                    }
-                });
-            }
+        player.attachView(this.binding.playerView);
 
-            @Override
-            public void onVideoLayoutChanged(int width, int height) {
-            }
-        });
-
-        this.player.setEventListener(new PlayerEventListener() {
+        this.player.registerEventListener(new PlayerEventListener() {
             @Override
             public void onStartRendering() {
                 onPlayingStarted();
@@ -241,64 +228,18 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
             }
         });
 
-        pendingSlideIn = () -> binding.surfaceView.animate()
+        pendingSlideIn = () -> binding.playerView.getPlayerSurfaceView().animate()
                 .translationX(0f)
                 .alpha(1f)
                 .setDuration(150)
                 .start();
-        binding.surfaceView.setAlpha(0f);
+        binding.playerView.getPlayerSurfaceView().setAlpha(0f);
         loadMedia();
         startPlaying();
-        this.binding.surfaceView.setOnImageCapturedListener(this);
-        takePicture();
 
-        this.binding.surfaceView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
-            @Override
-            public void onLayoutChange(View view, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
-                    return;
+        this.binding.playerView.registerOnFrameCaptureListener(this);
 
-                if(left == oldLeft
-                    && top == oldTop
-                    &&right == oldRight
-                    && bottom == oldBottom)
-                    return;
-
-                Rect oldRect = new Rect();
-                oldRect.top = oldTop;
-                oldRect.right = oldRight;
-                oldRect.bottom = oldBottom;
-                oldRect.left = oldLeft;
-                Rect rect = new Rect();
-                rect.top = top;
-                rect.right = right;
-                rect.bottom = bottom;
-                rect.left = left;
-
-                if(rect.width() <= 1 || rect.height() <= 1)
-                    return;
-                if(rect.width() == oldRect.width() && rect.height() == oldRect.height())
-                    return;
-                int maxDiff = 2;
-                if(Math.abs(rect.width() - oldRect.width()) <= maxDiff && Math.abs(rect.height() - oldRect.height()) <= maxDiff)
-                    return;
-                if (binding == null)
-                    return;
-                if(isDestroyed())
-                    return;
-                if(!isPipModeAvailable())
-                    return;
-
-                Rational rational = clamp(new Rational(rect.width(), rect.height()));
-                unknownPlayerRect = false;
-
-                if(pictureInPictureParamsBuilder != null) {
-                    pictureInPictureParamsBuilder.setAspectRatio(rational);
-                    pictureInPictureParamsBuilder.setSourceRectHint(rect);
-                    setPictureInPictureParams(pictureInPictureParamsBuilder.build());
-                }
-            }
-        });
+        this.binding.playerView.registerOnVideoBoundsChangeListener(this);
 
         this.binding.playerControl.buttonEnterPictureInPictureMode
                 .setVisibility(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &&
@@ -310,7 +251,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
             @Override
             public void onChanged(Pair<Camera, Camera> cameraPair) {
                 if(cameraPair != null) {
-                    binding.surfaceViewContainer.setSwipeGestureAvailable(cameraPair.first != null && cameraPair.second != null);
+                    binding.playerView.setSwipeGestureAvailable(cameraPair.first != null && cameraPair.second != null);
                     viewModel.getAdjacentCamera().removeObserver(this);
                 }
             }
@@ -332,6 +273,12 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
                 viewModel.stopReconnectTimer();
             }
         });
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        binding.playerView.cancelFrameCapture();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -386,7 +333,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
      * otherwise, playback resumes normally with the preview immediately visible.
      */
     private void animateSwitch(int direction, Runnable switchAction) {
-        final PlayerSurfaceView view = binding.surfaceView;
+        final PlayerSurfaceView view = binding.playerView.getPlayerSurfaceView();
         final float distance = view.getWidth() * direction;
         switchAnimating = true;
         binding.llReconnect.setVisibility(View.GONE);
@@ -402,13 +349,19 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
                     }
                 })
                 .withEndAction(() -> {
-                    view.clearSurface();
+                    view.setAlpha(0f);
                     view.setTranslationX(settings.isCameraSlideInAnimationEnabled()? distance : 0f);
+                    view.clearSurface();
                     pendingSlideIn = () -> view.animate()
                             .translationX(0f)
                             .alpha(1f)
                             .setDuration(150)
-                            .withEndAction(() -> switchAnimating = false)
+                            .withEndAction(new Runnable() {
+                                @Override
+                                public void run() {
+                                    switchAnimating = false;
+                                }
+                            })
                             .start();
                     switchAction.run();
                     switchAnimating = false;
@@ -424,46 +377,38 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
     }
 
     private void switchStream(PlayerCameraViewModel.Params params) {
-        binding.surfaceViewContainer.getTransformController().reset();
-        binding.surfaceView.resetTransformations();
+        binding.playerView.getTransformController().reset();
 
         if(!params.equals(viewModel.getStreamParams()) || !player.isPlaying()) {
             this.viewModel.setStreamParams(params);
             loadMedia();
         }
         startPlaying();
-        takePicture();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if(!player.isViewAttached() && binding.surfaceView.getSurfaceTexture() != null) {
-            player.attachView(binding.surfaceView);
-        }
+
+        if(!player.isViewAttached())
+            player.attachView(binding.playerView);
+
         if(player.isPlaying())
             return;
+
         if(!viewModel.isReconnectTimerRunning()) {
             startPlaying();
-        }
-        updatePictureInPicturesParams();
-    }
-
-    private void updatePictureInPicturesParams() {
-        if(pictureInPictureParamsBuilder == null)
             return;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isPipModeAvailable()) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                pictureInPictureParamsBuilder.setAutoEnterEnabled(settings.autoEnterPipModeEnabled());
-            }
-            setPictureInPictureParams(pictureInPictureParamsBuilder.build());
+        }
+
+        if(!isNetworkAvailable()) {
+            reconnectOnNetworkAvailable();
         }
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        isVisible = true;
         if(orientationListener != null)
             orientationListener.enable();
     }
@@ -471,10 +416,9 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
     @Override
     protected void onStop() {
         super.onStop();
-        isVisible = false;
-        binding.surfaceViewContainer.animate().cancel();
-        binding.surfaceViewContainer.setTranslationX(0f);
-        binding.surfaceViewContainer.setAlpha(1f);
+        binding.playerView.animate().cancel();
+        binding.playerView.setTranslationX(0f);
+        binding.playerView.setAlpha(1f);
         switchAnimating = false;
         pendingSlideIn = null;
         player.stop();
@@ -487,6 +431,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
     protected void onDestroy() {
         super.onDestroy();
         pictureInPictureParamsBuilder = null;
+        player.detachView();
         if(player != null)
             player.release();
     }
@@ -510,16 +455,10 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
             return;
         if(Build.VERSION.SDK_INT < Build.VERSION_CODES.N)
             return;
-        if(unknownPlayerRect && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isPipModeAvailable() && pictureInPictureParamsBuilder != null) {
-            setDefaultPIPRectAndAspectRatio(pictureInPictureParamsBuilder);
-            setPictureInPictureParams(pictureInPictureParamsBuilder.build());
-        }
         if(isInPictureInPictureMode())
             return;
         lastScreenOrientation = newConfig.orientation;
-
-        binding.surfaceView.resetTransformations();
-        binding.surfaceViewContainer.getTransformController().reset();
+        binding.playerView.getTransformController().reset();
     }
 
     @Override
@@ -537,7 +476,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
 
     @Override
     public void togglePlayerControlVisibility() {
-        if(isPlayerControlVisibile())
+        if(isPlayerControlVisible())
             playerControlVisibilityTimer.stop();
         else
             playerControlVisibilityTimer.start();
@@ -568,6 +507,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         }else {
             enterPictureInPictureMode();
         }
+        binding.playerView.getTransformController().resetScaleWithAnimation();
     }
 
     @Override
@@ -603,37 +543,12 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         return false;
     }
 
-    private Rational clamp(Rational rational) {
-        float max = 2.39f;
-        float min = 1f/max;
-        if(rational.floatValue() < min)
-            return new Rational(100,239);
-        if(rational.floatValue() > max)
-            return new Rational(239,100);
-        return rational;
-    }
-
     @Override
     protected void onUserLeaveHint() {
         super.onUserLeaveHint();
-        binding.surfaceViewContainer.getTransformController().resetScaleWithAnimation();
+        binding.playerView.getTransformController().resetScaleWithAnimation();
         if (player.isPlaying() && settings.autoEnterPipModeEnabled() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
             enterPlayerIntoPictureInPictureMode();
-        }
-    }
-
-    private void onPIPModeChanged(boolean isInPictureInPictureMode) {
-        probablyBackstackLost = true;
-        if(isInPictureInPictureMode) {
-            LayoutTransition lt = new LayoutTransition();
-            lt.disableTransitionType(LayoutTransition.DISAPPEARING);
-            binding.uiContainer.setLayoutTransition(lt);
-
-            playerControlVisibilityTimer.stop();
-            binding.playerControl.rootPlayerControl.setVisibility(View.GONE);
-        }else {
-            LayoutTransition lt = new LayoutTransition();
-            binding.uiContainer.setLayoutTransition(lt);
         }
     }
 
@@ -641,13 +556,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         this.binding.playerControl.buttonVolumeChange.setIconResource(player.isMute()? R.drawable.ic_volume_off : R.drawable.ic_volume_on);
     }
 
-    private void onNewVideo() {
-        updatePictureInPicturesParams();
-        binding.pBLoading.setVisibility(View.INVISIBLE);
-    }
-
     private void loadMedia() {
-        onNewVideo();
         PlayerCameraViewModel.Params params = this.viewModel.getStreamParams();
         if(Strings.isNullOrEmpty(params.getUrl())) {
             finish();
@@ -656,6 +565,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         RtspPlayer.RtspMedia media = new RtspPlayer.RtspMedia(Uri.parse(params.getUrl()), params.isForceTcpEnabled());
         player.loadMedia(media);
         binding.pBLoading.setVisibility(View.VISIBLE);
+        binding.playerView.cancelFrameCapture();
     }
 
     private void startPlaying() {
@@ -669,24 +579,17 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         binding.pBLoading.setVisibility(View.INVISIBLE);
         runPendingSlideIn();
         updateVolumeButtonIcon();
-        updatePictureInPicturesParams();
-    }
-
-    private boolean isNetworkAvailable() {
-        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            Network network = connectivityManager.getActiveNetwork();
-            if(network == null)
-                return false;
-            NetworkCapabilities networkCapabilities = connectivityManager.getNetworkCapabilities(network);
-            return networkCapabilities != null && (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) || networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET));
-        }else {
-            NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
-            return networkInfo != null && networkInfo.isConnected();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isPipModeAvailable()) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                pictureInPictureParamsBuilder.setAutoEnterEnabled(settings.autoEnterPipModeEnabled());
+            }
+            setPictureInPictureParams(pictureInPictureParamsBuilder.build());
         }
+        captureFrame();
     }
 
     private void onPlayingStopped() {
+        this.binding.playerView.cancelFrameCapture();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && isPipModeAvailable() && pictureInPictureParamsBuilder != null) {
             pictureInPictureParamsBuilder.setAutoEnterEnabled(false);
             setPictureInPictureParams(pictureInPictureParamsBuilder.build());
@@ -703,15 +606,31 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         reconnectOnNetworkAvailable();
     }
 
-    private boolean isPlayerControlVisibile() {
+    private boolean isPlayerControlVisible() {
         return binding.playerControl.rootPlayerControl.getVisibility() == View.VISIBLE;
     }
 
-    private void setPlayerControlVisibile(boolean visible) {
-        if(visible) {
-            binding.playerControl.rootPlayerControl.setVisibility(View.VISIBLE);
+    private void setPlayerControlVisibility(boolean visible) {
+        binding.playerControl.rootPlayerControl.setVisibility(
+                visible?
+                    View.VISIBLE
+                :
+                    View.INVISIBLE
+        );
+    }
+
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            Network network = connectivityManager.getActiveNetwork();
+            if(network == null)
+                return false;
+            NetworkCapabilities networkCapabilities = connectivityManager.getNetworkCapabilities(network);
+            return networkCapabilities != null && (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) || networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET));
         }else {
-            binding.playerControl.rootPlayerControl.setVisibility(View.INVISIBLE);
+            NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+            return networkInfo != null && networkInfo.isConnected();
         }
     }
 
@@ -723,13 +642,12 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
             @Override
             public void onAvailable(@NonNull Network network) {
                 super.onAvailable(network);
-                disableNetworkCallback();
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if(isVisible)
-                            reconnect();
-                    }
+                runOnUiThread(() -> {
+                    if(networkCallback == null)
+                        return;
+                    disableNetworkCallback();
+                    if(getLifecycle().getCurrentState() == Lifecycle.State.RESUMED)
+                        reconnect();
                 });
             }
 
@@ -748,8 +666,25 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         try {
             connectivityManager.unregisterNetworkCallback(this.networkCallback);
+        }catch (IllegalArgumentException ignored) {
+        }finally {
             this.networkCallback = null;
-        }catch (IllegalArgumentException e) {}
+        }
+    }
+
+    private void onPIPModeChanged(boolean isInPictureInPictureMode) {
+        probablyBackstackLost = true;
+        if(isInPictureInPictureMode) {
+            LayoutTransition lt = new LayoutTransition();
+            lt.disableTransitionType(LayoutTransition.DISAPPEARING);
+            binding.uiContainer.setLayoutTransition(lt);
+
+            playerControlVisibilityTimer.stop();
+            binding.playerControl.rootPlayerControl.setVisibility(View.GONE);
+        }else {
+            LayoutTransition lt = new LayoutTransition();
+            binding.uiContainer.setLayoutTransition(lt);
+        }
     }
 
     private PlayerCameraViewModel.Params buildParams(Intent intent) {
@@ -765,19 +700,14 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
                 .build();
     }
 
-    private void takePicture() {
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            if(isDestroyed())
-                return;
-            if(viewModel.getStreamParams().getCameraId() > 0)
-                binding.surfaceView.takePicture(viewModel.getStreamParams().getCameraId());
-        }, 500);
+    private void captureFrame() {
+        if(viewModel.getStreamParams().getCameraId() > 0)
+            binding.playerView.captureFrame();
+        binding.playerView.captureFrame();
     }
 
     @Override
-    public void onImageCaptured(Bitmap bitmap, long id) {
-        if(id != viewModel.getStreamParams().getCameraId())
-            return;
+    public void onFrameCapture(Bitmap bitmap) {
         viewModel.saveCameraThumbnail(bitmap);
     }
 
@@ -799,6 +729,54 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
                             | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                             | View.SYSTEM_UI_FLAG_FULLSCREEN);
         }
+    }
+
+    private Rational clampRational(Rational rational) {
+        if(rational.compareTo(MIN_PIP_ASPECT_RATION) < 0)
+            return MIN_PIP_ASPECT_RATION;
+
+        if(rational.compareTo(MAX_PIP_ASPECT_RATION) > 0)
+            return MAX_PIP_ASPECT_RATION;
+
+        return rational;
+    }
+
+    private Rect calculateVideoBoundsInWindow(Rect videoBoundsInPlayerView) {
+        int[] location = new int[2];
+        binding.playerView.getLocationInWindow(location);
+
+        Rect result = new Rect(videoBoundsInPlayerView);
+        result.offset(location[0], location[1]);
+
+        return result;
+    }
+
+    @Override
+    public void onVideoBoundsChanged(Rect videoBounds) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
+            return;
+
+        if(!isPipModeAvailable())
+            return;
+
+        if(pictureInPictureParamsBuilder == null)
+            return;
+
+        Rational videoAspectRatio;
+
+        if(videoBounds == null) {
+            videoAspectRatio = DEFAULT_PIP_ASPECT_RATION;
+            videoBounds = new Rect(0,0,0,0);
+        }else {
+            videoAspectRatio = new Rational(videoBounds.width(), videoBounds.height());
+            videoBounds = calculateVideoBoundsInWindow(videoBounds);
+        }
+
+        videoAspectRatio = clampRational(videoAspectRatio);
+
+        pictureInPictureParamsBuilder.setAspectRatio(videoAspectRatio);
+        pictureInPictureParamsBuilder.setSourceRectHint(videoBounds);
+        setPictureInPictureParams(pictureInPictureParamsBuilder.build());
     }
 
     private class OrientationListener extends OrientationEventListener {

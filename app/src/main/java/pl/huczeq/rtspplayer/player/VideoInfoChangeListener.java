@@ -1,5 +1,5 @@
 package pl.huczeq.rtspplayer.player;
 
-public interface OnVideoLayoutChanged {
+public interface VideoInfoChangeListener {
     void onVideoLayoutChanged(VideoLayout videoLayout);
 }
