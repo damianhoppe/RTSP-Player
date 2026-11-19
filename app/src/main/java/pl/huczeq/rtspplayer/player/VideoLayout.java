@@ -11,12 +11,12 @@ public class VideoLayout {
         return videoLayout.visibleWidth * videoLayout.visibleHeight == 0;
     }
 
-    private int width;
-    private int height;
-    private int visibleWidth;
-    private int visibleHeight;
-    private float widthToHeightRatio;
-    private float heightToWidthRatio;
+    private final int width;
+    private final int height;
+    private final int visibleWidth;
+    private final int visibleHeight;
+    private final float widthToHeightRatio;
+    private final float heightToWidthRatio;
 
     public VideoLayout(int width, int height) {
         this(width, height, width, height);
@@ -30,6 +30,9 @@ public class VideoLayout {
         if(visibleWidth * visibleHeight != 0) {
             this.widthToHeightRatio = (float) visibleWidth / visibleHeight;
             this.heightToWidthRatio = (float) visibleHeight / visibleWidth;
+        }else {
+            this.widthToHeightRatio = 0;
+            this.heightToWidthRatio = 0;
         }
     }
 

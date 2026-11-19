@@ -1,39 +1,34 @@
 package pl.huczeq.rtspplayer.ui.player.view;
 
-import static android.opengl.EGL14.EGL_CONTEXT_CLIENT_VERSION;
-import static android.opengl.EGL14.EGL_TRUE;
-
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
+import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
-import android.opengl.EGL14;
 import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
-import android.util.Log;
-import android.view.View;
 import android.view.ViewTreeObserver;
 
+import androidx.collection.ArraySet;
+
 import java.util.Objects;
+import java.util.Set;
 
-import javax.microedition.khronos.egl.EGL10;
-import javax.microedition.khronos.egl.EGLConfig;
-import javax.microedition.khronos.egl.EGLContext;
-import javax.microedition.khronos.egl.EGLDisplay;
-import javax.microedition.khronos.egl.EGLSurface;
-
-import pl.huczeq.rtspplayer.ui.player.view.renderer.OnImageCapturedListener;
+import pl.huczeq.rtspplayer.ui.player.view.renderer.OnFrameCaptureListener;
 import pl.huczeq.rtspplayer.ui.player.view.renderer.PlayerRenderer;
 import pl.huczeq.rtspplayer.ui.player.view.renderer.PlayerRendererCallback;
-import pl.huczeq.rtspplayer.player.OnVideoLayoutChanged;
+import pl.huczeq.rtspplayer.player.VideoInfoChangeListener;
 import pl.huczeq.rtspplayer.player.VideoLayout;
 
-public class PlayerSurfaceView extends GLSurfaceView implements OnVideoLayoutChanged {
+public class PlayerSurfaceView extends GLSurfaceView implements VideoInfoChangeListener {
 
 
     private VideoLayout videoLayout;
-
     private PlayerRenderer renderer;
+    private PlayerView.OnVideoBoundsChangeListener onVideoBoundsChangeListener;
+
+    private Rect videoBounds;
 
     public PlayerSurfaceView(Context context) {
         super(context);
@@ -78,7 +73,6 @@ public class PlayerSurfaceView extends GLSurfaceView implements OnVideoLayoutCha
 //                egl10.eglDestroySurface(eglDisplay, eglSurface);
 //            }
 //        });
-
         this.renderer = new PlayerRenderer();
         this.renderer.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
             @Override
@@ -86,43 +80,43 @@ public class PlayerSurfaceView extends GLSurfaceView implements OnVideoLayoutCha
                 requestRender();
             }
         });
+        this.renderer.setOnFrameCaptureListener(new PlayerRenderer.InternalOnFrameCaptureListener() {
+            @Override
+            public void onFrameCapture(Bitmap bitmap, int capturedFrameIndex) {
+                if(captureFrameCancelled)
+                    return;
+                if(captureFrameIndex != capturedFrameIndex)
+                    return;
+                for(OnFrameCaptureListener listener : onFrameCaptureListeners) {
+                    listener.onFrameCapture(bitmap);
+                }
+            }
+        });
 
         setRenderer(renderer);
         setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
 
+        setBackgroundColor(Color.argb(0x00,0,0,0));
         getHolder().setFormat(PixelFormat.OPAQUE);
 
         getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
                 if(VideoLayout.isEmptyOrNull(videoLayout) || getMeasuredWidth() * getMeasuredHeight() == 0) {
-                    renderer.viewSizeMeasured = false;
+                    renderer.isRenderingBlockedUntilSizeMeasured = true;
                     return;
                 }
-                if(Math.abs(videoLayout.getWidthToHeightRatio() - (float)getMeasuredWidth()/getMeasuredHeight()) <= 0.1f)
-                    renderer.viewSizeMeasured = true;
+                if(Math.abs(videoLayout.getWidthToHeightRatio() - (float)getMeasuredWidth()/getMeasuredHeight()) <= 0.1f) {
+                    renderer.isRenderingBlockedUntilSizeMeasured = false;
+                }
             }
         });
-    }
-
-    public void setOnImageCapturedListener(OnImageCapturedListener onImageCapturedListener) {
-        this.renderer.setOnImageCapturedListener(onImageCapturedListener);
-    }
-
-    @Override
-    public void onVideoLayoutChanged(VideoLayout newVideoLayout) {
-        if(Objects.equals(this.videoLayout, newVideoLayout))
-            return;
-        this.videoLayout = newVideoLayout;
-        renderer.viewSizeMeasured = false;
-        requestLayout();
-        renderer.onVideoLayoutChanged(videoLayout);
     }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-//        renderer.viewSizeMeasured = true;
+        renderer.isRenderingBlockedUntilSizeMeasured = false;
         if(VideoLayout.isEmptyOrNull(videoLayout)) {
             super.onMeasure(MeasureSpec.makeMeasureSpec(1, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(1, MeasureSpec.EXACTLY));
             return;
@@ -130,8 +124,6 @@ public class PlayerSurfaceView extends GLSurfaceView implements OnVideoLayoutCha
 
         int width = getMeasuredWidth();
         int height = getMeasuredHeight();
-//        int width = View.MeasureSpec.getSize(widthMeasureSpec);
-//        int height = View.MeasureSpec.getSize(heightMeasureSpec);
 
         float videoAspectRatio = videoLayout.getHeightToWidthRatio();
         float surfaceAspectRatio = (float)height / width;
@@ -145,16 +137,66 @@ public class PlayerSurfaceView extends GLSurfaceView implements OnVideoLayoutCha
         super.onMeasure(MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY));
     }
 
-    public void takePicture(long id) {
-        this.renderer.takePicture(id);
+    @Override
+    public void onVideoLayoutChanged(VideoLayout newVideoLayout) {
+        if(Objects.equals(this.videoLayout, newVideoLayout))
+            return;
+        this.videoLayout = newVideoLayout;
+        renderer.isRenderingBlockedUntilSizeMeasured = true;
+        this.renderer.onVideoLayoutChanged(videoLayout);
+        if(newVideoLayout == null || newVideoLayout.getVisibleWidth() == 0 || newVideoLayout.getVisibleHeight() == 0) {
+            return;
+        }
+        getHolder().setFixedSize(newVideoLayout.getVisibleWidth(), newVideoLayout.getVisibleHeight());
+        requestLayout();
     }
 
-    public void resetTransformations() {
-        invalidate();
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
+        requestRender();
+        Rect videoBounds = new Rect();
+        this.getGlobalVisibleRect(videoBounds);
+        if(Objects.equals(this.videoBounds, videoBounds)) {
+            return;
+        }
+        this.videoBounds = videoBounds;
+        onVideoBoundsChangeListener.onVideoBoundsChanged(videoBounds);
+    }
+
+    private int captureFrameIndex = 0;
+    private boolean captureFrameCancelled = false;
+    private final Set<OnFrameCaptureListener> onFrameCaptureListeners = new ArraySet<>();
+
+    public void cancelFrameCapture() {
+        captureFrameCancelled = true;
+        queueEvent(new Runnable() {
+            @Override
+            public void run() {
+                renderer.cancelFrameCapture();
+            }
+        });
+    }
+
+    public void captureFrame() {
+        captureFrameCancelled = false;
+        captureFrameIndex++;
+        queueEvent(new Runnable() {
+            @Override
+            public void run() {
+                renderer.captureFrame(captureFrameIndex);
+            }
+        });
+        requestRender();
+    }
+
+    public void registerOnFrameCaptureListener(OnFrameCaptureListener onFrameCaptureListener) {
+        this.onFrameCaptureListeners.add(onFrameCaptureListener);
     }
 
     public void clearSurface() {
         renderer.clearSurface();
+        cancelFrameCapture();
         requestRender();
     }
 
@@ -162,11 +204,15 @@ public class PlayerSurfaceView extends GLSurfaceView implements OnVideoLayoutCha
         return this.renderer.getSurfaceTexture();
     }
 
-    public void setRendererCallback(PlayerRendererCallback callback) {
+    public void setOnSurfaceCreatedListener(PlayerRendererCallback callback) {
         this.renderer.setRendererCallback(callback);
     }
 
-    public PlayerRenderer getRenderer() {
-        return this.renderer;
+    public void setOnVideoBoundsChanged(PlayerView.OnVideoBoundsChangeListener onVideoBoundsChangeListener) {
+        this.onVideoBoundsChangeListener = onVideoBoundsChangeListener;
+    }
+
+    public void drawOnlyNewFrames() {
+        this.renderer.drawOnlyNewFrames();
     }
 }
