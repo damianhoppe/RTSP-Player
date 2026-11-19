@@ -1,6 +1,7 @@
 package pl.huczeq.rtspplayer.ui.player.view;
 
 import android.animation.ValueAnimator;
+import android.content.Context;
 import android.graphics.Matrix;
 import android.view.GestureDetector;
 import android.view.HapticFeedbackConstants;
@@ -41,111 +42,18 @@ public class PlayerTransformController implements View.OnTouchListener {
 
     private float edgeDragX = 0f;
 
+    private final Context context;
     private final View view;
     private View playerView;
-    private final OnTransformationMatrixChanged onTransformationMatrixChanged;
+    private OnTransformationMatrixChanged onTransformationMatrixChanged;
 
     public PlayerTransformController(View view, OnTransformationMatrixChanged onTransformationMatrixChanged) {
         this.onTransformationMatrixChanged = onTransformationMatrixChanged;
         this.view = view;
+        this.context = view.getContext();
         this.DEFAULT_SCALE = MathUtils.clamp(DEFAULT_SCALE, MIN_SCALE, MAX_SCALE);
-        this.scaleDetector = new ScaleGestureDetector(view.getContext(), new ScaleListener());
-        this.gestureDetector = new GestureDetector(view.getContext(), new GestureDetector.SimpleOnGestureListener(){
-
-            @Override
-            public boolean onSingleTapConfirmed(@NonNull MotionEvent e) {
-                view.performClick();
-                return true;
-            }
-
-            @Override
-            public boolean onDown(@NonNull MotionEvent e) {
-                clearScaleAnimation();
-                clearTranslationAnimation();
-                return true;
-            }
-
-            @Override
-            public boolean onDoubleTapEvent(@NonNull MotionEvent e) {
-                if(e.getActionMasked() == MotionEvent.ACTION_DOWN)
-                    return false;
-
-                if(scaleDetector.isInProgress())
-                    return false;
-
-                if(e.getActionMasked() == MotionEvent.ACTION_UP) {
-                    isClampingEnabled = true;
-                    resetScaleWithAnimation();
-                    return true;
-                }
-
-                return false;
-            }
-
-            private float easeOutCubic(float t) {
-                return 1f - (float) Math.pow(1f - t, 3);
-            }
-
-            private float getEdgeResistance(float drag) {
-                float t = Math.min(1f, drag / swipeThreshold);
-
-                float eased = 1f - easeOutCubic(t);
-
-                return MIN_EDGE_RESISTANCE + (1f - MIN_EDGE_RESISTANCE) * eased;
-            }
-
-            @Override
-            public boolean onScroll(@NonNull MotionEvent e1, @NonNull MotionEvent e2, float distanceX, float distanceY) {
-                matrix.getValues(matrixValues);
-
-                float currentX = matrixValues[Matrix.MTRANS_X];
-                float newX = currentX - distanceX;
-                float overflow = -getTranslationXOverflow(newX);
-
-                float effectiveDistanceX = distanceX;
-                if(!isClampingEnabled && isTranslationXAtLimit() && overflow != 0) {
-                    edgeDragX += distanceX;
-                    float resistance = getEdgeResistance(Math.abs(edgeDragX));
-                    effectiveDistanceX = distanceX * resistance;
-                }else {
-                    edgeDragX = 0f;
-                }
-
-                matrix.postTranslate(-effectiveDistanceX, -distanceY);
-                matrixUpdated = true;
-
-                if(overflow == 0 && !isTranslationXAtLimit()) {
-                    isClampingEnabled = true;
-                    edgeDragX = 0.f;
-                }
-
-                if(!swipeGestureAvailable) {
-                    return false;
-                }
-
-                int currentSwipeDirection;
-
-                if(scaleDetector.isInProgress()) {
-                    currentSwipeDirection = 0;
-                    hasScalingGestureOccurredDuringTouchInteraction = true;
-                }else {
-                    currentSwipeDirection = (edgeDragX > swipeThreshold * 0.5f) ?
-                            1
-                            : (edgeDragX < -(swipeThreshold * 0.5f)) ?
-                            -1 : 0;
-                }
-
-                if(currentSwipeDirection != swipeDirection) {
-                    if(currentSwipeDirection != 0)
-                        view.performHapticFeedback(HapticFeedbackConstants.GESTURE_THRESHOLD_ACTIVATE);
-                    else
-                        view.performHapticFeedback(HapticFeedbackConstants.GESTURE_THRESHOLD_DEACTIVATE);
-                    swipeDirection = currentSwipeDirection;
-                }
-
-                return false;
-            }
-        });
+        this.scaleDetector = new ScaleGestureDetector(context, new ScaleListener());
+        this.gestureDetector = new GestureDetector(context, new GestureListener());
         this.swipeThreshold = 300 * view.getResources().getDisplayMetrics().density;
         reset();
     }
@@ -156,12 +64,6 @@ public class PlayerTransformController implements View.OnTouchListener {
 
     @Override
     public boolean onTouch(View view, MotionEvent motionEvent) {
-        if(motionEvent.getActionMasked() == MotionEvent.ACTION_DOWN && motionEvent.getPointerCount() == 1) {
-            if(isTranslationXAtLimit()) {
-                isClampingEnabled = false;
-            }
-        }
-
         gestureDetector.onTouchEvent(motionEvent);
         scaleDetector.onTouchEvent(motionEvent);
 
@@ -288,8 +190,7 @@ public class PlayerTransformController implements View.OnTouchListener {
             scaleAnimator.pause();
     }
 
-    private void animateToScale(float scale) {
-        clearScaleAnimation();
+    private void animateToScale(float scale) {clearScaleAnimation();
 
         scaleAnimator = ValueAnimator.ofFloat(presentScale, scale);
         scaleAnimator.setDuration(200);
@@ -378,6 +279,18 @@ public class PlayerTransformController implements View.OnTouchListener {
         return dx > 0 && dy > 0;
     }
 
+    private float easeOutCubic(float t) {
+        return 1f - (float) Math.pow(1f - t, 3);
+    }
+
+    private float getEdgeResistance(float drag) {
+        float t = Math.min(1f, drag / swipeThreshold);
+
+        float eased = 1f - easeOutCubic(t);
+
+        return MIN_EDGE_RESISTANCE + (1f - MIN_EDGE_RESISTANCE) * eased;
+    }
+
     public class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
         private boolean isInPoint = false;
 
@@ -428,6 +341,93 @@ public class PlayerTransformController implements View.OnTouchListener {
                 animateToScale(pointScale);
                 view.performHapticFeedback(HapticFeedbackConstants.CONFIRM);
             }
+        }
+    }
+
+    private class GestureListener extends GestureDetector.SimpleOnGestureListener {
+        @Override
+        public boolean onSingleTapConfirmed(@NonNull MotionEvent e) {
+            view.performClick();
+            return true;
+        }
+
+        @Override
+        public boolean onDown(@NonNull MotionEvent e) {
+            clearScaleAnimation();
+            clearTranslationAnimation();
+            if(isTranslationXAtLimit()) {
+                isClampingEnabled = false;
+            }
+            return true;
+        }
+
+        @Override
+        public boolean onDoubleTapEvent(@NonNull MotionEvent e) {
+            if(e.getActionMasked() == MotionEvent.ACTION_DOWN)
+                return false;
+
+            if(scaleDetector.isInProgress())
+                return false;
+
+            if(e.getActionMasked() == MotionEvent.ACTION_UP) {
+                isClampingEnabled = true;
+                resetScaleWithAnimation();
+                return true;
+            }
+
+            return false;
+        }
+
+        @Override
+        public boolean onScroll(@NonNull MotionEvent e1, @NonNull MotionEvent e2, float distanceX, float distanceY) {
+            matrix.getValues(matrixValues);
+
+            float currentX = matrixValues[Matrix.MTRANS_X];
+            float newX = currentX - distanceX;
+            float overflow = -getTranslationXOverflow(newX);
+
+            float effectiveDistanceX = distanceX;
+            if(!isClampingEnabled && isTranslationXAtLimit() && overflow != 0) {
+                edgeDragX += distanceX;
+                float resistance = getEdgeResistance(Math.abs(edgeDragX));
+                effectiveDistanceX = distanceX * resistance;
+            }else {
+                edgeDragX = 0f;
+            }
+
+            matrix.postTranslate(-effectiveDistanceX, -distanceY);
+            matrixUpdated = true;
+
+            if(overflow == 0 && !isTranslationXAtLimit()) {
+                isClampingEnabled = true;
+                edgeDragX = 0.f;
+            }
+
+            if(!swipeGestureAvailable) {
+                return false;
+            }
+
+            int currentSwipeDirection;
+
+            if(scaleDetector.isInProgress()) {
+                currentSwipeDirection = 0;
+                hasScalingGestureOccurredDuringTouchInteraction = true;
+            }else {
+                currentSwipeDirection = (edgeDragX > swipeThreshold * 0.5f) ?
+                        1
+                        : (edgeDragX < -(swipeThreshold * 0.5f)) ?
+                        -1 : 0;
+            }
+
+            if(currentSwipeDirection != swipeDirection) {
+                if(currentSwipeDirection != 0)
+                    view.performHapticFeedback(HapticFeedbackConstants.GESTURE_THRESHOLD_ACTIVATE);
+                else
+                    view.performHapticFeedback(HapticFeedbackConstants.GESTURE_THRESHOLD_DEACTIVATE);
+                swipeDirection = currentSwipeDirection;
+            }
+
+            return false;
         }
     }
 
