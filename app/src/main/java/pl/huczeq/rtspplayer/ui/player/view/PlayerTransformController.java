@@ -1,8 +1,11 @@
 package pl.huczeq.rtspplayer.ui.player.view;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Matrix;
+import android.graphics.PointF;
 import android.view.GestureDetector;
 import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
@@ -215,7 +218,7 @@ public class PlayerTransformController implements View.OnTouchListener {
     }
 
     public void resetScaleWithAnimation() {
-        animateToScale(1f);
+        animateToScale(DEFAULT_SCALE);
     }
 
     public void resetTranslationWithAnimation() {
@@ -229,21 +232,90 @@ public class PlayerTransformController implements View.OnTouchListener {
             scaleAnimator.pause();
     }
 
-    private void animateToScale(float scale) {clearScaleAnimation();
+    private PointF calculateClampedTranslationWithScale(float scale, float pointX, float pointY) {
+        Matrix m = new Matrix(matrix);
+        float ds = scale/presentScale;
+        m.postScale(ds,ds,pointX,pointY);
 
-        scaleAnimator = ValueAnimator.ofFloat(presentScale, scale);
+        float[] mv = new float[9];
+        m.getValues(mv);
+
+        float leftOffset = (view.getMeasuredWidth() - playerView.getMeasuredWidth()) / 2f;
+        float clampedX = getFittedTranslation(mv[Matrix.MTRANS_X], view.getMeasuredWidth(), playerView.getMeasuredWidth(), scale, leftOffset);
+
+        float topOffset = (view.getMeasuredHeight() - playerView.getMeasuredHeight()) / 2f;
+        float clampedY = getFittedTranslation(mv[Matrix.MTRANS_Y], view.getMeasuredHeight(), playerView.getMeasuredHeight(), scale, topOffset);
+
+        return new PointF(
+                mv[Matrix.MTRANS_X] + clampedX,
+                mv[Matrix.MTRANS_Y] + clampedY
+        );
+    }
+
+    private void animateToScale(float targetScale) {
+        animateToScale(
+                targetScale,
+                view.getMeasuredWidth() / 2f,
+                view.getMeasuredHeight() / 2f
+        );
+    }
+
+    private void animateToScale(float proposedTargetScale, float pointX, float pointY) {
+        clearScaleAnimation();
+        float targetScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, proposedTargetScale));
+
+        this.matrix.getValues(matrixValues);
+
+        float startScale = presentScale;
+
+        float startX = matrixValues[Matrix.MTRANS_X];
+        float startY = matrixValues[Matrix.MTRANS_Y];
+
+        PointF targetTranslation = calculateClampedTranslationWithScale(targetScale, pointX, pointY);
+
+        float targetX = targetTranslation.x;
+        float targetY = targetTranslation.y;
+
+        scaleAnimator = ValueAnimator.ofFloat(0f, 1f);
         scaleAnimator.setDuration(200);
-        scaleAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+
+        scaleAnimator.addUpdateListener(animation -> {
+            float fraction = (float) animation.getAnimatedValue();
+
+            float newScale = startScale + (targetScale - startScale) * fraction;
+            float scaleFactor = newScale / presentScale;
+
+            presentScale = newScale;
+
+            matrix.postScale(
+                    scaleFactor,
+                    scaleFactor,
+                    pointX,
+                    pointY
+            );
+
+            this.matrix.getValues(matrixValues);
+
+            float targetCurrentX = startX + (targetX - startX) * fraction;
+            float targetCurrentY = startY + (targetY - startY) * fraction;
+
+            matrix.postTranslate(
+                    targetCurrentX - matrixValues[Matrix.MTRANS_X],
+                    targetCurrentY - matrixValues[Matrix.MTRANS_Y]
+            );
+
+            applyTransformation();
+        });
+
+        scaleAnimator.addListener(new AnimatorListenerAdapter() {
             @Override
-            public void onAnimationUpdate(ValueAnimator animation) {
-                float newScale = (float) animation.getAnimatedValue();
-                float scaleFactor = newScale/presentScale;
-                presentScale = (float) animation.getAnimatedValue();
-                matrix.postScale(scaleFactor, scaleFactor, playerView.getMeasuredWidth()/2f, playerView.getMeasuredHeight()/2f);
-                clampMatrixTranslation(isClampingEnabled || !swipeGestureAvailable, true);
-                applyTransformation();
+            public void onAnimationEnd(Animator animation) {
+                presentScale = targetScale;
+                scaleAnimator = null;
+                clampMatrixTranslation(true, true);
             }
         });
+
         scaleAnimator.start();
     }
 
@@ -271,6 +343,15 @@ public class PlayerTransformController implements View.OnTouchListener {
                 applyTransformation();
             }
         });
+
+        translationAnimator.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                translationAnimator = null;
+                clampMatrixTranslation(true, true);
+            }
+        });
+
         translationAnimator.start();
     }
 
@@ -317,7 +398,7 @@ public class PlayerTransformController implements View.OnTouchListener {
 
         return dx > 0 && dy > 0;
     }
-
+    
     private float easeOutCubic(float t) {
         return 1f - (float) Math.pow(1f - t, 3);
     }
