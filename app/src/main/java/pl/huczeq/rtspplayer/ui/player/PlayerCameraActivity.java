@@ -174,7 +174,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
                 if(isDestroyed() || switchAnimating)
                     return;
                 if(camera == null) {
-                    binding.surfaceViewContainer.resetTranslationWithAnimation();
+                    binding.surfaceViewContainer.getTransformController().resetTranslationWithAnimation();
                     binding.surfaceViewContainer.performHapticFeedback(HapticFeedbackConstants.REJECT);
                     return;
                 }
@@ -424,7 +424,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
     }
 
     private void switchStream(PlayerCameraViewModel.Params params) {
-        binding.surfaceViewContainer.reset();
+        binding.surfaceViewContainer.getTransformController().reset();
         binding.surfaceView.resetTransformations();
 
         if(!params.equals(viewModel.getStreamParams()) || !player.isPlaying()) {
@@ -519,7 +519,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         lastScreenOrientation = newConfig.orientation;
 
         binding.surfaceView.resetTransformations();
-        binding.surfaceViewContainer.reset();
+        binding.surfaceViewContainer.getTransformController().reset();
     }
 
     @Override
@@ -616,7 +616,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
     @Override
     protected void onUserLeaveHint() {
         super.onUserLeaveHint();
-        binding.surfaceViewContainer.resetScaleWithAnimation();
+        binding.surfaceViewContainer.getTransformController().resetScaleWithAnimation();
         if (player.isPlaying() && settings.autoEnterPipModeEnabled() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
             enterPlayerIntoPictureInPictureMode();
         }
