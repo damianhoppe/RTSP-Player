@@ -49,14 +49,21 @@ public class ExoPlayerImpl extends RtspPlayer {
         this.player.addListener(new Player.Listener() {
 
             @Override
+            public void onRenderedFirstFrame() {
+                Player.Listener.super.onRenderedFirstFrame();
+                if(eventListeners.isEmpty())
+                    return;
+                for(PlayerEventListener listener : eventListeners) {
+                    listener.onStartRendering();
+                }
+            }
+
+            @Override
             public void onIsPlayingChanged(boolean isPlaying) {
                 Player.Listener.super.onIsPlayingChanged(isPlaying);
                 if(eventListeners.isEmpty())
                     return;
                 if(isPlaying) {
-                    for(PlayerEventListener listener : eventListeners) {
-                        listener.onStartRendering();
-                    }
                     for(PlayerEventListener listener : eventListeners) {
                         listener.onPlaying();
                     }
