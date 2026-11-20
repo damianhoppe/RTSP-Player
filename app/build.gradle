@@ -37,7 +37,8 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled = true
+            shrinkResources = true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             buildConfigField("String", "BUILD_TIME", "\"${buildTime("yyyy-MM-dd HH:mm:ss")}\"")
             buildConfigField("String", "SITE_URL", "\"${appSiteUrl}\"")
@@ -64,7 +65,10 @@ android {
 
     splits {
         abi {
-            enable = true
+            boolean isBuildingBundle = gradle.startParameter.taskNames.any {
+                it.toLowerCase().contains("bundle")
+            }
+            enable !isBuildingBundle
             reset()
             include "x86", "x86_64", "armeabi-v7a", "arm64-v8a"
             universalApk = true
