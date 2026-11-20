@@ -15,6 +15,7 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
+import android.hardware.display.DisplayManager;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
@@ -28,16 +29,21 @@ import android.os.Process;
 import android.util.DisplayMetrics;
 import android.util.Pair;
 import android.util.Rational;
+import android.view.Display;
 import android.view.HapticFeedbackConstants;
 import android.view.OrientationEventListener;
 import android.view.View;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
 import android.view.WindowManager;
+import android.view.WindowMetrics;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.Observer;
@@ -118,13 +124,8 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
     @RequiresApi(api = Build.VERSION_CODES.N)
     private boolean isPipModeAvailable() {
         AppOpsManager appOpsManager = (AppOpsManager) getSystemService(Context.APP_OPS_SERVICE);
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            if(appOpsManager.unsafeCheckOpNoThrow(AppOpsManager.OPSTR_PICTURE_IN_PICTURE, Process.myUid(), BuildConfig.APPLICATION_ID) != AppOpsManager.MODE_ALLOWED)
-                return false;
-        }else {
-            if(appOpsManager.checkOpNoThrow(AppOpsManager.OPSTR_PICTURE_IN_PICTURE, Process.myUid(), BuildConfig.APPLICATION_ID) != AppOpsManager.MODE_ALLOWED)
-                return false;
-        }
+        if(appOpsManager.checkOpNoThrow(AppOpsManager.OPSTR_PICTURE_IN_PICTURE, Process.myUid(), BuildConfig.APPLICATION_ID) != AppOpsManager.MODE_ALLOWED)
+            return false;
         return getPackageManager().hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE);
     }
 
@@ -283,15 +284,26 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void setDefaultPIPRectAndAspectRatio(PictureInPictureParams.Builder pictureInPictureParamsBuilder) {
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        int displayWidth, displayHeight;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            Rect windowRect = getWindowManager().getCurrentWindowMetrics().getBounds();
+            displayWidth = windowRect.width();
+            displayHeight = windowRect.height();
+        }else {
+            DisplayMetrics displayMetrics = new DisplayMetrics();
+            //noinspection deprecation
+            getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+            displayWidth = displayMetrics.widthPixels;
+            displayHeight = displayMetrics.heightPixels;
+        }
         int min;
         boolean vertically;
-        if(displayMetrics.widthPixels < displayMetrics.heightPixels) {
-            min = displayMetrics.widthPixels;
+        if(displayWidth < displayHeight) {
+            min = displayWidth;
             vertically = false;
         }else {
-            min = displayMetrics.heightPixels;
+            min = displayHeight;
             vertically = true;
         }
         Rational aspectRatio = new Rational(16,9);
@@ -300,11 +312,11 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
             rect.top = 0;
             rect.bottom = min;
             int width = (int) (aspectRatio.floatValue() * min);
-            rect.left = (displayMetrics.widthPixels - width)/2;
+            rect.left = (displayWidth - width)/2;
             rect.right = rect.left + width;
         }else {
             int height = (int) (min/aspectRatio.floatValue());
-            rect.top = (displayMetrics.heightPixels - height)/2;
+            rect.top = (displayHeight - height)/2;
             rect.bottom = rect.top + height;
             rect.left = 0;
             rect.right = min;
@@ -505,9 +517,15 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && pictureInPictureParamsBuilder != null) {
             enterPictureInPictureMode(pictureInPictureParamsBuilder.build());
         }else {
-            enterPictureInPictureMode();
+            enterPictureInPictureModeDeprecated();
         }
         binding.playerView.getTransformController().resetScaleWithAnimation();
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    @SuppressWarnings("deprecation")
+    private void enterPictureInPictureModeDeprecated() {
+        enterPictureInPictureMode();
     }
 
     @Override
@@ -629,9 +647,15 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
             NetworkCapabilities networkCapabilities = connectivityManager.getNetworkCapabilities(network);
             return networkCapabilities != null && (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) || networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET));
         }else {
-            NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
-            return networkInfo != null && networkInfo.isConnected();
+            return isNetworkAvailableDeprecated(connectivityManager);
         }
+    }
+
+
+    @SuppressWarnings("deprecation")
+    private boolean isNetworkAvailableDeprecated(ConnectivityManager connectivityManager) {
+        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+        return networkInfo != null && networkInfo.isConnected();
     }
 
     public void reconnectOnNetworkAvailable() {
@@ -712,23 +736,9 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
     }
 
     protected void hideUI() {
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            getWindow().setDecorFitsSystemWindows(false);
-            WindowInsetsController controller = getWindow().getInsetsController();
-            if(controller != null) {
-                controller.hide(WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars());
-                controller.setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
-            }
-        }else {
-            View decorView = getWindow().getDecorView();
-            decorView.setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                            | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                            | View.SYSTEM_UI_FLAG_FULLSCREEN);
-        }
+        WindowInsetsControllerCompat insetsController = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+        insetsController.hide(WindowInsetsCompat.Type.systemBars());
+        insetsController.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
     }
 
     private Rational clampRational(Rational rational) {

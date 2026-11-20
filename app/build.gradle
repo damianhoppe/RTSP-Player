@@ -16,7 +16,7 @@ def buildTime(String format = "yyyy-MM-dd") {
 }
 
 android {
-    android.ndkVersion "29.0.14033849"
+    android.ndkVersion = "29.0.14033849"
 
     defaultConfig {
         compileSdk = 36
@@ -52,8 +52,8 @@ android {
     }
 
     buildFeatures {
-        dataBinding true
-        buildConfig true
+        dataBinding = true
+        buildConfig = true
     }
 
     testOptions {
@@ -64,10 +64,10 @@ android {
 
     splits {
         abi {
-            enable true
+            enable = true
             reset()
             include "x86", "x86_64", "armeabi-v7a", "arm64-v8a"
-            universalApk true
+            universalApk = true
         }
     }
 
@@ -75,7 +75,7 @@ android {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
     }
-    namespace 'pl.huczeq.rtspplayer'
+    namespace = 'pl.huczeq.rtspplayer'
 }
 
 dependencies {
