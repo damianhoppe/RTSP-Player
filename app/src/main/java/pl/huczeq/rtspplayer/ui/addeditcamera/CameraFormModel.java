@@ -97,14 +97,14 @@ public class CameraFormModel extends BaseObservable {
                 character = value.charAt(index);
                 if(character == '{') {
                     if(expressionStarted) {
-                        error = Errors.EXPRESSION_OPENSIGN_AFTER_OPEN;
+                        error = Errors.EXPRESSION_OPEN_SIGN_AFTER_OPEN;
                         return null;
                     }
                     expressionStarted = true;
                     expression = new StringBuilder();
                 }else if(character == '}') {
                     if(!expressionStarted) {
-                        error = Errors.EXPRESSION_CLOSEDSIGN_WITHOUT_OPEN;
+                        error = Errors.EXPRESSION_CLOSED_SIGN_WITHOUT_OPEN;
                         return null;
                     }
                     expressionStarted = false;

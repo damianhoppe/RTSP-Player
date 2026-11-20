@@ -4,6 +4,7 @@ import androidx.databinding.BindingAdapter;
 
 import com.google.android.material.textfield.TextInputLayout;
 
+import pl.huczeq.rtspplayer.R;
 import pl.huczeq.rtspplayer.ui.views.ProgressFloatingActionButton;
 import pl.huczeq.rtspplayer.ui.views.ProgressMaterialButton;
 import pl.huczeq.rtspplayer.util.validation.Errors;
@@ -38,19 +39,19 @@ public class MyBindingAdapter {
         }
         switch (erroCode) {
             case Errors.IS_REQUIRED:
-                view.setError("This field is required");
+                view.setError(view.getResources().getString(R.string.error_required));
                 break;
             case Errors.EXPRESSION_NOT_CLOSED:
-                view.setError("Nie zapomnij o zamknięciu wyrażenia");
+                view.setError(view.getResources().getString(R.string.error_expression_not_closed));
                 break;
-            case Errors.EXPRESSION_OPENSIGN_AFTER_OPEN:
-                view.setError("Musisz najpierw zamknąc poprzednie wyrazenie");
+            case Errors.EXPRESSION_OPEN_SIGN_AFTER_OPEN:
+                view.setError(view.getResources().getString(R.string.error_expression_open_sign_after_open));
                 break;
-            case Errors.EXPRESSION_CLOSEDSIGN_WITHOUT_OPEN:
-                view.setError("Musisz najpierw otworzyc wyrazenie");
+            case Errors.EXPRESSION_CLOSED_SIGN_WITHOUT_OPEN:
+                view.setError(view.getResources().getString(R.string.error_expression_closed_sign_without_open));
                 break;
             default:
-                view.setError("Incorrect value");
+                view.setError(view.getResources().getString(R.string.error_incorrect_value));
         }
     }
 }
