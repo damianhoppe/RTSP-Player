@@ -143,7 +143,7 @@ public class PlayerSurfaceView extends GLSurfaceView implements VideoInfoChangeL
             return;
         this.videoLayout = newVideoLayout;
         renderer.isRenderingBlockedUntilSizeMeasured = true;
-        this.renderer.onVideoLayoutChanged(videoLayout);
+        queueEvent(() -> this.renderer.onVideoLayoutChanged(videoLayout));
         if(newVideoLayout == null || newVideoLayout.getVisibleWidth() == 0 || newVideoLayout.getVisibleHeight() == 0) {
             return;
         }
