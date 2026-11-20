@@ -9,7 +9,7 @@ import pl.huczeq.rtspplayer.ui.adapters.base.BaseArrayAdapter;
 public class ModelsDropdownAdapter extends BaseArrayAdapter<Model> {
 
     public ModelsDropdownAdapter(Context context) {
-        super(context, false, R.layout.support_simple_spinner_dropdown_item, 0, R.string.none);
+        super(context, false, androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, 0, R.string.none);
     }
 
     @Override
