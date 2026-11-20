@@ -41,6 +41,8 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.core.view.HapticFeedbackConstantsCompat;
+import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
@@ -176,7 +178,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
                     return;
                 if(camera == null) {
                     binding.playerView.getTransformController().resetTranslationWithAnimation();
-                    binding.playerView.performHapticFeedback(HapticFeedbackConstants.REJECT);
+                    ViewCompat.performHapticFeedback(binding.playerView, HapticFeedbackConstantsCompat.REJECT);
                     return;
                 }
                 PlayerCameraViewModel.Params newParams = PlayerCameraViewModel.Params.builder()

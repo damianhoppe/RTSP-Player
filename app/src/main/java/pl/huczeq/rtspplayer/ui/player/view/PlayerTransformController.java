@@ -15,6 +15,8 @@ import android.widget.OverScroller;
 
 import androidx.annotation.NonNull;
 import androidx.core.math.MathUtils;
+import androidx.core.view.HapticFeedbackConstantsCompat;
+import androidx.core.view.ViewCompat;
 
 public class PlayerTransformController implements View.OnTouchListener {
 
@@ -436,7 +438,7 @@ public class PlayerTransformController implements View.OnTouchListener {
         public boolean onScaleBegin(@NonNull ScaleGestureDetector detector) {
             this.isInPoint = presentScale >= pointScale-pointScaleOffset && presentScale <= pointScale+pointScaleOffset;
             if(this.isInPoint) {
-                view.performHapticFeedback(HapticFeedbackConstants.GESTURE_START);
+                ViewCompat.performHapticFeedback(view, HapticFeedbackConstantsCompat.GESTURE_START);
             }
             return super.onScaleBegin(detector);
         }
@@ -467,7 +469,7 @@ public class PlayerTransformController implements View.OnTouchListener {
             boolean previousInPoint = previousScale >= pointScale-pointScaleOffset && previousScale <= pointScale+pointScaleOffset;
             boolean presentInPoint = presentScale >= pointScale-pointScaleOffset && presentScale <= pointScale+pointScaleOffset;
             if(previousInPoint != presentInPoint) {
-                view.performHapticFeedback(presentInPoint? HapticFeedbackConstants.GESTURE_START : HapticFeedbackConstants.GESTURE_END);
+                ViewCompat.performHapticFeedback(view, presentInPoint? HapticFeedbackConstantsCompat.GESTURE_START : HapticFeedbackConstantsCompat.GESTURE_END);
             }
             return true;
         }
@@ -477,7 +479,7 @@ public class PlayerTransformController implements View.OnTouchListener {
             super.onScaleEnd(detector);
             if(presentScale >= pointScale-pointScaleOffset && presentScale <= pointScale+pointScaleOffset) {
                 animateToScale(pointScale);
-                view.performHapticFeedback(HapticFeedbackConstants.CONFIRM);
+                ViewCompat.performHapticFeedback(view, HapticFeedbackConstantsCompat.CONFIRM);
             }
         }
     }
@@ -606,9 +608,9 @@ public class PlayerTransformController implements View.OnTouchListener {
 
             if(currentSwipeDirection != swipeDirection) {
                 if(currentSwipeDirection != 0)
-                    view.performHapticFeedback(HapticFeedbackConstants.GESTURE_THRESHOLD_ACTIVATE);
+                    ViewCompat.performHapticFeedback(view, HapticFeedbackConstantsCompat.GESTURE_THRESHOLD_ACTIVATE);
                 else
-                    view.performHapticFeedback(HapticFeedbackConstants.GESTURE_THRESHOLD_DEACTIVATE);
+                    ViewCompat.performHapticFeedback(view, HapticFeedbackConstantsCompat.GESTURE_THRESHOLD_DEACTIVATE);
                 swipeDirection = currentSwipeDirection;
             }
 
