@@ -539,8 +539,6 @@ public class PlayerTransformController implements View.OnTouchListener {
                 float firstStep = Math.max(calculateFillScale(), 2f);
                 if(Math.abs(presentScale - DEFAULT_SCALE) <= 0.1f) {
                     animateToScale(firstStep,pointX,pointY);
-                }else if(Math.abs(presentScale - firstStep) <= 0.1f) {
-                    animateToScale(presentScale * 2f,pointX,pointY);
                 }else {
                     animateToScale(DEFAULT_SCALE, pointX, pointY);
                 }
