@@ -43,7 +43,7 @@
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             android:theme="@style/AppTheme.Player"
             android:taskAffinity=".uiold.activities.PlayerCameraActivity"
-            android:resizeableActivity="false"
+            android:resizeableActivity="true"
             android:supportsPictureInPicture="true"
             android:autoRemoveFromRecents="true"
             android:allowTaskReparenting="true"/>
