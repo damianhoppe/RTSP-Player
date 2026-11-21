@@ -7,15 +7,19 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.LayoutTransition;
 import android.app.ActivityManager;
 import android.app.AppOpsManager;
+import android.app.PendingIntent;
 import android.app.PictureInPictureParams;
+import android.app.RemoteAction;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
-import android.hardware.display.DisplayManager;
+import android.graphics.drawable.Icon;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
@@ -27,20 +31,17 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Process;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.util.Pair;
 import android.util.Rational;
-import android.view.Display;
-import android.view.HapticFeedbackConstants;
 import android.view.OrientationEventListener;
 import android.view.View;
-import android.view.WindowInsets;
-import android.view.WindowInsetsController;
 import android.view.WindowManager;
-import android.view.WindowMetrics;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.HapticFeedbackConstantsCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
@@ -52,6 +53,7 @@ import androidx.lifecycle.Observer;
 
 import com.google.common.base.Strings;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -123,6 +125,26 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         }
     });
 
+    private static final String PIP_ACTION_PREVIOUS = "PIP_ACTION_PREVIOUS";
+    private static final String PIP_ACTION_NEXT = "PIP_ACTION_NEXT";
+
+    private final BroadcastReceiver pipActionsReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if(intent == null || intent.getAction() == null)
+                return;
+
+            switch(intent.getAction()) {
+                case PIP_ACTION_PREVIOUS:
+                    loadAdjacentCamera(-1);
+                    break;
+                case PIP_ACTION_NEXT:
+                    loadAdjacentCamera(1);
+                    break;
+            }
+        }
+    };
+
     @RequiresApi(api = Build.VERSION_CODES.N)
     private boolean isPipModeAvailable() {
         AppOpsManager appOpsManager = (AppOpsManager) getSystemService(Context.APP_OPS_SERVICE);
@@ -170,27 +192,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
 
         this.viewModel.setStreamParams(params);
 
-        this.binding.playerView.setOnSwipeListener(direction -> {
-            if(switchAnimating)
-                return;
-            viewModel.loadAdjacentCamera(direction, camera -> {
-                if(isDestroyed() || switchAnimating)
-                    return;
-                if(camera == null) {
-                    binding.playerView.getTransformController().resetTranslationWithAnimation();
-                    ViewCompat.performHapticFeedback(binding.playerView, HapticFeedbackConstantsCompat.REJECT);
-                    return;
-                }
-                PlayerCameraViewModel.Params newParams = PlayerCameraViewModel.Params.builder()
-                        .url(camera.getCameraInstance().getUrl())
-                        .forceTcpEnabled(settings.isPreferUseRtspTcpEnabled())
-                        .cameraId(camera.getCameraInstance().getId())
-                        .build();
-                if(newParams.equals(viewModel.getStreamParams()))
-                    return;
-                animateSwitch(direction, () -> switchStream(newParams));
-            });
-        });
+        this.binding.playerView.setOnSwipeListener(this::loadAdjacentCamera);
 
         playerControlVisibilityTimer.start();
         lastScreenOrientation = getResources().getConfiguration().orientation;
@@ -254,8 +256,10 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
             @Override
             public void onChanged(Pair<Camera, Camera> cameraPair) {
                 if(cameraPair != null) {
-                    binding.playerView.setSwipeGestureAvailable(cameraPair.first != null && cameraPair.second != null);
+                    boolean isSwipeAvailable = cameraPair.first != null && cameraPair.second != null;
+                    binding.playerView.setSwipeGestureAvailable(isSwipeAvailable);
                     viewModel.getAdjacentCamera().removeObserver(this);
+                    updatePIPActions(isSwipeAvailable);
                 }
             }
         });
@@ -276,6 +280,42 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
                 viewModel.stopReconnectTimer();
             }
         });
+    }
+
+    private void updatePIPActions(boolean isSwipeAvailable) {
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
+            return;
+        if(pictureInPictureParamsBuilder == null)
+            return;
+
+        List<RemoteAction> actions = new ArrayList<>();
+
+        if(isSwipeAvailable) {
+            actions.add(new RemoteAction(
+                    Icon.createWithResource(this, R.drawable.ic_chevrons_left),
+                    "Previous",
+                    "Previous",
+                    PendingIntent.getBroadcast(
+                            this,
+                            1,
+                            new Intent(PIP_ACTION_PREVIOUS).setPackage(getPackageName()),
+                            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE)
+                    )
+            );
+            actions.add(new RemoteAction(
+                            Icon.createWithResource(this, R.drawable.ic_chevrons_right),
+                            "Next",
+                            "Next",
+                            PendingIntent.getBroadcast(
+                                    this,
+                                    2,
+                                    new Intent(PIP_ACTION_NEXT).setPackage(getPackageName()),
+                                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE)
+                    )
+            );
+        }
+
+        pictureInPictureParamsBuilder.setActions(actions);
     }
 
     @Override
@@ -338,6 +378,28 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         }
         switchStream(params);
         probablyBackstackLost = false;
+    }
+
+    private void loadAdjacentCamera(int direction) {
+        if(switchAnimating)
+            return;
+        viewModel.loadAdjacentCamera(direction, camera -> {
+            if(isDestroyed() || switchAnimating)
+                return;
+            if(camera == null) {
+                binding.playerView.getTransformController().resetTranslationWithAnimation();
+                ViewCompat.performHapticFeedback(binding.playerView, HapticFeedbackConstantsCompat.REJECT);
+                return;
+            }
+            PlayerCameraViewModel.Params newParams = PlayerCameraViewModel.Params.builder()
+                    .url(camera.getCameraInstance().getUrl())
+                    .forceTcpEnabled(settings.isPreferUseRtspTcpEnabled())
+                    .cameraId(camera.getCameraInstance().getId())
+                    .build();
+            if(newParams.equals(viewModel.getStreamParams()))
+                return;
+            animateSwitch(direction, () -> switchStream(newParams));
+        });
     }
 
     /**
@@ -521,7 +583,6 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         }else {
             enterPictureInPictureModeDeprecated();
         }
-        binding.playerView.getTransformController().resetScaleWithAnimation();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
@@ -698,18 +759,35 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         }
     }
 
+    private boolean lastPIPMode = false;
+
     private void onPIPModeChanged(boolean isInPictureInPictureMode) {
+        if(isInPictureInPictureMode == lastPIPMode)
+            return;
+        lastPIPMode = isInPictureInPictureMode;
         probablyBackstackLost = true;
+        LayoutTransition lt = new LayoutTransition();
         if(isInPictureInPictureMode) {
-            LayoutTransition lt = new LayoutTransition();
             lt.disableTransitionType(LayoutTransition.DISAPPEARING);
             binding.uiContainer.setLayoutTransition(lt);
 
             playerControlVisibilityTimer.stop();
             binding.playerControl.rootPlayerControl.setVisibility(View.GONE);
+
+            IntentFilter pipActionsFilter = new IntentFilter();
+            pipActionsFilter.addAction(PIP_ACTION_PREVIOUS);
+            pipActionsFilter.addAction(PIP_ACTION_NEXT);
+
+            Log.d("DEBUG", "registerReceiver");
+            ContextCompat.registerReceiver(
+                    this,
+                    pipActionsReceiver,
+                    pipActionsFilter,
+                    ContextCompat.RECEIVER_NOT_EXPORTED
+                );
         }else {
-            LayoutTransition lt = new LayoutTransition();
             binding.uiContainer.setLayoutTransition(lt);
+            unregisterReceiver(pipActionsReceiver);
         }
     }
 
