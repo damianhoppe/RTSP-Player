@@ -566,7 +566,10 @@ public class CameraFormModel extends BaseObservable {
 
         @Override
         public String getServerUrl() {
-            return Objects.requireNonNullElse(cameraFormModel.serverUrl, "");
+            String serverUrl = Objects.requireNonNullElse(cameraFormModel.serverUrl, "").trim();
+            if(!serverUrl.isEmpty() && !serverUrl.startsWith("/"))
+                return "/" + serverUrl;
+            return serverUrl;
         }
 
         @Override
