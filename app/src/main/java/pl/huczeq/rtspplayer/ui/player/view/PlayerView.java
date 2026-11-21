@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Transformation;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -19,6 +20,7 @@ import androidx.collection.ArraySet;
 import java.util.Set;
 
 import lombok.Getter;
+import pl.huczeq.rtspplayer.R;
 import pl.huczeq.rtspplayer.player.PlayerEventListener;
 import pl.huczeq.rtspplayer.player.VideoInfoChangeListener;
 import pl.huczeq.rtspplayer.player.VideoInfoChangeListenerProvider;
@@ -74,6 +76,9 @@ public class PlayerView extends FrameLayout implements VideoInfoChangeListenerPr
         init();
     }
 
+    private ImageView ivPrevious;
+    private ImageView ivNext;
+
     private void init() {
         this.playerSurfaceView = new PlayerSurfaceView(getContext());
         this.playerSurfaceView.setOnSurfaceCreatedListener(new PlayerRendererCallback() {
@@ -103,8 +108,84 @@ public class PlayerView extends FrameLayout implements VideoInfoChangeListenerPr
         this.addView(this.playerSurfaceView);
         this.transformController = new PlayerTransformController(this, this.playerSurfaceView, this);
 
+        int size = (int) (22 * getResources().getDisplayMetrics().density);
+
+        this.ivPrevious = new ImageView(getContext());
+        this.ivPrevious.setImageResource(R.drawable.ic_chevrons_left);
+        FrameLayout.LayoutParams pLayoutParams = new FrameLayout.LayoutParams(size, size, Gravity.START | Gravity.CENTER_VERTICAL);
+        pLayoutParams.leftMargin = -size;
+        this.ivPrevious.setLayoutParams(pLayoutParams);
+        this.addView(ivPrevious);
+
+        this.ivNext = new ImageView(getContext());
+        this.ivNext.setImageResource(R.drawable.ic_chevrons_right);
+        FrameLayout.LayoutParams nLayoutParams = new FrameLayout.LayoutParams(size, size, Gravity.END | Gravity.CENTER_VERTICAL);
+        nLayoutParams.rightMargin = -size;
+        this.ivNext.setLayoutParams(nLayoutParams);
+        this.addView(ivNext);
+
+        ivPrevious.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+        ivNext.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+
         setHapticFeedbackEnabled(true);
         setStaticTransformationsEnabled(true);
+
+        transformController.setOnSwipeAnimateListener(new PlayerTransformController.OnSwipeAnimateListener() {
+            private float easeInCubic(float t) {
+                return (float) Math.pow(t, 3);
+            }
+
+            @Override
+            public void onSwipe(float distance, float effectiveDistance, float threshold) {
+                float swipeFactor = distance / threshold;
+                float absSwipeFactor = Math.abs(swipeFactor);
+
+                float alpha = easeInCubic(absSwipeFactor);
+
+                float scale = 0.2f + absSwipeFactor * 0.6f;
+
+                if(swipeFactor < 0) {
+                    ivPrevious.setTranslationX(-(effectiveDistance - size) / 2);
+                    ivPrevious.setAlpha(alpha);
+                    ivPrevious.setScaleX(scale);
+                    ivPrevious.setScaleY(scale);
+                }else if(swipeFactor > 0){
+                    ivNext.setTranslationX(-(effectiveDistance + size) / 2);
+                    ivNext.setAlpha(alpha);
+                    ivNext.setScaleX(scale);
+                    ivNext.setScaleY(scale);
+                }
+            }
+
+            @Override
+            public void onSwipeEnd(float direction) {
+                if(direction < 0) {
+                    ivPrevious.animate()
+                            .alpha(0f)
+                            .translationX(ivPrevious.getTranslationX() * 2)
+                            .setDuration(200)
+                            .withEndAction(() -> ivPrevious.setTranslationX(0));
+                }else {
+                    ivPrevious.animate()
+                            .alpha(0f)
+                            .translationX(0f)
+                            .setDuration(200);
+                }
+
+                if(direction > 0) {
+                    ivNext.animate()
+                            .alpha(0f)
+                            .translationX(ivNext.getTranslationX() * 2)
+                            .setDuration(200)
+                            .withEndAction(() -> ivNext.setTranslationX(0));
+                }else {
+                    ivNext.animate()
+                            .alpha(0f)
+                            .translationX(0f)
+                            .setDuration(200);
+                }
+            }
+        });
     }
 
     @Override

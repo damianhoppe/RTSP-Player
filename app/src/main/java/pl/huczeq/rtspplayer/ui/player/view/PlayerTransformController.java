@@ -47,6 +47,7 @@ public class PlayerTransformController implements View.OnTouchListener {
     private static final float MIN_EDGE_RESISTANCE = 0.15f;
 
     private float edgeDragX = 0f;
+    private float effectiveEdgeDragX = 0f;
 
     private final Context context;
     private final View view;
@@ -56,6 +57,8 @@ public class PlayerTransformController implements View.OnTouchListener {
     private int lastFlingX;
     private int lastFlingY;
     private boolean flingRunning;
+
+    private OnSwipeAnimateListener onSwipeAnimateListener;
 
     private final Runnable flingRunnable = new Runnable() {
         @Override
@@ -109,19 +112,21 @@ public class PlayerTransformController implements View.OnTouchListener {
         scaleDetector.onTouchEvent(motionEvent);
 
         if(motionEvent.getActionMasked() == MotionEvent.ACTION_UP) {
-            edgeDragX = 0.0f;
+            this.edgeDragX = 0.0f;
+            effectiveEdgeDragX = 0.0f;
             matrix.getValues(matrixValues);
             float x = calculateClampedXTranslation(matrixValues[Matrix.MTRANS_X]);
-            if(swipeDirection != 0 && !hasScalingGestureOccurredDuringTouchInteraction) {
+            if(swipeDirection != 0 && !hasScalingGestureOccurredDuringTouchInteraction && onSwipeListener != null) {
                 onSwipeListener.onSwipe(swipeDirection < 0 ? -1 : 1);
-                swipeDirection = 0;
                 matrixUpdated = false;
             }
             if(x != 0) {
+                onSwipeAnimateListener.onSwipeEnd(swipeDirection);
                 animateToX(matrixValues[Matrix.MTRANS_X] + x);
                 matrixUpdated = true;
                 isClampingEnabled = true;
             }
+            swipeDirection = 0;
             hasScalingGestureOccurredDuringTouchInteraction = false;
         }
 
@@ -211,6 +216,7 @@ public class PlayerTransformController implements View.OnTouchListener {
         this.matrix.setScale(presentScale, presentScale,0,0);
 
         this.edgeDragX = 0;
+        this.effectiveEdgeDragX = 0;
         this.hasScalingGestureOccurredDuringTouchInteraction = false;
         this.swipeDirection = 0;
         this.isClampingEnabled = true;
@@ -587,8 +593,10 @@ public class PlayerTransformController implements View.OnTouchListener {
                 edgeDragX += distanceX;
                 float resistance = getEdgeResistance(Math.abs(edgeDragX));
                 effectiveDistanceX = distanceX * resistance;
+                effectiveEdgeDragX += effectiveDistanceX;
             }else {
                 edgeDragX = 0f;
+                effectiveEdgeDragX = 0f;
             }
 
             matrix.postTranslate(-effectiveDistanceX, -distanceY);
@@ -597,9 +605,14 @@ public class PlayerTransformController implements View.OnTouchListener {
             if(overflow == 0 && !isTranslationXAtLimit()) {
                 isClampingEnabled = true;
                 edgeDragX = 0.f;
+                effectiveEdgeDragX = 0.f;
             }
 
             if(!swipeGestureAvailable) {
+                return false;
+            }
+
+            if(swipeThreshold == 0) {
                 return false;
             }
 
@@ -609,9 +622,19 @@ public class PlayerTransformController implements View.OnTouchListener {
                 currentSwipeDirection = 0;
                 hasScalingGestureOccurredDuringTouchInteraction = true;
             }else {
-                currentSwipeDirection = (edgeDragX > swipeThreshold * 0.5f) ?
+                float threshold = swipeThreshold * 0.5f;
+                float swipeFactor = effectiveEdgeDragX / threshold;
+
+                if(onSwipeAnimateListener != null)
+                    if(swipeFactor == 0) {
+                        onSwipeAnimateListener.onSwipeEnd(0);
+                    }else {
+                        onSwipeAnimateListener.onSwipe(edgeDragX, effectiveEdgeDragX, threshold);
+                    }
+
+                currentSwipeDirection = (edgeDragX > threshold) ?
                         1
-                        : (edgeDragX < -(swipeThreshold * 0.5f)) ?
+                        : (edgeDragX < -threshold) ?
                         -1 : 0;
             }
 
@@ -635,7 +658,16 @@ public class PlayerTransformController implements View.OnTouchListener {
         this.swipeGestureAvailable = available;
     }
 
+    public void setOnSwipeAnimateListener(OnSwipeAnimateListener onSwipeAnimateListener) {
+        this.onSwipeAnimateListener = onSwipeAnimateListener;
+    }
+
     public interface OnTransformationMatrixChanged {
         void onTransformationMatrixChanged(Matrix matrix);
+    }
+
+    public interface OnSwipeAnimateListener {
+        void onSwipe(float distance, float effectiveDistance, float threshold);
+        void onSwipeEnd(float direction);
     }
 }
