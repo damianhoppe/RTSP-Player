@@ -290,42 +290,6 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         });
     }
 
-    private void updatePIPActions(boolean isSwipeAvailable) {
-        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
-            return;
-        if(pictureInPictureParamsBuilder == null)
-            return;
-
-        List<RemoteAction> actions = new ArrayList<>();
-
-        if(isSwipeAvailable) {
-            actions.add(new RemoteAction(
-                    Icon.createWithResource(this, R.drawable.ic_chevrons_left),
-                    "Previous",
-                    "Previous",
-                    PendingIntent.getBroadcast(
-                            this,
-                            1,
-                            new Intent(PIP_ACTION_PREVIOUS).setPackage(getPackageName()),
-                            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE)
-                    )
-            );
-            actions.add(new RemoteAction(
-                            Icon.createWithResource(this, R.drawable.ic_chevrons_right),
-                            "Next",
-                            "Next",
-                            PendingIntent.getBroadcast(
-                                    this,
-                                    2,
-                                    new Intent(PIP_ACTION_NEXT).setPackage(getPackageName()),
-                                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE)
-                    )
-            );
-        }
-
-        pictureInPictureParamsBuilder.setActions(actions);
-    }
-
     @Override
     protected void onPause() {
         super.onPause();
@@ -386,88 +350,6 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         }
         switchStream(params);
         probablyBackstackLost = false;
-    }
-
-    private void loadAdjacentCamera(int direction) {
-        if(switchAnimating)
-            return;
-        viewModel.loadAdjacentCamera(direction, camera -> {
-            if(isDestroyed() || switchAnimating)
-                return;
-            if(camera == null) {
-                binding.playerView.getTransformController().resetTranslationWithAnimation();
-                ViewCompat.performHapticFeedback(binding.playerView, HapticFeedbackConstantsCompat.REJECT);
-                return;
-            }
-            PlayerCameraViewModel.Params newParams = PlayerCameraViewModel.Params.builder()
-                    .url(camera.getCameraInstance().getUrl())
-                    .forceTcpEnabled(settings.isPreferUseRtspTcpEnabled())
-                    .cameraId(camera.getCameraInstance().getId())
-                    .build();
-            if(newParams.equals(viewModel.getStreamParams()))
-                return;
-            animateSwitch(direction, () -> switchStream(newParams));
-        });
-    }
-
-    /**
-     * Shows the loading spinner and slides the current stream out.
-     * The previous camera preview is cleared using view.clearSurface() and remains black until rendering starts.
-     * If the slide-in animation is enabled, the new preview slides in once rendering starts;
-     * otherwise, playback resumes normally with the preview immediately visible.
-     */
-    private void animateSwitch(int direction, Runnable switchAction) {
-        final PlayerSurfaceView view = binding.playerView.getPlayerSurfaceView();
-        final float distance = view.getWidth() * direction;
-        switchAnimating = true;
-        binding.llReconnect.setVisibility(View.GONE);
-        binding.pBLoading.setVisibility(View.VISIBLE);
-        view.animate()
-                .translationX(-distance)
-                .alpha(0f)
-                .setDuration(150)
-                .setListener(new AnimatorListenerAdapter() {
-                    @Override
-                    public void onAnimationCancel(Animator animation) {
-                        switchAnimating = false;
-                    }
-                })
-                .withEndAction(() -> {
-                    view.setAlpha(0f);
-                    view.setTranslationX(settings.isCameraSlideInAnimationEnabled()? distance : 0f);
-                    view.clearSurface();
-                    pendingSlideIn = () -> view.animate()
-                            .translationX(0f)
-                            .alpha(1f)
-                            .setDuration(150)
-                            .withEndAction(new Runnable() {
-                                @Override
-                                public void run() {
-                                    switchAnimating = false;
-                                }
-                            })
-                            .start();
-                    switchAction.run();
-                    switchAnimating = false;
-                })
-                .start();
-    }
-
-    private void runPendingSlideIn() {
-        Runnable slideIn = pendingSlideIn;
-        pendingSlideIn = null;
-        if(slideIn != null)
-            slideIn.run();
-    }
-
-    private void switchStream(PlayerCameraViewModel.Params params) {
-        binding.playerView.getTransformController().reset();
-
-        if(!params.equals(viewModel.getStreamParams()) || !player.isPlaying()) {
-            this.viewModel.setStreamParams(params);
-            loadMedia();
-        }
-        startPlaying();
     }
 
     @Override
@@ -642,6 +524,88 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         }
     }
 
+    private void loadAdjacentCamera(int direction) {
+        if(switchAnimating)
+            return;
+        viewModel.loadAdjacentCamera(direction, camera -> {
+            if(isDestroyed() || switchAnimating)
+                return;
+            if(camera == null) {
+                binding.playerView.getTransformController().resetTranslationWithAnimation();
+                ViewCompat.performHapticFeedback(binding.playerView, HapticFeedbackConstantsCompat.REJECT);
+                return;
+            }
+            PlayerCameraViewModel.Params newParams = PlayerCameraViewModel.Params.builder()
+                    .url(camera.getCameraInstance().getUrl())
+                    .forceTcpEnabled(settings.isPreferUseRtspTcpEnabled())
+                    .cameraId(camera.getCameraInstance().getId())
+                    .build();
+            if(newParams.equals(viewModel.getStreamParams()))
+                return;
+            animateSwitch(direction, () -> switchStream(newParams));
+        });
+    }
+
+    /**
+     * Shows the loading spinner and slides the current stream out.
+     * The previous camera preview is cleared using view.clearSurface() and remains black until rendering starts.
+     * If the slide-in animation is enabled, the new preview slides in once rendering starts;
+     * otherwise, playback resumes normally with the preview immediately visible.
+     */
+    private void animateSwitch(int direction, Runnable switchAction) {
+        final PlayerSurfaceView view = binding.playerView.getPlayerSurfaceView();
+        final float distance = view.getWidth() * direction;
+        switchAnimating = true;
+        binding.llReconnect.setVisibility(View.GONE);
+        binding.pBLoading.setVisibility(View.VISIBLE);
+        view.animate()
+                .translationX(-distance)
+                .alpha(0f)
+                .setDuration(150)
+                .setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationCancel(Animator animation) {
+                        switchAnimating = false;
+                    }
+                })
+                .withEndAction(() -> {
+                    view.setAlpha(0f);
+                    view.setTranslationX(settings.isCameraSlideInAnimationEnabled()? distance : 0f);
+                    view.clearSurface();
+                    pendingSlideIn = () -> view.animate()
+                            .translationX(0f)
+                            .alpha(1f)
+                            .setDuration(150)
+                            .withEndAction(new Runnable() {
+                                @Override
+                                public void run() {
+                                    switchAnimating = false;
+                                }
+                            })
+                            .start();
+                    switchAction.run();
+                    switchAnimating = false;
+                })
+                .start();
+    }
+
+    private void runPendingSlideIn() {
+        Runnable slideIn = pendingSlideIn;
+        pendingSlideIn = null;
+        if(slideIn != null)
+            slideIn.run();
+    }
+
+    private void switchStream(PlayerCameraViewModel.Params params) {
+        binding.playerView.getTransformController().reset();
+
+        if(!params.equals(viewModel.getStreamParams()) || !player.isPlaying()) {
+            this.viewModel.setStreamParams(params);
+            loadMedia();
+        }
+        startPlaying();
+    }
+
     private void updateVolumeButtonIcon() {
         this.binding.playerControl.buttonVolumeChange.setIconResource(player.isMute()? R.drawable.ic_volume_off : R.drawable.ic_volume_on);
     }
@@ -798,6 +762,42 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
             binding.uiContainer.setLayoutTransition(lt);
             unregisterReceiver(pipActionsReceiver);
         }
+    }
+
+    private void updatePIPActions(boolean isSwipeAvailable) {
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
+            return;
+        if(pictureInPictureParamsBuilder == null)
+            return;
+
+        List<RemoteAction> actions = new ArrayList<>();
+
+        if(isSwipeAvailable) {
+            actions.add(new RemoteAction(
+                            Icon.createWithResource(this, R.drawable.ic_chevrons_left),
+                            "Previous",
+                            "Previous",
+                            PendingIntent.getBroadcast(
+                                    this,
+                                    1,
+                                    new Intent(PIP_ACTION_PREVIOUS).setPackage(getPackageName()),
+                                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE)
+                    )
+            );
+            actions.add(new RemoteAction(
+                            Icon.createWithResource(this, R.drawable.ic_chevrons_right),
+                            "Next",
+                            "Next",
+                            PendingIntent.getBroadcast(
+                                    this,
+                                    2,
+                                    new Intent(PIP_ACTION_NEXT).setPackage(getPackageName()),
+                                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE)
+                    )
+            );
+        }
+
+        pictureInPictureParamsBuilder.setActions(actions);
     }
 
     private PlayerCameraViewModel.Params buildParams(Intent intent) {
