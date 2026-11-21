@@ -84,6 +84,8 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
 
     private boolean probablyBackstackLost = false;
 
+    private boolean mute = false;
+
     public static void putCameraIntoIntent(Intent intent, String url, boolean forceTcp, long cameraInstanceId) {
         intent.putExtra(EXTRA_CAMERA_INSTANCE_ID, cameraInstanceId);
         intent.putExtra(EXTRA_URL, url);
@@ -208,7 +210,8 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         }
 
         this.player = this.playerProvider.build();
-        this.player.setMute(this.settings.isMuteAudioDefaultEnabled());
+        this.mute = this.settings.isMuteAudioDefaultEnabled();
+        this.player.setMute(mute);
         updateVolumeButtonIcon();
 
         player.attachView(this.binding.playerView);
@@ -220,7 +223,12 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
             }
 
             @Override
-            public void onPlaying() {}
+            public void onPlaying() {
+                if(mute) {
+                    player.setMute(true);
+                    updateVolumeButtonIcon();
+                }
+            }
 
             @Override
             public void onEndReached() {
@@ -568,6 +576,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
     @Override
     public void switchVolume() {
         player.setMute(!player.isMute());
+        this.mute = player.isMute();
         updateVolumeButtonIcon();
         playerControlVisibilityTimer.start();
     }
