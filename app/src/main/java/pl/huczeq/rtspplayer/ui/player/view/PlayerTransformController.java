@@ -93,6 +93,8 @@ public class PlayerTransformController implements View.OnTouchListener {
         }
     };
 
+    private boolean isDuringTouch = false;
+
     public PlayerTransformController(View view, View playerView, OnTransformationMatrixChanged onTransformationMatrixChanged) {
         this.onTransformationMatrixChanged = onTransformationMatrixChanged;
         this.view = view;
@@ -108,10 +110,14 @@ public class PlayerTransformController implements View.OnTouchListener {
 
     @Override
     public boolean onTouch(View view, MotionEvent motionEvent) {
+        if(motionEvent.getActionMasked() == MotionEvent.ACTION_DOWN) {
+            this.isDuringTouch = true;
+        }
         gestureDetector.onTouchEvent(motionEvent);
         scaleDetector.onTouchEvent(motionEvent);
 
         if(motionEvent.getActionMasked() == MotionEvent.ACTION_UP) {
+            this.isDuringTouch = false;
             this.edgeDragX = 0.0f;
             effectiveEdgeDragX = 0.0f;
             matrix.getValues(matrixValues);
@@ -194,6 +200,14 @@ public class PlayerTransformController implements View.OnTouchListener {
     }
 
     public void ensureValidVideoTransform() {
+        ensureValidVideoTransform(false);
+    }
+
+    public void ensureValidVideoTransform(boolean force) {
+        if(!force) {
+            if(isDuringTouch)
+                return;
+        }
         if(clampMatrixTranslation(true, true)) {
             applyTransformation();
         }
