@@ -188,6 +188,12 @@ public class PlayerTransformController implements View.OnTouchListener {
         return 0f;
     }
 
+    public void ensureValidVideoTransform() {
+        if(clampMatrixTranslation(true, true)) {
+            applyTransformation();
+        }
+    }
+
     public interface OnSwipeListener {
         /** @param direction 1 for next (swipe left), -1 for previous (swipe right) */
         void onSwipe(int direction);

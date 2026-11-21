@@ -40,6 +40,7 @@ public class PlayerView extends FrameLayout implements VideoInfoChangeListenerPr
         @Override
         public void onStartRendering() {
             playerSurfaceView.drawOnlyNewFrames();
+            transformController.ensureValidVideoTransform();
         }
 
         @Override
