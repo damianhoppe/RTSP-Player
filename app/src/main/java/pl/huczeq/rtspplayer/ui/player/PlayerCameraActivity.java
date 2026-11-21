@@ -39,6 +39,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
@@ -81,8 +82,6 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
 
     public static final String EXTRA_URL = "streamUrl";
     public static final String EXTRA_PAR_FORCE_TCP = "forceTcp";
-
-    private boolean probablyBackstackLost = false;
 
     private boolean mute = false;
 
@@ -143,6 +142,18 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
                 case PIP_ACTION_NEXT:
                     loadAdjacentCamera(1);
                     break;
+            }
+        }
+    };
+
+
+    private final OnBackPressedCallback onBackPressedCallback = new OnBackPressedCallback(false) {
+        @Override
+        public void handleOnBackPressed() {
+            setEnabled(false);
+
+            if(!navToLauncherTask(getApplicationContext())) {
+                getOnBackPressedDispatcher().onBackPressed();
             }
         }
     };
@@ -288,6 +299,8 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
                 viewModel.stopReconnectTimer();
             }
         });
+
+        getOnBackPressedDispatcher().addCallback(this.onBackPressedCallback);
     }
 
     @Override
@@ -349,7 +362,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
             return;
         }
         switchStream(params);
-        probablyBackstackLost = false;
+        onBackPressedCallback.setEnabled(false);
     }
 
     @Override
@@ -484,22 +497,13 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
 
     @Override
     public void back() {
-        if(probablyBackstackLost && navToLauncherTask(this)) {
-            probablyBackstackLost = false;
-            return;
-        }
-        super.onBackPressed();
-    }
-
-    @Override
-    public void onBackPressed() {
-        this.back();
+        getOnBackPressedDispatcher().onBackPressed();
     }
 
     /*
-        Source: https://medium.com/mindorks/android-picture-in-picture-mode-and-backstack-management-for-multiple-activities-8427fe3f8102
-        Added returning a boolean value
-         */
+            Source: https://medium.com/mindorks/android-picture-in-picture-mode-and-backstack-management-for-multiple-activities-8427fe3f8102
+            Added returning a boolean value
+             */
     public static boolean navToLauncherTask(Context appContext) {
         ActivityManager activityManager = (ActivityManager) appContext.getSystemService(Context.ACTIVITY_SERVICE);
         assert activityManager != null;
@@ -738,9 +742,9 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         if(isInPictureInPictureMode == lastPIPMode)
             return;
         lastPIPMode = isInPictureInPictureMode;
-        probablyBackstackLost = true;
         LayoutTransition lt = new LayoutTransition();
         if(isInPictureInPictureMode) {
+            onBackPressedCallback.setEnabled(true);
             lt.disableTransitionType(LayoutTransition.DISAPPEARING);
             binding.uiContainer.setLayoutTransition(lt);
 
