@@ -269,6 +269,9 @@ public class PlayerTransformController implements View.OnTouchListener {
         clearScaleAnimation();
         float targetScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, proposedTargetScale));
 
+        if(presentScale == targetScale)
+            return;
+
         this.matrix.getValues(matrixValues);
 
         float startScale = presentScale;

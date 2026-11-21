@@ -487,6 +487,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         }else {
             enterPictureInPictureModeDeprecated();
         }
+        binding.playerView.getTransformController().resetScaleWithAnimation();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
