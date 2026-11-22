@@ -413,8 +413,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         super.onDestroy();
         pictureInPictureParamsBuilder = null;
         player.detachView();
-        if(player != null)
-            player.release();
+        player.release();
     }
 
     @Override
