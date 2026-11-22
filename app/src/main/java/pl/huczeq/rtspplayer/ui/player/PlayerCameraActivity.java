@@ -557,7 +557,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
      * Shows the loading spinner and slides the current stream out.
      * The previous camera preview is cleared using view.clearSurface() and remains black until rendering starts.
      * If the slide-in animation is enabled, the new preview slides in once rendering starts;
-     * otherwise, playback resumes normally with the preview immediately visible.
+     * otherwise, the preview appears with a fade-in animation as playback starts.
      */
     private void animateSwitch(int direction, Runnable switchAction) {
         final PlayerSurfaceView view = binding.playerView.getPlayerSurfaceView();
