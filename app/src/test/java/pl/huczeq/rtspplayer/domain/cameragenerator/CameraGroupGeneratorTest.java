@@ -184,4 +184,22 @@ public class CameraGroupGeneratorTest {
             assertEquals("rtsp://127.0.0.2" + (i+1) + ":554", cameraGroup.getCameraInstances().get(i).getUrl());
         }
     }
+
+    @Test
+    public void cameraGroupGeneration_one_SpecialVariableInCameraName_withoutDefinedVariables() {
+        String cameraName = "{i}";
+        String cameraUrl = "rtsp://127.0.0.2:554";
+
+        CameraGroupModel model = new CameraGroupModel();
+        model.setName(cameraName);
+        model.setUrl(cameraUrl);
+        CameraGroupGenerator generator = new CameraGroupGenerator();
+        CameraGroup cameraGroup = generator.generate(model);
+
+        basicCameraGroupGeneratorResultTest(cameraGroup);
+        assertEquals(1, cameraGroup.getCameraInstances().size());
+
+        assertEquals("1", cameraGroup.getCameraInstances().get(0).getName());
+        assertEquals(cameraUrl, cameraGroup.getCameraInstances().get(0).getUrl());
+    }
 }

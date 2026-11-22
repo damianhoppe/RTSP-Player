@@ -29,6 +29,21 @@ public class CameraPatternMapperTest {
     }
 
     @Test
+    public void toCameraPattern_withSpecialVariableInCameraName() {
+        String cameraName = "Test {i}";
+        String cameraUrl = "rtsp://127.0.0.1:554";
+
+        CameraGroupModel model = new CameraGroupModel();
+        model.setName(cameraName);
+        model.setUrl(cameraUrl);
+
+        CameraPattern result = CameraPatternMapper.toCameraPattern(model);
+
+        assertEquals("Test {i}", result.getName());
+        assertEquals(cameraUrl, result.getUrl());
+    }
+
+    @Test
     public void toPatternWithVariables() {
         String cameraName = "Test";
         String cameraUrl = "rtsp://{&1=127}.0.0.2{&2=1-4}:{port=554}{i}";

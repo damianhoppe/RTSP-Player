@@ -137,7 +137,7 @@ public class CameraPatternMapper {
                     throw new IllegalArgumentException("Found incorrect character " + varName.charAt(incorrectCharIndex) + " at " + incorrectCharIndex + " position.");
                 continue;
             }else{
-                varName = varContent.substring(1, varContent.length() );
+                varName = varContent.substring(1, varContent.length()-1);
             }
             if(isSystemVariable(varName))
                 continue;
