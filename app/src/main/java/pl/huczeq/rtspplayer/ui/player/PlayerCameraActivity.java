@@ -207,7 +207,11 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
 
         this.binding.playerView.setOnSwipeListener(this::loadAdjacentCamera);
 
-        playerControlVisibilityTimer.start();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode()) {
+            setPlayerControlVisibility(false);
+        }else {
+            playerControlVisibilityTimer.start();
+        }
         lastScreenOrientation = getResources().getConfiguration().orientation;
 
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isPipModeAvailable()) {
@@ -863,6 +867,9 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
             return;
 
         if(pictureInPictureParamsBuilder == null)
+            return;
+
+        if(videoBounds.width() <= 1 && videoBounds.height() <= 1)
             return;
 
         Rational videoAspectRatio;
