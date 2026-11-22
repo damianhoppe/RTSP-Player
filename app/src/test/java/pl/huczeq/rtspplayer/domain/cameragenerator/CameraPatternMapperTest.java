@@ -95,7 +95,7 @@ public class CameraPatternMapperTest {
 
     @Test
     public void toCameraPattern_defineVarInName_useInUrl() {
-        String cameraName = "Test{ip4}";
+        String cameraName = "Test{ip4=2}";
         String cameraUrl = "rtsp:{i}//{ip1=127}.0.0.2{ip4}:554";
 
         CameraGroupModel model = new CameraGroupModel();
@@ -104,6 +104,23 @@ public class CameraPatternMapperTest {
 
         CameraPattern result = CameraPatternMapper.toCameraPattern(model);
 
+        System.out.println(result.getName());
+        System.out.println(result.getUrl());
+
         assertEquals("rtsp:{i}//{ip1=127}.0.0.2{ip4}:554", result.getUrl());
+    }
+
+    @Test
+    public void test_2() {
+        String cameraName = "Test";
+        String cameraUrl = "rtsp://{127}.0.0.2{camera1,camera2}:{port=554}{i}";
+
+        CameraGroupModel model = new CameraGroupModel();
+        model.setName(cameraName);
+        model.setUrl(cameraUrl);
+
+        CameraPattern result = CameraPatternMapper.toCameraPattern(model);
+
+        assertEquals("rtsp://{&1=127}.0.0.2{&2=camera1,camera2}:{port=554}{i}", result.getUrl());
     }
 }

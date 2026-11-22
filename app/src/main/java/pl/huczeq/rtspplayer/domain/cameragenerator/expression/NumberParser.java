@@ -5,6 +5,7 @@ import java.util.List;
 
 import pl.huczeq.rtspplayer.domain.cameragenerator.exceptions.ParsingException;
 
+@Deprecated
 public class NumberParser {
 
     /**

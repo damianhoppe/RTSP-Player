@@ -1,5 +1,6 @@
 package pl.huczeq.rtspplayer.domain.cameragenerator;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -90,7 +91,6 @@ public class CameraPatternMapper {
     public static CameraPattern toCameraPattern(CameraGroupModel model) {
         CameraPattern cameraPattern = new CameraPattern();
         Integer index = 1;
-        cameraPattern.setName(namesUnnamedVariables(model.getName(), index));
         if(model.getProducer() != null)
             cameraPattern.setProducer(model.getProducer().getName());
         UrlTemplate urlTemplate = null;
@@ -102,25 +102,37 @@ public class CameraPatternMapper {
         cameraPattern.setPassword(model.getPassword());
         cameraPattern.setStream(String.valueOf(model.getStreamType()));
 
+        List<String> definedVariables = new ArrayList<>();
+        readDefinedVariableNames(model.getName(), definedVariables);
+
         if(urlTemplate == null) {
-            cameraPattern.setUrl(namesUnnamedVariables(model.getUrl(), index));
+            readDefinedVariableNames(model.getUrl(), definedVariables);
+
+            cameraPattern.setUrl(namesUnnamedVariables(model.getUrl(), index, definedVariables));
             cameraPattern.setUserName(model.getUserName());
             cameraPattern.setAddressIp(model.getAddressIp());
             cameraPattern.setPort(model.getPort());
             cameraPattern.setChannel(model.getChannel());
             cameraPattern.setServerUrl(model.getServerUrl());
         }else {
-            cameraPattern.setUserName(namesUnnamedVariables(model.getUserName(), index));
-            cameraPattern.setAddressIp(namesUnnamedVariables(model.getAddressIp(), index));
-            cameraPattern.setPort(namesUnnamedVariables(model.getPort(), index));
-            cameraPattern.setChannel(namesUnnamedVariables(model.getChannel(), index));
-            cameraPattern.setServerUrl(namesUnnamedVariables(model.getServerUrl(), index));
+            readDefinedVariableNames(model.getUserName(), definedVariables);
+            readDefinedVariableNames(model.getAddressIp(), definedVariables);
+            readDefinedVariableNames(model.getPort(), definedVariables);
+            readDefinedVariableNames(model.getChannel(), definedVariables);
+            readDefinedVariableNames(model.getServerUrl(), definedVariables);
+
+            cameraPattern.setUserName(namesUnnamedVariables(model.getUserName(), index, definedVariables));
+            cameraPattern.setAddressIp(namesUnnamedVariables(model.getAddressIp(), index, definedVariables));
+            cameraPattern.setPort(namesUnnamedVariables(model.getPort(), index, definedVariables));
+            cameraPattern.setChannel(namesUnnamedVariables(model.getChannel(), index, definedVariables));
+            cameraPattern.setServerUrl(namesUnnamedVariables(model.getServerUrl(), index, definedVariables));
             cameraPattern.setUrl(UrlGenerator.generate(urlTemplate, UrlComponentsProvider.of(cameraPattern)));
         }
+        cameraPattern.setName(namesUnnamedVariables(model.getName(), index, definedVariables));
         return cameraPattern;
     }
 
-    private static String namesUnnamedVariables(String text, Integer index) {
+    private static String namesUnnamedVariables(String text, Integer index, List<String> toIgnore) {
         if(text == null || text.isEmpty())
             return text;
         Pattern pattern = Pattern.compile(REGEX_EXPRESSION);
@@ -141,13 +153,33 @@ public class CameraPatternMapper {
             }
             if(isSystemVariable(varName))
                 continue;
-            if(varContent.length() <= 2 || Character.isAlphabetic(varContent.charAt(2)))
+            if(varContent.length() <= 2)
+                continue;
+            if(toIgnore.contains(varName))
                 continue;
             varName = SPECIAL_VARIABLE_PREFIX + "" + index++;
             String replaceWith = varName + "=" + varContent.substring(1, varContent.length() - 1);
             newText = newText.replaceFirst(Pattern.quote(varContent), "{" + replaceWith + "}");
         }
         return newText;
+    }
+
+    private static void readDefinedVariableNames(String text, List<String> result) {
+        if(text == null || text.isEmpty())
+            return;
+        Pattern pattern = Pattern.compile(REGEX_EXPRESSION);
+        Matcher matcher = pattern.matcher(text);
+        while(matcher.find()) {
+            String varContent = matcher.group();
+            int equalIndex = varContent.indexOf('=');
+            if(equalIndex >= 0) {
+                String varName = varContent.substring(1, equalIndex);
+                int incorrectCharIndex = isCorrect(varName);
+                if(incorrectCharIndex >= 0)
+                    throw new IllegalArgumentException("Found incorrect character " + varName.charAt(incorrectCharIndex) + " at " + incorrectCharIndex + " position.");
+                result.add(varName);
+            }
+        }
     }
 
     public static CameraPattern fillCameraPattern(CameraPattern model, Map<String, String> variables) {
