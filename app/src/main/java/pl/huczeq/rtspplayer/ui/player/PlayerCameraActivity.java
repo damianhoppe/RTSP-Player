@@ -239,8 +239,8 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
             public void onPlaying() {
                 if(mute) {
                     player.setMute(true);
-                    updateVolumeButtonIcon();
                 }
+                updateVolumeButtonIcon();
             }
 
             @Override
