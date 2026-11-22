@@ -102,7 +102,7 @@ public class SelectCameraListAdapter extends BaseRecyclerViewAdapter<Camera, Sel
             holder.disposableObserver = new DisposableObserver<String>() {
                 @Override
                 public void onNext(@io.reactivex.rxjava3.annotations.NonNull String thumbnailName) {
-                    Camera camera = dataSet.get(holder.getAdapterPosition());
+                    Camera camera = dataSet.get(holder.getAdapterPosition() - 1);
                     if(camera == null)
                         return;
                     if(thumbnailName.equals(camera.getCameraInstance().getPreviewImg()))
