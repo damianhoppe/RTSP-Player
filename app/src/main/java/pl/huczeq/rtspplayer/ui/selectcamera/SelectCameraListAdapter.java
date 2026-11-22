@@ -1,6 +1,5 @@
 package pl.huczeq.rtspplayer.ui.selectcamera;
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,6 +18,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.observers.DisposableObserver;
+import io.reactivex.rxjava3.subjects.PublishSubject;
 import pl.huczeq.rtspplayer.R;
 import pl.huczeq.rtspplayer.data.model.Camera;
 import pl.huczeq.rtspplayer.data.repositories.base.CameraThumbnailRepository;
@@ -26,14 +28,26 @@ import pl.huczeq.rtspplayer.ui.adapters.base.BaseRecyclerViewAdapter;
 
 public class SelectCameraListAdapter extends BaseRecyclerViewAdapter<Camera, SelectCameraListAdapter.CameraViewHolder> {
 
-    private Context context;
     private CameraThumbnailRepository thumbnailRepository;
+    private final PublishSubject<String> thumbnailsUpdated = PublishSubject.create();
     private long selectedId;
     private int lastSelectedIndex = 0;
 
-    public SelectCameraListAdapter(Context context, CameraThumbnailRepository thumbnailRepository) {
+    private final DisposableObserver<String> thumbnailsUpdateObserver = new DisposableObserver<String>() {
+        @Override
+        public void onNext(String s) {
+            thumbnailsUpdated.onNext(s);
+        }
+
+        @Override
+        public void onError(@io.reactivex.rxjava3.annotations.NonNull Throwable e) { }
+
+        @Override
+        public void onComplete() { }
+    };
+
+    public SelectCameraListAdapter(CameraThumbnailRepository thumbnailRepository) {
         super(new ArrayList<>());
-        this.context = context;
         this.thumbnailRepository = thumbnailRepository;
     }
 
@@ -42,7 +56,7 @@ public class SelectCameraListAdapter extends BaseRecyclerViewAdapter<Camera, Sel
     @Override
     public CameraViewHolder onCreateViewHolder(@NonNull @NotNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_camera_select_radiobutton, parent, false);
-        CameraViewHolder cameraViewHolder = new CameraViewHolder(view, context, thumbnailRepository);
+        CameraViewHolder cameraViewHolder = new CameraViewHolder(view, thumbnailRepository);
         cameraViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -83,6 +97,51 @@ public class SelectCameraListAdapter extends BaseRecyclerViewAdapter<Camera, Sel
         holder.radioButton.setChecked(selected);
         if(selected)
             lastSelectedIndex = holder.getAdapterPosition();
+
+        if(holder.disposableObserver == null) {
+            holder.disposableObserver = new DisposableObserver<String>() {
+                @Override
+                public void onNext(@io.reactivex.rxjava3.annotations.NonNull String thumbnailName) {
+                    Camera camera = dataSet.get(holder.getAdapterPosition());
+                    if(camera == null)
+                        return;
+                    if(thumbnailName.equals(camera.getCameraInstance().getPreviewImg()))
+                        holder.ivIcon.setImageBitmap(thumbnailRepository.getThumbnail(camera.getCameraInstance().getPreviewImg()));
+                }
+
+                @Override
+                public void onError(@io.reactivex.rxjava3.annotations.NonNull Throwable e) {}
+
+                @Override
+                public void onComplete() {}
+            };
+            thumbnailsUpdated.subscribe(holder.disposableObserver);
+        }
+    }
+
+    @Override
+    public void onViewRecycled(@NonNull CameraViewHolder holder) {
+        if(holder.disposableObserver != null && !holder.disposableObserver.isDisposed()) {
+            holder.disposableObserver.dispose();
+        }
+        holder.disposableObserver = null;
+        super.onViewRecycled(holder);
+    }
+
+    @Override
+    public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView) {
+        super.onAttachedToRecyclerView(recyclerView);
+        this.thumbnailRepository.getThumbnailUpdatedSubject()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(thumbnailsUpdateObserver);
+    }
+
+    @Override
+    public void onDetachedFromRecyclerView(@NonNull RecyclerView recyclerView) {
+        super.onDetachedFromRecyclerView(recyclerView);
+        this.thumbnailsUpdated.onComplete();
+        if(!thumbnailsUpdateObserver.isDisposed())
+            thumbnailsUpdateObserver.dispose();
     }
 
     @Override
@@ -119,13 +178,12 @@ public class SelectCameraListAdapter extends BaseRecyclerViewAdapter<Camera, Sel
         ImageView ivIcon;
         View root;
 
+        DisposableObserver<String> disposableObserver;
         CameraThumbnailRepository thumbnailRepository;
-        Context context;
 
-        public CameraViewHolder(@NonNull @NotNull View itemView, Context context, CameraThumbnailRepository thumbnailRepository) {
+        public CameraViewHolder(@NonNull @NotNull View itemView, CameraThumbnailRepository thumbnailRepository) {
             super(itemView);
             this.root = itemView;
-            this.context = context;
             this.thumbnailRepository = thumbnailRepository;
             this.radioButton = itemView.findViewById(R.id.radioButton);
             this.tvName = itemView.findViewById(R.id.name);
