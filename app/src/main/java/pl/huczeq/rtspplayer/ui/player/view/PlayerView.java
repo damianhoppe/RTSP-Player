@@ -8,7 +8,6 @@ import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.animation.Transformation;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -108,7 +107,7 @@ public class PlayerView extends FrameLayout implements VideoInfoChangeListenerPr
         this.addView(this.playerSurfaceView);
         this.transformController = new PlayerTransformController(this, this.playerSurfaceView, this);
 
-        int size = (int) (22 * getResources().getDisplayMetrics().density);
+        int size = (int) (26 * getResources().getDisplayMetrics().density);
 
         this.ivPrevious = new ImageView(getContext());
         this.ivPrevious.setImageResource(R.drawable.ic_chevrons_left);
@@ -131,8 +130,9 @@ public class PlayerView extends FrameLayout implements VideoInfoChangeListenerPr
         setStaticTransformationsEnabled(true);
 
         transformController.setOnSwipeAnimateListener(new PlayerTransformController.OnSwipeAnimateListener() {
-            private float easeInCubic(float t) {
-                return (float) Math.pow(t, 3);
+            private float easeInCustom(float t) {
+                float tt = Math.max(0f, (t - 0.5f) * 2f);
+                return (float) Math.pow(t, 2 + 4 * tt);
             }
 
             @Override
@@ -140,7 +140,7 @@ public class PlayerView extends FrameLayout implements VideoInfoChangeListenerPr
                 float swipeFactor = distance / threshold;
                 float absSwipeFactor = Math.abs(swipeFactor);
 
-                float alpha = easeInCubic(absSwipeFactor);
+                float alpha = easeInCustom(absSwipeFactor);
 
                 float scale = 0.2f + absSwipeFactor * 0.6f;
 
@@ -164,11 +164,15 @@ public class PlayerView extends FrameLayout implements VideoInfoChangeListenerPr
                             .alpha(0f)
                             .translationX(ivPrevious.getTranslationX() * 2)
                             .setDuration(200)
+                            .scaleX(0.2f)
+                            .scaleY(0.2f)
                             .withEndAction(() -> ivPrevious.setTranslationX(0));
                 }else {
                     ivPrevious.animate()
                             .alpha(0f)
                             .translationX(0f)
+                            .scaleX(0.2f)
+                            .scaleY(0.2f)
                             .setDuration(200);
                 }
 
@@ -176,12 +180,16 @@ public class PlayerView extends FrameLayout implements VideoInfoChangeListenerPr
                     ivNext.animate()
                             .alpha(0f)
                             .translationX(ivNext.getTranslationX() * 2)
+                            .scaleX(0.2f)
+                            .scaleY(0.2f)
                             .setDuration(200)
                             .withEndAction(() -> ivNext.setTranslationX(0));
                 }else {
                     ivNext.animate()
                             .alpha(0f)
                             .translationX(0f)
+                            .scaleX(0.2f)
+                            .scaleY(0.2f)
                             .setDuration(200);
                 }
             }

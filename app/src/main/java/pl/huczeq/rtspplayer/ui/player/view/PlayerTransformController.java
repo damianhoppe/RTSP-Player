@@ -6,6 +6,7 @@ import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Matrix;
 import android.graphics.PointF;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
@@ -335,15 +336,6 @@ public class PlayerTransformController implements View.OnTouchListener {
             applyTransformation();
         });
 
-        scaleAnimator.addListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                presentScale = targetScale;
-                scaleAnimator = null;
-                clampMatrixTranslation(true, true);
-            }
-        });
-
         scaleAnimator.start();
     }
 
@@ -369,14 +361,6 @@ public class PlayerTransformController implements View.OnTouchListener {
                 clampMatrixTranslation(false, true);
 
                 applyTransformation();
-            }
-        });
-
-        translationAnimator.addListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                translationAnimator = null;
-                clampMatrixTranslation(true, true);
             }
         });
 
@@ -628,11 +612,18 @@ public class PlayerTransformController implements View.OnTouchListener {
                 return false;
             }
 
+            if(hasScalingGestureOccurredDuringTouchInteraction) {
+                return false;
+            }
+
             int currentSwipeDirection;
+
+            Log.d("DEBUG", "scaleDetector.isInProgress() " + scaleDetector.isInProgress());
 
             if(scaleDetector.isInProgress()) {
                 currentSwipeDirection = 0;
                 hasScalingGestureOccurredDuringTouchInteraction = true;
+                onSwipeAnimateListener.onSwipeEnd(0);
             }else {
                 float threshold = swipeThreshold * 0.5f;
                 float swipeFactor = effectiveEdgeDragX / threshold;
