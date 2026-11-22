@@ -114,16 +114,26 @@ public class VlcPlayerImpl extends RtspPlayer {
 
     @Override
     public void attachSurface(SurfaceTexture surfaceTexture) {
-        if(isSurfaceAttached()) {
-           throw new RuntimeException("View is attached.");
-        }
-        vlcOut.setVideoSurface(surfaceTexture);
-        vlcOut.attachViews(this.onNewVideoLayout);
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                if(isSurfaceAttached()) {
+                    throw new RuntimeException("View is attached.");
+                }
+                vlcOut.setVideoSurface(surfaceTexture);
+                vlcOut.attachViews(onNewVideoLayout);
+            }
+        });
     }
 
     @Override
     public void detachSurface() {
-        mediaPlayer.detachViews();
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                mediaPlayer.detachViews();
+            }
+        });
     }
 
     @Override
@@ -165,6 +175,7 @@ public class VlcPlayerImpl extends RtspPlayer {
                     mediaPlayer.release();
                 if(!libVLC.isReleased())
                     libVLC.release();
+                executor.shutdownNow();
             }
         });
     }
