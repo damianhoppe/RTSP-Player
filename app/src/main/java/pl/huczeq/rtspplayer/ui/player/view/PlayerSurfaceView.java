@@ -27,6 +27,7 @@ public class PlayerSurfaceView extends GLSurfaceView implements VideoInfoChangeL
     private VideoLayout videoLayout;
     private PlayerRenderer renderer;
     private PlayerView.OnVideoBoundsChangeListener onVideoBoundsChangeListener;
+    private OnFirstFrameRenderedListener onFirstFrameRenderedListener;
 
     private Rect videoBounds;
 
@@ -74,10 +75,17 @@ public class PlayerSurfaceView extends GLSurfaceView implements VideoInfoChangeL
 //            }
 //        });
         this.renderer = new PlayerRenderer();
-        this.renderer.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
+        this.renderer.setStatesListener(new PlayerRenderer.StatesListener() {
+
             @Override
-            public void onFrameAvailable(SurfaceTexture surfaceTexture) {
+            public void onFrameAvailable() {
                 requestRender();
+            }
+
+            @Override
+            public void onFirstFrameRendered() {
+                if(onFirstFrameRenderedListener != null)
+                    onFirstFrameRenderedListener.onFirstFrameRendered();
             }
         });
         this.renderer.setOnFrameCaptureListener(new PlayerRenderer.InternalOnFrameCaptureListener() {
@@ -214,5 +222,13 @@ public class PlayerSurfaceView extends GLSurfaceView implements VideoInfoChangeL
 
     public void drawOnlyNewFrames() {
         this.renderer.drawOnlyNewFrames();
+    }
+
+    public void setOnFirstFrameRenderedListener(OnFirstFrameRenderedListener onFirstFrameRenderedListener) {
+        this.onFirstFrameRenderedListener = onFirstFrameRenderedListener;
+    }
+
+    public interface OnFirstFrameRenderedListener {
+        void onFirstFrameRendered();
     }
 }

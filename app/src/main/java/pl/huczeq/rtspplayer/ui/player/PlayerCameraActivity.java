@@ -210,15 +210,17 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         playerControlVisibilityTimer.start();
         lastScreenOrientation = getResources().getConfiguration().orientation;
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isPipModeAvailable()) {
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isPipModeAvailable()) {
             pictureInPictureParamsBuilder = new PictureInPictureParams.Builder();
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 pictureInPictureParamsBuilder.setSeamlessResizeEnabled(false);
                 pictureInPictureParamsBuilder.setAutoEnterEnabled(settings.autoEnterPipModeEnabled());
             }
             setDefaultPIPRectAndAspectRatio(pictureInPictureParamsBuilder);
             setPictureInPictureParams(pictureInPictureParamsBuilder.build());
         }
+
+        this.binding.playerView.getPlayerSurfaceView().setOnFirstFrameRenderedListener(this::runPendingSlideIn);
 
         this.player = this.playerProvider.build();
         this.mute = this.settings.isMuteAudioDefaultEnabled();
@@ -636,7 +638,6 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
 
     private void onPlayingStarted() {
         binding.pBLoading.setVisibility(View.INVISIBLE);
-        runPendingSlideIn();
         updateVolumeButtonIcon();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isPipModeAvailable()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -655,7 +656,6 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         }
         binding.pBLoading.setVisibility(View.INVISIBLE);
         binding.llReconnect.setVisibility(View.VISIBLE);
-        runPendingSlideIn();
         if(settings.isReconnectTimerEnabled()) {
             viewModel.startReconnectTimer();
         }

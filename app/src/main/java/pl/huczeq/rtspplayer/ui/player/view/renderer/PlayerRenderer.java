@@ -43,9 +43,10 @@ public class PlayerRenderer implements GLSurfaceView.Renderer, VideoInfoChangeLi
 
     private PlayerRendererCallback rendererCallback;
     private InternalOnFrameCaptureListener onFrameCaptureListener;
-    private SurfaceTexture.OnFrameAvailableListener onFrameAvailableListener;
+    private StatesListener statesListener;
 
     private long renderFramesFromTimestamp = 0;
+    private boolean firstFrameRendered = false;
 
     public PlayerRenderer() {
         this.frame = new Frame();
@@ -65,11 +66,11 @@ public class PlayerRenderer implements GLSurfaceView.Renderer, VideoInfoChangeLi
             public void onFrameAvailable(SurfaceTexture surfaceTexture) {
                 firstSurfaceReceived = true;
                 surfaceTextureFrameAvailable.set(true);
-                if(onFrameAvailableListener != null)
+                if(statesListener != null)
                     new Handler(Looper.getMainLooper()).post(new Runnable() {
                         @Override
                         public void run() {
-                            onFrameAvailableListener.onFrameAvailable(surfaceTexture);
+                            statesListener.onFrameAvailable();
                         }
                     });
             }
@@ -106,6 +107,17 @@ public class PlayerRenderer implements GLSurfaceView.Renderer, VideoInfoChangeLi
         }
 
         if(firstSurfaceReceived && onFrameCaptureListener != null && shouldCaptureFrame.compareAndSet(true,false)) {
+            if(!firstFrameRendered) {
+                if(statesListener != null) {
+                    new Handler(Looper.getMainLooper()).post(new Runnable() {
+                        @Override
+                        public void run() {
+                            statesListener.onFirstFrameRendered();
+                        }
+                    });
+                }
+                firstFrameRendered = true;
+            }
             Bitmap bitmap = drawFrameToBitmap(videoWidth, videoHeight);
             if(bitmap != null) {
                 AndroidSchedulers.mainThread().scheduleDirect(new Runnable() {
@@ -210,6 +222,7 @@ public class PlayerRenderer implements GLSurfaceView.Renderer, VideoInfoChangeLi
     }
 
     public void clearSurface() {
+        this.firstFrameRendered = false;
         this.firstSurfaceReceived = false;
         renderFramesFromTimestamp = Long.MAX_VALUE;
     }
@@ -222,8 +235,8 @@ public class PlayerRenderer implements GLSurfaceView.Renderer, VideoInfoChangeLi
         this.shouldCaptureFrame.set(true);
     }
 
-    public void setOnFrameAvailableListener(SurfaceTexture.OnFrameAvailableListener onFrameAvailableListener) {
-        this.onFrameAvailableListener = onFrameAvailableListener;
+    public void setStatesListener(StatesListener statesListener) {
+        this.statesListener = statesListener;
     }
 
     public void cancelFrameCapture() {
@@ -232,5 +245,10 @@ public class PlayerRenderer implements GLSurfaceView.Renderer, VideoInfoChangeLi
 
     public interface InternalOnFrameCaptureListener {
         void onFrameCapture(Bitmap bitmap, int captureIndex);
+    }
+
+    public interface StatesListener {
+        void onFrameAvailable();
+        void onFirstFrameRendered();
     }
 }
