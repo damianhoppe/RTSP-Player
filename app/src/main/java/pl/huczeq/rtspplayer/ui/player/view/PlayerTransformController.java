@@ -673,4 +673,111 @@ public class PlayerTransformController implements View.OnTouchListener {
         void onSwipe(float distance, float effectiveDistance, float threshold);
         void onSwipeEnd(float direction);
     }
+  
+    public ZoomState captureZoomState() {
+        if(scaleAnimator.isRunning()) {
+            scaleAnimator.end();
+        }
+
+        float viewportWidth = view.getWidth();
+        float viewportHeight = view.getHeight();
+
+        float videoWidth = playerView.getWidth();
+        float videoHeight = playerView.getHeight();
+
+        float offsetX = (viewportWidth - videoWidth) / 2f;
+        float offsetY = (viewportHeight - videoHeight) / 2f;
+
+        float[] point = {
+                viewportWidth / 2f - offsetX,
+                viewportHeight / 2f - offsetY
+        };
+
+        Matrix inverse = new Matrix();
+
+        if (!matrix.invert(inverse)) {
+            return new ZoomState(presentScale, 0.5f, 0.5f);
+        }
+
+        inverse.mapPoints(point);
+
+        return new ZoomState(
+                presentScale,
+                point[0] / videoWidth,
+                point[1] / videoHeight
+        );
+    }
+
+    public void restoreZoomState(ZoomState state) {
+        float viewportWidth = view.getWidth();
+        float viewportHeight = view.getHeight();
+
+        float videoWidth = playerView.getWidth();
+        float videoHeight = playerView.getHeight();
+
+        if (viewportWidth <= 0 || viewportHeight <= 0 ||
+                videoWidth <= 0 || videoHeight <= 0) {
+            return;
+        }
+
+        clearScaleAnimation();
+        clearTranslationAnimation();
+
+        float scale = Math.min(
+                MAX_SCALE,
+                Math.max(MIN_SCALE, state.scale)
+        );
+
+        float offsetX = (viewportWidth - videoWidth) / 2f;
+        float offsetY = (viewportHeight - videoHeight) / 2f;
+
+        float focusX = state.focusX * videoWidth;
+        float focusY = state.focusY * videoHeight;
+
+        float targetX = viewportWidth / 2f
+                - offsetX
+                - focusX * scale;
+
+        float targetY = viewportHeight / 2f
+                - offsetY
+                - focusY * scale;
+
+        targetX += getFittedTranslation(
+                targetX,
+                viewportWidth,
+                videoWidth,
+                scale,
+                offsetX
+        );
+
+        targetY += getFittedTranslation(
+                targetY,
+                viewportHeight,
+                videoHeight,
+                scale,
+                offsetY
+        );
+
+        matrix.setValues(new float[]{
+                scale, 0f, targetX,
+                0f, scale, targetY,
+                0f, 0f, 1f
+        });
+
+        presentScale = scale;
+
+        applyTransformation();
+    }
+
+    public static class ZoomState {
+        public float scale;
+        public float focusX;
+        public float focusY;
+
+        public ZoomState(float scale, float focusX, float focusY) {
+            this.scale = scale;
+            this.focusX = focusX;
+            this.focusY = focusY;
+        }
+    }
 }
