@@ -703,6 +703,8 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
     }
 
     public void reconnectOnNetworkAvailable() {
+        if(this.networkCallback != null)
+            return;
         ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkRequest.Builder builder = new NetworkRequest.Builder();
 
