@@ -38,7 +38,7 @@ public class CameraFormModel extends BaseObservable {
     private String userName;
     private String password;
     private String addressIp;
-    private String port;
+    private String port = "554";
     private String serverUrl;
     private String channel = "0";
     private String url;
