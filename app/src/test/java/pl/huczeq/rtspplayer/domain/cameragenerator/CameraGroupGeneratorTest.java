@@ -4,6 +4,8 @@ import static org.junit.Assert.*;
 
 import static pl.huczeq.rtspplayer.domain.cameragenerator.CameraPatternMapper.REGEX_EXPRESSION;
 
+import android.util.Log;
+
 import com.google.common.base.Strings;
 
 import org.junit.Test;
@@ -182,6 +184,44 @@ public class CameraGroupGeneratorTest {
         for(int i = 0; i < cameraGroup.getCameraInstances().size(); i++) {
             assertEquals((i + 1) + ".", cameraGroup.getCameraInstances().get(i).getName());
             assertEquals("rtsp://127.0.0.2" + (i+1) + ":554", cameraGroup.getCameraInstances().get(i).getUrl());
+        }
+    }
+
+    @Test
+    public void cameraGroupGeneration_one_SpecialVariableInCameraName_withoutDefinedVariables() {
+        String cameraName = "{i}";
+        String cameraUrl = "rtsp://127.0.0.2:554";
+
+        CameraGroupModel model = new CameraGroupModel();
+        model.setName(cameraName);
+        model.setUrl(cameraUrl);
+        CameraGroupGenerator generator = new CameraGroupGenerator();
+        CameraGroup cameraGroup = generator.generate(model);
+
+        basicCameraGroupGeneratorResultTest(cameraGroup);
+        assertEquals(1, cameraGroup.getCameraInstances().size());
+
+        assertEquals("1", cameraGroup.getCameraInstances().get(0).getName());
+        assertEquals(cameraUrl, cameraGroup.getCameraInstances().get(0).getUrl());
+    }
+
+    @Test
+    public void cameraGroupGeneration_many_VariableInServerUrl_With_TextValues() {
+        String cameraName = "Camera {i}";
+        String cameraUrl = "rtsp://127.0.0.1:554/{camera1,camera2}";
+
+        CameraGroupModel model = new CameraGroupModel();
+        model.setName(cameraName);
+        model.setUrl(cameraUrl);
+        CameraGroupGenerator generator = new CameraGroupGenerator();
+        CameraGroup cameraGroup = generator.generate(model);
+
+        basicCameraGroupGeneratorResultTest(cameraGroup);
+
+        assertEquals(2, cameraGroup.getCameraInstances().size());
+        for(int i = 0; i < cameraGroup.getCameraInstances().size(); i++) {
+            assertEquals("Camera " + (i + 1), cameraGroup.getCameraInstances().get(i).getName());
+            assertEquals("rtsp://127.0.0.1:554/camera"+(i+1), cameraGroup.getCameraInstances().get(i).getUrl());
         }
     }
 }

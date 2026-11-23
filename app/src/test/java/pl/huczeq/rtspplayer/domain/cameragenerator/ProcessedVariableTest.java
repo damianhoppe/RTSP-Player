@@ -95,49 +95,7 @@ public class ProcessedVariableTest {
         }catch (ParsingException e) {
         }
         try {
-            ProcessedVariable ProcessedVariable = new ProcessedVariable("Test", "1-");
-            ProcessedVariable.parse();
-            fail();
-        }catch (ParsingException e) {
-        }
-        try {
-            ProcessedVariable ProcessedVariable = new ProcessedVariable("Test", "-3");
-            ProcessedVariable.parse();
-            fail();
-        }catch (ParsingException e) {
-        }
-        try {
             ProcessedVariable ProcessedVariable = new ProcessedVariable("Test", "10-2");
-            ProcessedVariable.parse();
-            fail();
-        }catch (ParsingException e) {
-        }
-        try {
-            ProcessedVariable ProcessedVariable = new ProcessedVariable("Test", "10/");
-            ProcessedVariable.parse();
-            fail();
-        }catch (ParsingException e) {
-        }
-        try {
-            ProcessedVariable ProcessedVariable = new ProcessedVariable("Test", "/2");
-            ProcessedVariable.parse();
-            fail();
-        }catch (ParsingException e) {
-        }
-        try {
-            ProcessedVariable ProcessedVariable = new ProcessedVariable("Test", "-1");
-            ProcessedVariable.parse();
-            fail();
-        }catch (ParsingException e) {
-        }
-        try {
-            ProcessedVariable ProcessedVariable = new ProcessedVariable("Test", "-1,-2");
-            ProcessedVariable.parse();
-            fail();
-        }catch (ParsingException e) {
-        }
-        try {
-            ProcessedVariable ProcessedVariable = new ProcessedVariable("Test", "-1/-2");
             ProcessedVariable.parse();
             fail();
         }catch (ParsingException e) {

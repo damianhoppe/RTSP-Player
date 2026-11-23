@@ -54,7 +54,7 @@ public class SelectCameraActivity extends BaseActivity {
 
         this.listView = findViewById(R.id.listView);
         this.listView.setLayoutManager(new LinearLayoutManager(this));
-        this.adapter = new SelectCameraListAdapter(this, this.thumbnailRepository);
+        this.adapter = new SelectCameraListAdapter(this.thumbnailRepository);
         this.listView.setAdapter(this.adapter);
 
         this.tvEmpty = findViewById(R.id.tvEmpty);

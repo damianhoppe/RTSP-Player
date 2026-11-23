@@ -106,4 +106,14 @@ public class VariationsTest {
             }
         });
     }
+
+    @Test
+    public void generating_Test() {
+        List<ProcessedVariable> variables = new ArrayList<>();
+        variables.add(new ProcessedVariable("par1", "ab,cd"));
+
+        List<Map<String, String>> variations = Variations.generate(variables, 10);
+
+        assertEquals(2, variations.size());
+    }
 }

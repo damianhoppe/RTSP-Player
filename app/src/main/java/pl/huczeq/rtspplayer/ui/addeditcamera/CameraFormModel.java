@@ -38,7 +38,7 @@ public class CameraFormModel extends BaseObservable {
     private String userName;
     private String password;
     private String addressIp;
-    private String port;
+    private String port = "554";
     private String serverUrl;
     private String channel = "0";
     private String url;
@@ -97,14 +97,14 @@ public class CameraFormModel extends BaseObservable {
                 character = value.charAt(index);
                 if(character == '{') {
                     if(expressionStarted) {
-                        error = Errors.EXPRESSION_OPENSIGN_AFTER_OPEN;
+                        error = Errors.EXPRESSION_OPEN_SIGN_AFTER_OPEN;
                         return null;
                     }
                     expressionStarted = true;
                     expression = new StringBuilder();
                 }else if(character == '}') {
                     if(!expressionStarted) {
-                        error = Errors.EXPRESSION_CLOSEDSIGN_WITHOUT_OPEN;
+                        error = Errors.EXPRESSION_CLOSED_SIGN_WITHOUT_OPEN;
                         return null;
                     }
                     expressionStarted = false;
@@ -566,7 +566,10 @@ public class CameraFormModel extends BaseObservable {
 
         @Override
         public String getServerUrl() {
-            return Objects.requireNonNullElse(cameraFormModel.serverUrl, "");
+            String serverUrl = Objects.requireNonNullElse(cameraFormModel.serverUrl, "").trim();
+            if(!serverUrl.isEmpty() && !serverUrl.startsWith("/"))
+                return "/" + serverUrl;
+            return serverUrl;
         }
 
         @Override

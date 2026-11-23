@@ -1,13 +1,11 @@
 package pl.huczeq.rtspplayer.ui.player.view;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Matrix;
 import android.graphics.PointF;
+import android.util.Log;
 import android.view.GestureDetector;
-import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
@@ -15,6 +13,8 @@ import android.widget.OverScroller;
 
 import androidx.annotation.NonNull;
 import androidx.core.math.MathUtils;
+import androidx.core.view.HapticFeedbackConstantsCompat;
+import androidx.core.view.ViewCompat;
 
 public class PlayerTransformController implements View.OnTouchListener {
 
@@ -45,6 +45,7 @@ public class PlayerTransformController implements View.OnTouchListener {
     private static final float MIN_EDGE_RESISTANCE = 0.15f;
 
     private float edgeDragX = 0f;
+    private float effectiveEdgeDragX = 0f;
 
     private final Context context;
     private final View view;
@@ -54,6 +55,8 @@ public class PlayerTransformController implements View.OnTouchListener {
     private int lastFlingX;
     private int lastFlingY;
     private boolean flingRunning;
+
+    private OnSwipeAnimateListener onSwipeAnimateListener;
 
     private final Runnable flingRunnable = new Runnable() {
         @Override
@@ -88,6 +91,8 @@ public class PlayerTransformController implements View.OnTouchListener {
         }
     };
 
+    private boolean isDuringTouch = false;
+
     public PlayerTransformController(View view, View playerView, OnTransformationMatrixChanged onTransformationMatrixChanged) {
         this.onTransformationMatrixChanged = onTransformationMatrixChanged;
         this.view = view;
@@ -103,23 +108,29 @@ public class PlayerTransformController implements View.OnTouchListener {
 
     @Override
     public boolean onTouch(View view, MotionEvent motionEvent) {
+        if(motionEvent.getActionMasked() == MotionEvent.ACTION_DOWN) {
+            this.isDuringTouch = true;
+        }
         gestureDetector.onTouchEvent(motionEvent);
         scaleDetector.onTouchEvent(motionEvent);
 
         if(motionEvent.getActionMasked() == MotionEvent.ACTION_UP) {
-            edgeDragX = 0.0f;
+            this.isDuringTouch = false;
+            this.edgeDragX = 0.0f;
+            effectiveEdgeDragX = 0.0f;
             matrix.getValues(matrixValues);
             float x = calculateClampedXTranslation(matrixValues[Matrix.MTRANS_X]);
-            if(swipeDirection != 0 && !hasScalingGestureOccurredDuringTouchInteraction) {
+            if(swipeDirection != 0 && !hasScalingGestureOccurredDuringTouchInteraction && onSwipeListener != null) {
                 onSwipeListener.onSwipe(swipeDirection < 0 ? -1 : 1);
-                swipeDirection = 0;
                 matrixUpdated = false;
             }
             if(x != 0) {
+                onSwipeAnimateListener.onSwipeEnd(swipeDirection);
                 animateToX(matrixValues[Matrix.MTRANS_X] + x);
                 matrixUpdated = true;
                 isClampingEnabled = true;
             }
+            swipeDirection = 0;
             hasScalingGestureOccurredDuringTouchInteraction = false;
         }
 
@@ -186,6 +197,20 @@ public class PlayerTransformController implements View.OnTouchListener {
         return 0f;
     }
 
+    public void ensureValidVideoTransform() {
+        ensureValidVideoTransform(false);
+    }
+
+    public void ensureValidVideoTransform(boolean force) {
+        if(!force) {
+            if(isDuringTouch)
+                return;
+        }
+        if(clampMatrixTranslation(true, true)) {
+            applyTransformation();
+        }
+    }
+
     public interface OnSwipeListener {
         /** @param direction 1 for next (swipe left), -1 for previous (swipe right) */
         void onSwipe(int direction);
@@ -203,6 +228,7 @@ public class PlayerTransformController implements View.OnTouchListener {
         this.matrix.setScale(presentScale, presentScale,0,0);
 
         this.edgeDragX = 0;
+        this.effectiveEdgeDragX = 0;
         this.hasScalingGestureOccurredDuringTouchInteraction = false;
         this.swipeDirection = 0;
         this.isClampingEnabled = true;
@@ -261,6 +287,9 @@ public class PlayerTransformController implements View.OnTouchListener {
         clearScaleAnimation();
         float targetScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, proposedTargetScale));
 
+        if(presentScale == targetScale)
+            return;
+
         this.matrix.getValues(matrixValues);
 
         float startScale = presentScale;
@@ -304,15 +333,6 @@ public class PlayerTransformController implements View.OnTouchListener {
             applyTransformation();
         });
 
-        scaleAnimator.addListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                presentScale = targetScale;
-                scaleAnimator = null;
-                clampMatrixTranslation(true, true);
-            }
-        });
-
         scaleAnimator.start();
     }
 
@@ -338,14 +358,6 @@ public class PlayerTransformController implements View.OnTouchListener {
                 clampMatrixTranslation(false, true);
 
                 applyTransformation();
-            }
-        });
-
-        translationAnimator.addListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                translationAnimator = null;
-                clampMatrixTranslation(true, true);
             }
         });
 
@@ -436,7 +448,7 @@ public class PlayerTransformController implements View.OnTouchListener {
         public boolean onScaleBegin(@NonNull ScaleGestureDetector detector) {
             this.isInPoint = presentScale >= pointScale-pointScaleOffset && presentScale <= pointScale+pointScaleOffset;
             if(this.isInPoint) {
-                view.performHapticFeedback(HapticFeedbackConstants.GESTURE_START);
+                ViewCompat.performHapticFeedback(view, HapticFeedbackConstantsCompat.GESTURE_START);
             }
             return super.onScaleBegin(detector);
         }
@@ -467,7 +479,7 @@ public class PlayerTransformController implements View.OnTouchListener {
             boolean previousInPoint = previousScale >= pointScale-pointScaleOffset && previousScale <= pointScale+pointScaleOffset;
             boolean presentInPoint = presentScale >= pointScale-pointScaleOffset && presentScale <= pointScale+pointScaleOffset;
             if(previousInPoint != presentInPoint) {
-                view.performHapticFeedback(presentInPoint? HapticFeedbackConstants.GESTURE_START : HapticFeedbackConstants.GESTURE_END);
+                ViewCompat.performHapticFeedback(view, presentInPoint? HapticFeedbackConstantsCompat.GESTURE_START : HapticFeedbackConstantsCompat.GESTURE_END);
             }
             return true;
         }
@@ -477,7 +489,7 @@ public class PlayerTransformController implements View.OnTouchListener {
             super.onScaleEnd(detector);
             if(presentScale >= pointScale-pointScaleOffset && presentScale <= pointScale+pointScaleOffset) {
                 animateToScale(pointScale);
-                view.performHapticFeedback(HapticFeedbackConstants.CONFIRM);
+                ViewCompat.performHapticFeedback(view, HapticFeedbackConstantsCompat.CONFIRM);
             }
         }
     }
@@ -522,8 +534,6 @@ public class PlayerTransformController implements View.OnTouchListener {
                 float firstStep = Math.max(calculateFillScale(), 2f);
                 if(Math.abs(presentScale - DEFAULT_SCALE) <= 0.1f) {
                     animateToScale(firstStep,pointX,pointY);
-                }else if(Math.abs(presentScale - firstStep) <= 0.1f) {
-                    animateToScale(presentScale * 2f,pointX,pointY);
                 }else {
                     animateToScale(DEFAULT_SCALE, pointX, pointY);
                 }
@@ -576,8 +586,10 @@ public class PlayerTransformController implements View.OnTouchListener {
                 edgeDragX += distanceX;
                 float resistance = getEdgeResistance(Math.abs(edgeDragX));
                 effectiveDistanceX = distanceX * resistance;
+                effectiveEdgeDragX += effectiveDistanceX;
             }else {
                 edgeDragX = 0f;
+                effectiveEdgeDragX = 0f;
             }
 
             matrix.postTranslate(-effectiveDistanceX, -distanceY);
@@ -586,29 +598,51 @@ public class PlayerTransformController implements View.OnTouchListener {
             if(overflow == 0 && !isTranslationXAtLimit()) {
                 isClampingEnabled = true;
                 edgeDragX = 0.f;
+                effectiveEdgeDragX = 0.f;
             }
 
             if(!swipeGestureAvailable) {
                 return false;
             }
 
+            if(swipeThreshold == 0) {
+                return false;
+            }
+
+            if(hasScalingGestureOccurredDuringTouchInteraction) {
+                return false;
+            }
+
             int currentSwipeDirection;
+
+            Log.d("DEBUG", "scaleDetector.isInProgress() " + scaleDetector.isInProgress());
 
             if(scaleDetector.isInProgress()) {
                 currentSwipeDirection = 0;
                 hasScalingGestureOccurredDuringTouchInteraction = true;
+                onSwipeAnimateListener.onSwipeEnd(0);
             }else {
-                currentSwipeDirection = (edgeDragX > swipeThreshold * 0.5f) ?
+                float threshold = swipeThreshold * 0.5f;
+                float swipeFactor = effectiveEdgeDragX / threshold;
+
+                if(onSwipeAnimateListener != null)
+                    if(swipeFactor == 0) {
+                        onSwipeAnimateListener.onSwipeEnd(0);
+                    }else {
+                        onSwipeAnimateListener.onSwipe(edgeDragX, effectiveEdgeDragX, threshold);
+                    }
+
+                currentSwipeDirection = (edgeDragX > threshold) ?
                         1
-                        : (edgeDragX < -(swipeThreshold * 0.5f)) ?
+                        : (edgeDragX < -threshold) ?
                         -1 : 0;
             }
 
             if(currentSwipeDirection != swipeDirection) {
                 if(currentSwipeDirection != 0)
-                    view.performHapticFeedback(HapticFeedbackConstants.GESTURE_THRESHOLD_ACTIVATE);
+                    ViewCompat.performHapticFeedback(view, HapticFeedbackConstantsCompat.GESTURE_THRESHOLD_ACTIVATE);
                 else
-                    view.performHapticFeedback(HapticFeedbackConstants.GESTURE_THRESHOLD_DEACTIVATE);
+                    ViewCompat.performHapticFeedback(view, HapticFeedbackConstantsCompat.GESTURE_THRESHOLD_DEACTIVATE);
                 swipeDirection = currentSwipeDirection;
             }
 
@@ -624,8 +658,18 @@ public class PlayerTransformController implements View.OnTouchListener {
         this.swipeGestureAvailable = available;
     }
 
+    public void setOnSwipeAnimateListener(OnSwipeAnimateListener onSwipeAnimateListener) {
+        this.onSwipeAnimateListener = onSwipeAnimateListener;
+    }
+
     public interface OnTransformationMatrixChanged {
         void onTransformationMatrixChanged(Matrix matrix);
+    }
+
+    public interface OnSwipeAnimateListener {
+        void onSwipe(float distance, float effectiveDistance, float threshold);
+
+        void onSwipeEnd(float direction);
     }
 
     public ZoomState captureZoomState() {

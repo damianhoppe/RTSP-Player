@@ -16,13 +16,13 @@ def buildTime(String format = "yyyy-MM-dd") {
 }
 
 android {
-    android.ndkVersion "29.0.14033849"
+    android.ndkVersion = "29.0.14033849"
 
     defaultConfig {
-        compileSdk 36
-        applicationId "pl.huczeq.rtspplayer"
+        compileSdk = 36
+        targetSdk = 36
         minSdkVersion 23
-        targetSdkVersion 36
+        applicationId "pl.huczeq.rtspplayer"
         versionCode appVersionCode
         versionName "${appVersionName}"
 
@@ -37,7 +37,8 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled = true
+            shrinkResources = true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             buildConfigField("String", "BUILD_TIME", "\"${buildTime("yyyy-MM-dd HH:mm:ss")}\"")
             buildConfigField("String", "SITE_URL", "\"${appSiteUrl}\"")
@@ -52,8 +53,8 @@ android {
     }
 
     buildFeatures {
-        dataBinding true
-        buildConfig true
+        dataBinding = true
+        buildConfig = true
     }
 
     testOptions {
@@ -64,10 +65,13 @@ android {
 
     splits {
         abi {
-            enable true
+            boolean isBuildingBundle = gradle.startParameter.taskNames.any {
+                it.toLowerCase().contains("bundle")
+            }
+            enable !isBuildingBundle
             reset()
             include "x86", "x86_64", "armeabi-v7a", "arm64-v8a"
-            universalApk true
+            universalApk = true
         }
     }
 
@@ -75,7 +79,7 @@ android {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
     }
-    namespace 'pl.huczeq.rtspplayer'
+    namespace = 'pl.huczeq.rtspplayer'
 }
 
 dependencies {
@@ -84,7 +88,7 @@ dependencies {
 
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'androidx.core:core:1.9.0'
+    implementation 'androidx.core:core:1.17.0'
 
     implementation('androidx.preference:preference:1.2.1') {
         exclude group: 'androidx.lifecycle' , module:'lifecycle-viewmodel-ktx'
@@ -119,17 +123,17 @@ dependencies {
     testImplementation 'org.robolectric:robolectric:4.8.1'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
 
-    implementation 'com.google.dagger:hilt-android:2.43.2'
+    implementation 'com.google.dagger:hilt-android:2.60.1'
     //annotationProcessor 'com.google.dagger:hilt-compiler:2.43.2'
-    annotationProcessor 'com.google.dagger:hilt-android-compiler:2.43.2'
+    annotationProcessor 'com.google.dagger:hilt-android-compiler:2.60.1'
 
-    testImplementation 'com.google.dagger:hilt-android-testing:2.43.2'
-    testAnnotationProcessor 'com.google.dagger:hilt-compiler:2.43.2'
+    testImplementation 'com.google.dagger:hilt-android-testing:2.60.1'
+    testAnnotationProcessor 'com.google.dagger:hilt-compiler:2.60.1'
     //testAnnotationProcessor 'com.google.dagger:hilt-android-compiler:2.43.2'
 
-    androidTestImplementation 'com.google.dagger:hilt-android-testing:2.43.2'
+    androidTestImplementation 'com.google.dagger:hilt-android-testing:2.60.1'
     //androidTestAnnotationProcessor 'com.google.dagger:hilt-compiler:2.43.2'
-    androidTestAnnotationProcessor 'com.google.dagger:hilt-android-compiler:2.43.2'
+    androidTestAnnotationProcessor 'com.google.dagger:hilt-android-compiler:2.60.1'
 
     compileOnly 'org.projectlombok:lombok:1.18.24'
     annotationProcessor 'org.projectlombok:lombok:1.18.24'

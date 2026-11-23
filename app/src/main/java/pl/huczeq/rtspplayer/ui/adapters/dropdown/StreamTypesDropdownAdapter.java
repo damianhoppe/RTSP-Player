@@ -14,7 +14,7 @@ public class StreamTypesDropdownAdapter extends BaseArrayAdapter<Integer> {
     private final Resources resources;
 
     public StreamTypesDropdownAdapter(Context context) {
-        super(context, R.layout.support_simple_spinner_dropdown_item, List.of(UrlTemplate.StreamType.MAIN_STREAM, UrlTemplate.StreamType.SUB_STREAM));
+        super(context, androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, List.of(UrlTemplate.StreamType.MAIN_STREAM, UrlTemplate.StreamType.SUB_STREAM));
         this.resources = context.getResources();
     }
 

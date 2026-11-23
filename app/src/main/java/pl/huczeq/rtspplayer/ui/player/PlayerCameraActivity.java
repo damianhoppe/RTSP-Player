@@ -7,14 +7,19 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.LayoutTransition;
 import android.app.ActivityManager;
 import android.app.AppOpsManager;
+import android.app.PendingIntent;
 import android.app.PictureInPictureParams;
+import android.app.RemoteAction;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
+import android.graphics.drawable.Icon;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
@@ -26,24 +31,30 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Process;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.util.Pair;
 import android.util.Rational;
-import android.view.HapticFeedbackConstants;
 import android.view.OrientationEventListener;
 import android.view.View;
-import android.view.WindowInsets;
-import android.view.WindowInsetsController;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.core.content.ContextCompat;
+import androidx.core.view.HapticFeedbackConstantsCompat;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.Observer;
 
 import com.google.common.base.Strings;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -73,7 +84,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
     public static final String EXTRA_URL = "streamUrl";
     public static final String EXTRA_PAR_FORCE_TCP = "forceTcp";
 
-    private boolean probablyBackstackLost = false;
+    private boolean mute = false;
 
     public static void putCameraIntoIntent(Intent intent, String url, boolean forceTcp, long cameraInstanceId) {
         intent.putExtra(EXTRA_CAMERA_INSTANCE_ID, cameraInstanceId);
@@ -116,16 +127,43 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         }
     });
 
+    private static final String PIP_ACTION_PREVIOUS = "PIP_ACTION_PREVIOUS";
+    private static final String PIP_ACTION_NEXT = "PIP_ACTION_NEXT";
+
+    private final BroadcastReceiver pipActionsReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if(intent == null || intent.getAction() == null)
+                return;
+
+            switch(intent.getAction()) {
+                case PIP_ACTION_PREVIOUS:
+                    loadAdjacentCamera(-1);
+                    break;
+                case PIP_ACTION_NEXT:
+                    loadAdjacentCamera(1);
+                    break;
+            }
+        }
+    };
+
+
+    private final OnBackPressedCallback onBackPressedCallback = new OnBackPressedCallback(false) {
+        @Override
+        public void handleOnBackPressed() {
+            setEnabled(false);
+
+            if(!navToLauncherTask(getApplicationContext())) {
+                getOnBackPressedDispatcher().onBackPressed();
+            }
+        }
+    };
+
     @RequiresApi(api = Build.VERSION_CODES.N)
     private boolean isPipModeAvailable() {
         AppOpsManager appOpsManager = (AppOpsManager) getSystemService(Context.APP_OPS_SERVICE);
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            if(appOpsManager.unsafeCheckOpNoThrow(AppOpsManager.OPSTR_PICTURE_IN_PICTURE, Process.myUid(), BuildConfig.APPLICATION_ID) != AppOpsManager.MODE_ALLOWED)
-                return false;
-        }else {
-            if(appOpsManager.checkOpNoThrow(AppOpsManager.OPSTR_PICTURE_IN_PICTURE, Process.myUid(), BuildConfig.APPLICATION_ID) != AppOpsManager.MODE_ALLOWED)
-                return false;
-        }
+        if(appOpsManager.checkOpNoThrow(AppOpsManager.OPSTR_PICTURE_IN_PICTURE, Process.myUid(), BuildConfig.APPLICATION_ID) != AppOpsManager.MODE_ALLOWED)
+            return false;
         return getPackageManager().hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE);
     }
 
@@ -168,34 +206,18 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
 
         this.viewModel.setStreamParams(params);
 
-        this.binding.playerView.setOnSwipeListener(direction -> {
-            if(switchAnimating)
-                return;
-            viewModel.loadAdjacentCamera(direction, camera -> {
-                if(isDestroyed() || switchAnimating)
-                    return;
-                if(camera == null) {
-                    binding.playerView.getTransformController().resetTranslationWithAnimation();
-                    binding.playerView.performHapticFeedback(HapticFeedbackConstants.REJECT);
-                    return;
-                }
-                PlayerCameraViewModel.Params newParams = PlayerCameraViewModel.Params.builder()
-                        .url(camera.getCameraInstance().getUrl())
-                        .forceTcpEnabled(settings.isPreferUseRtspTcpEnabled())
-                        .cameraId(camera.getCameraInstance().getId())
-                        .build();
-                if(newParams.equals(viewModel.getStreamParams()))
-                    return;
-                animateSwitch(direction, () -> switchStream(newParams));
-            });
-        });
+        this.binding.playerView.setOnSwipeListener(this::loadAdjacentCamera);
 
-        playerControlVisibilityTimer.start();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode()) {
+            setPlayerControlVisibility(false);
+        }else {
+            playerControlVisibilityTimer.start();
+        }
         lastScreenOrientation = getResources().getConfiguration().orientation;
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isPipModeAvailable()) {
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isPipModeAvailable()) {
             pictureInPictureParamsBuilder = new PictureInPictureParams.Builder();
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 pictureInPictureParamsBuilder.setSeamlessResizeEnabled(false);
                 pictureInPictureParamsBuilder.setAutoEnterEnabled(settings.autoEnterPipModeEnabled());
             }
@@ -203,8 +225,11 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
             setPictureInPictureParams(pictureInPictureParamsBuilder.build());
         }
 
+        this.binding.playerView.getPlayerSurfaceView().setOnFirstFrameRenderedListener(this::runPendingSlideIn);
+
         this.player = this.playerProvider.build();
-        this.player.setMute(this.settings.isMuteAudioDefaultEnabled());
+        this.mute = this.settings.isMuteAudioDefaultEnabled();
+        this.player.setMute(mute);
         updateVolumeButtonIcon();
 
         player.attachView(this.binding.playerView);
@@ -216,7 +241,12 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
             }
 
             @Override
-            public void onPlaying() {}
+            public void onPlaying() {
+                if(mute) {
+                    player.setMute(true);
+                }
+                updateVolumeButtonIcon();
+            }
 
             @Override
             public void onEndReached() {
@@ -252,8 +282,10 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
             @Override
             public void onChanged(Pair<Camera, Camera> cameraPair) {
                 if(cameraPair != null) {
-                    binding.playerView.setSwipeGestureAvailable(cameraPair.first != null && cameraPair.second != null);
+                    boolean isSwipeAvailable = cameraPair.first != null && cameraPair.second != null;
+                    binding.playerView.setSwipeGestureAvailable(isSwipeAvailable);
                     viewModel.getAdjacentCamera().removeObserver(this);
+                    updatePIPActions(isSwipeAvailable);
                 }
             }
         });
@@ -274,6 +306,8 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
                 viewModel.stopReconnectTimer();
             }
         });
+
+        getOnBackPressedDispatcher().addCallback(this.onBackPressedCallback);
     }
 
     @Override
@@ -284,15 +318,26 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void setDefaultPIPRectAndAspectRatio(PictureInPictureParams.Builder pictureInPictureParamsBuilder) {
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        int displayWidth, displayHeight;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            Rect windowRect = getWindowManager().getCurrentWindowMetrics().getBounds();
+            displayWidth = windowRect.width();
+            displayHeight = windowRect.height();
+        }else {
+            DisplayMetrics displayMetrics = new DisplayMetrics();
+            //noinspection deprecation
+            getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+            displayWidth = displayMetrics.widthPixels;
+            displayHeight = displayMetrics.heightPixels;
+        }
         int min;
         boolean vertically;
-        if(displayMetrics.widthPixels < displayMetrics.heightPixels) {
-            min = displayMetrics.widthPixels;
+        if(displayWidth < displayHeight) {
+            min = displayWidth;
             vertically = false;
         }else {
-            min = displayMetrics.heightPixels;
+            min = displayHeight;
             vertically = true;
         }
         Rational aspectRatio = new Rational(16,9);
@@ -301,11 +346,11 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
             rect.top = 0;
             rect.bottom = min;
             int width = (int) (aspectRatio.floatValue() * min);
-            rect.left = (displayMetrics.widthPixels - width)/2;
+            rect.left = (displayWidth - width)/2;
             rect.right = rect.left + width;
         }else {
             int height = (int) (min/aspectRatio.floatValue());
-            rect.top = (displayMetrics.heightPixels - height)/2;
+            rect.top = (displayHeight - height)/2;
             rect.bottom = rect.top + height;
             rect.left = 0;
             rect.right = min;
@@ -324,67 +369,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
             return;
         }
         switchStream(params);
-        probablyBackstackLost = false;
-    }
-
-    /**
-     * Shows the loading spinner and slides the current stream out.
-     * The previous camera preview is cleared using view.clearSurface() and remains black until rendering starts.
-     * If the slide-in animation is enabled, the new preview slides in once rendering starts;
-     * otherwise, playback resumes normally with the preview immediately visible.
-     */
-    private void animateSwitch(int direction, Runnable switchAction) {
-        final PlayerSurfaceView view = binding.playerView.getPlayerSurfaceView();
-        final float distance = view.getWidth() * direction;
-        switchAnimating = true;
-        binding.llReconnect.setVisibility(View.GONE);
-        binding.pBLoading.setVisibility(View.VISIBLE);
-        view.animate()
-                .translationX(-distance)
-                .alpha(0f)
-                .setDuration(150)
-                .setListener(new AnimatorListenerAdapter() {
-                    @Override
-                    public void onAnimationCancel(Animator animation) {
-                        switchAnimating = false;
-                    }
-                })
-                .withEndAction(() -> {
-                    view.setAlpha(0f);
-                    view.setTranslationX(settings.isCameraSlideInAnimationEnabled()? distance : 0f);
-                    view.clearSurface();
-                    pendingSlideIn = () -> view.animate()
-                            .translationX(0f)
-                            .alpha(1f)
-                            .setDuration(150)
-                            .withEndAction(new Runnable() {
-                                @Override
-                                public void run() {
-                                    switchAnimating = false;
-                                }
-                            })
-                            .start();
-                    switchAction.run();
-                    switchAnimating = false;
-                })
-                .start();
-    }
-
-    private void runPendingSlideIn() {
-        Runnable slideIn = pendingSlideIn;
-        pendingSlideIn = null;
-        if(slideIn != null)
-            slideIn.run();
-    }
-
-    private void switchStream(PlayerCameraViewModel.Params params) {
-        binding.playerView.getTransformController().reset();
-
-        if(!params.equals(viewModel.getStreamParams()) || !player.isPlaying()) {
-            this.viewModel.setStreamParams(params);
-            loadMedia();
-        }
-        startPlaying();
+        onBackPressedCallback.setEnabled(false);
     }
 
     @Override
@@ -433,8 +418,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         super.onDestroy();
         pictureInPictureParamsBuilder = null;
         player.detachView();
-        if(player != null)
-            player.release();
+        player.release();
     }
 
     @Override
@@ -508,6 +492,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
     @Override
     public void switchVolume() {
         player.setMute(!player.isMute());
+        this.mute = player.isMute();
         updateVolumeButtonIcon();
         playerControlVisibilityTimer.start();
     }
@@ -521,29 +506,26 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && pictureInPictureParamsBuilder != null) {
             enterPictureInPictureMode(pictureInPictureParamsBuilder.build());
         }else {
-            enterPictureInPictureMode();
+            enterPictureInPictureModeDeprecated();
         }
         binding.playerView.getTransformController().resetScaleWithAnimation();
     }
 
-    @Override
-    public void back() {
-        if(probablyBackstackLost && navToLauncherTask(this)) {
-            probablyBackstackLost = false;
-            return;
-        }
-        super.onBackPressed();
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    @SuppressWarnings("deprecation")
+    private void enterPictureInPictureModeDeprecated() {
+        enterPictureInPictureMode();
     }
 
     @Override
-    public void onBackPressed() {
-        this.back();
+    public void back() {
+        getOnBackPressedDispatcher().onBackPressed();
     }
 
     /*
-        Source: https://medium.com/mindorks/android-picture-in-picture-mode-and-backstack-management-for-multiple-activities-8427fe3f8102
-        Added returning a boolean value
-         */
+            Source: https://medium.com/mindorks/android-picture-in-picture-mode-and-backstack-management-for-multiple-activities-8427fe3f8102
+            Added returning a boolean value
+             */
     public static boolean navToLauncherTask(Context appContext) {
         ActivityManager activityManager = (ActivityManager) appContext.getSystemService(Context.ACTIVITY_SERVICE);
         assert activityManager != null;
@@ -566,6 +548,88 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         if (player.isPlaying() && settings.autoEnterPipModeEnabled() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
             enterPlayerIntoPictureInPictureMode();
         }
+    }
+
+    private void loadAdjacentCamera(int direction) {
+        if(switchAnimating)
+            return;
+        viewModel.loadAdjacentCamera(direction, camera -> {
+            if(isDestroyed() || switchAnimating)
+                return;
+            if(camera == null) {
+                binding.playerView.getTransformController().resetTranslationWithAnimation();
+                ViewCompat.performHapticFeedback(binding.playerView, HapticFeedbackConstantsCompat.REJECT);
+                return;
+            }
+            PlayerCameraViewModel.Params newParams = PlayerCameraViewModel.Params.builder()
+                    .url(camera.getCameraInstance().getUrl())
+                    .forceTcpEnabled(settings.isPreferUseRtspTcpEnabled())
+                    .cameraId(camera.getCameraInstance().getId())
+                    .build();
+            if(newParams.equals(viewModel.getStreamParams()))
+                return;
+            animateSwitch(direction, () -> switchStream(newParams));
+        });
+    }
+
+    /**
+     * Shows the loading spinner and slides the current stream out.
+     * The previous camera preview is cleared using view.clearSurface() and remains black until rendering starts.
+     * If the slide-in animation is enabled, the new preview slides in once rendering starts;
+     * otherwise, the preview appears with a fade-in animation as playback starts.
+     */
+    private void animateSwitch(int direction, Runnable switchAction) {
+        final PlayerSurfaceView view = binding.playerView.getPlayerSurfaceView();
+        final float distance = view.getWidth() * direction;
+        switchAnimating = true;
+        binding.llReconnect.setVisibility(View.GONE);
+        binding.pBLoading.setVisibility(View.VISIBLE);
+        view.animate()
+                .translationX(-distance)
+                .alpha(0f)
+                .setDuration(150)
+                .setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationCancel(Animator animation) {
+                        switchAnimating = false;
+                    }
+                })
+                .withEndAction(() -> {
+                    view.setAlpha(0f);
+                    view.setTranslationX(settings.isCameraSlideInAnimationEnabled()? distance : 0f);
+                    view.clearSurface();
+                    pendingSlideIn = () -> view.animate()
+                            .translationX(0f)
+                            .alpha(1f)
+                            .setDuration(150)
+                            .withEndAction(new Runnable() {
+                                @Override
+                                public void run() {
+                                    switchAnimating = false;
+                                }
+                            })
+                            .start();
+                    switchAction.run();
+                    switchAnimating = false;
+                })
+                .start();
+    }
+
+    private void runPendingSlideIn() {
+        Runnable slideIn = pendingSlideIn;
+        pendingSlideIn = null;
+        if(slideIn != null)
+            slideIn.run();
+    }
+
+    private void switchStream(PlayerCameraViewModel.Params params) {
+        binding.playerView.getTransformController().reset();
+
+        if(!params.equals(viewModel.getStreamParams()) || !player.isPlaying()) {
+            this.viewModel.setStreamParams(params);
+            loadMedia();
+        }
+        startPlaying();
     }
 
     private void updateVolumeButtonIcon() {
@@ -593,7 +657,6 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
 
     private void onPlayingStarted() {
         binding.pBLoading.setVisibility(View.INVISIBLE);
-        runPendingSlideIn();
         updateVolumeButtonIcon();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isPipModeAvailable()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -612,7 +675,6 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         }
         binding.pBLoading.setVisibility(View.INVISIBLE);
         binding.llReconnect.setVisibility(View.VISIBLE);
-        runPendingSlideIn();
         if(settings.isReconnectTimerEnabled()) {
             viewModel.startReconnectTimer();
         }
@@ -645,12 +707,20 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
             NetworkCapabilities networkCapabilities = connectivityManager.getNetworkCapabilities(network);
             return networkCapabilities != null && (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) || networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET));
         }else {
-            NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
-            return networkInfo != null && networkInfo.isConnected();
+            return isNetworkAvailableDeprecated(connectivityManager);
         }
     }
 
+
+    @SuppressWarnings("deprecation")
+    private boolean isNetworkAvailableDeprecated(ConnectivityManager connectivityManager) {
+        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+        return networkInfo != null && networkInfo.isConnected();
+    }
+
     public void reconnectOnNetworkAvailable() {
+        if(this.networkCallback != null)
+            return;
         ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkRequest.Builder builder = new NetworkRequest.Builder();
 
@@ -688,19 +758,72 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         }
     }
 
+    private boolean lastPIPMode = false;
+
     private void onPIPModeChanged(boolean isInPictureInPictureMode) {
-        probablyBackstackLost = true;
+        if(isInPictureInPictureMode == lastPIPMode)
+            return;
+        lastPIPMode = isInPictureInPictureMode;
+        LayoutTransition lt = new LayoutTransition();
         if(isInPictureInPictureMode) {
-            LayoutTransition lt = new LayoutTransition();
+            onBackPressedCallback.setEnabled(true);
             lt.disableTransitionType(LayoutTransition.DISAPPEARING);
             binding.uiContainer.setLayoutTransition(lt);
 
             playerControlVisibilityTimer.stop();
             binding.playerControl.rootPlayerControl.setVisibility(View.GONE);
+
+            IntentFilter pipActionsFilter = new IntentFilter();
+            pipActionsFilter.addAction(PIP_ACTION_PREVIOUS);
+            pipActionsFilter.addAction(PIP_ACTION_NEXT);
+
+            Log.d("DEBUG", "registerReceiver");
+            ContextCompat.registerReceiver(
+                    this,
+                    pipActionsReceiver,
+                    pipActionsFilter,
+                    ContextCompat.RECEIVER_NOT_EXPORTED
+                );
         }else {
-            LayoutTransition lt = new LayoutTransition();
             binding.uiContainer.setLayoutTransition(lt);
+            unregisterReceiver(pipActionsReceiver);
         }
+    }
+
+    private void updatePIPActions(boolean isSwipeAvailable) {
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
+            return;
+        if(pictureInPictureParamsBuilder == null)
+            return;
+
+        List<RemoteAction> actions = new ArrayList<>();
+
+        if(isSwipeAvailable) {
+            actions.add(new RemoteAction(
+                            Icon.createWithResource(this, R.drawable.ic_chevrons_left),
+                            "Previous",
+                            "Previous",
+                            PendingIntent.getBroadcast(
+                                    this,
+                                    1,
+                                    new Intent(PIP_ACTION_PREVIOUS).setPackage(getPackageName()),
+                                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE)
+                    )
+            );
+            actions.add(new RemoteAction(
+                            Icon.createWithResource(this, R.drawable.ic_chevrons_right),
+                            "Next",
+                            "Next",
+                            PendingIntent.getBroadcast(
+                                    this,
+                                    2,
+                                    new Intent(PIP_ACTION_NEXT).setPackage(getPackageName()),
+                                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE)
+                    )
+            );
+        }
+
+        pictureInPictureParamsBuilder.setActions(actions);
     }
 
     private PlayerCameraViewModel.Params buildParams(Intent intent) {
@@ -728,23 +851,9 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
     }
 
     protected void hideUI() {
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            getWindow().setDecorFitsSystemWindows(false);
-            WindowInsetsController controller = getWindow().getInsetsController();
-            if(controller != null) {
-                controller.hide(WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars());
-                controller.setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
-            }
-        }else {
-            View decorView = getWindow().getDecorView();
-            decorView.setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                            | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                            | View.SYSTEM_UI_FLAG_FULLSCREEN);
-        }
+        WindowInsetsControllerCompat insetsController = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+        insetsController.hide(WindowInsetsCompat.Type.systemBars());
+        insetsController.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
     }
 
     private Rational clampRational(Rational rational) {
@@ -776,6 +885,9 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
             return;
 
         if(pictureInPictureParamsBuilder == null)
+            return;
+
+        if(videoBounds.width() <= 1 && videoBounds.height() <= 1)
             return;
 
         Rational videoAspectRatio;

@@ -45,6 +45,12 @@
     <string name="dialog_delete_group_title">Deleting group of cameras</string>
     <string name="dialog_delete_group_message">Do you want delete the entire group?</string>
 
+    <string name="error_required">This field is required</string>
+    <string name="error_expression_not_closed">Please remember to close the expression</string>
+    <string name="error_expression_open_sign_after_open">You must close the previous expression first</string>
+    <string name="error_expression_closed_sign_without_open">You must open an expression first</string>
+    <string name="error_incorrect_value">Incorrect value</string>
+
     <string name="none">None</string>
 
     <!--Activity Preview Camera-->

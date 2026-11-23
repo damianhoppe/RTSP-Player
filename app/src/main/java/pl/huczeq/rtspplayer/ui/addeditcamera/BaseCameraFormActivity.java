@@ -1,6 +1,8 @@
 package pl.huczeq.rtspplayer.ui.addeditcamera;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.view.View;
 import android.view.ViewConfiguration;
@@ -8,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.view.OnApplyWindowInsetsListener;
@@ -48,7 +51,6 @@ public abstract class BaseCameraFormActivity extends BaseActivity implements Cam
     @Inject
     public AppNavigator navigator;
 
-    private long backPressedAt;
     private CameraFormViewModel viewModel;
     protected ActivityCameraFormBinding binding;
 
@@ -57,6 +59,23 @@ public abstract class BaseCameraFormActivity extends BaseActivity implements Cam
     private StreamTypesDropdownAdapter streamTypesAdapter;
 
     private CompletableState processedSavingStateCache;
+
+    private final OnBackPressedCallback onBackPressedCallback = new OnBackPressedCallback(true) {
+        @Override
+        public void handleOnBackPressed() {
+            if(viewModel.isSavingInProgress()) {
+                return;
+            }
+            Toast.makeText(BaseCameraFormActivity.this, getResources().getString(R.string.double_back_2_exit_info), Toast.LENGTH_SHORT).show();
+            setEnabled(false);
+            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    onBackPressedCallback.setEnabled(true);
+                }
+            }, ViewConfiguration.getKeyRepeatTimeout() * 4L);
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,6 +110,8 @@ public abstract class BaseCameraFormActivity extends BaseActivity implements Cam
                 return ViewCompat.onApplyWindowInsets(v, insets);
             }
         });
+
+        getOnBackPressedDispatcher().addCallback(onBackPressedCallback);
 
         initViews();
 
@@ -143,10 +164,12 @@ public abstract class BaseCameraFormActivity extends BaseActivity implements Cam
                     return;
                 if(state.getType() != ProcessingStateType.DONE)
                     return;
-                if(!state.isCompletedSuccessfully())
+                if(!state.isCompletedSuccessfully()) {
                     Toast.makeText(BaseCameraFormActivity.this, "Error, check form", Toast.LENGTH_SHORT).show();
-                else
-                    BaseCameraFormActivity.super.onBackPressed();
+                }else {
+                    onBackPressedCallback.setEnabled(false);
+                    getOnBackPressedDispatcher().onBackPressed();
+                }
             }
         });
 
@@ -203,26 +226,6 @@ public abstract class BaseCameraFormActivity extends BaseActivity implements Cam
                 viewModel.selectModel(modelsAdapter.getItem(i)));
         this.binding.ddStreamType.setOnItemClickListener((adapterView, view, i, l) ->
                 viewModel.getCameraFormModel().setStreamType(streamTypesAdapter.getItem(i)));
-    }
-
-    Toast toast;
-
-    @Override
-    public void onBackPressed() {
-        if(viewModel.isSavingInProgress()) {
-            return;
-        }
-        long delta = (System.currentTimeMillis() - backPressedAt);
-        if (delta < ViewConfiguration.getKeyRepeatTimeout() * 4L) {
-            super.onBackPressed();
-            return;
-        }
-        this.backPressedAt = System.currentTimeMillis();
-        if(toast != null) {
-            toast.cancel();
-        }
-        toast = Toast.makeText(this, getResources().getString(R.string.double_back_2_exit_info), Toast.LENGTH_SHORT);
-        toast.show();
     }
 
     @Override

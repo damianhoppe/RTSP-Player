@@ -51,6 +51,6 @@ public class ProcessedVariable {
 
     @TestOnly
     public void parse() {
-        this.values = NumberParser.parse(this.model.value);
+        this.values = ValueParser.parse(this.model.value);
     }
 }

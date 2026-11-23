@@ -14,6 +14,84 @@
       ]
     },
     {
+      "name": "2N",
+      "models":[
+        {
+          "name": "Default",
+          "urlTemplate": {
+            "urlAuth": "rtsp://{user}:{password}@{addressip}:{port}/h264_stream",
+            "urlNoneAuth": "rtsp//{addressip}:{port}/h264_stream",
+            "additionalFields": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "Amcrest",
+      "models":[
+        {
+          "name": "Default",
+          "urlTemplate": {
+            "urlAuth": "rtsp://{user}:{password}@{addressip}:{port}/cam/realmonitor?channel=1&subtype={stream}",
+            "urlNoneAuth": "rtsp://{addressip}:{port}/cam/realmonitor?channel=1&subtype={stream}",
+            "additionalFields": [2]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Besdersec",
+      "models":[
+        {
+          "name": "Default",
+          "urlTemplate": {
+            "urlAuth": "rtsp://{user}:{password}@{addressip}:{port}/onvif1",
+            "urlNoneAuth": "rtsp://{addressip}:{port}/onvif1",
+            "additionalFields": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "Beward",
+      "models":[
+        {
+          "name": "Default",
+          "urlTemplate": {
+            "urlAuth": "rtsp://{user}:{password}@{addressip}:{port}/h264",
+            "urlNoneAuth": "rtsp://{addressip}:{port}/h264",
+            "additionalFields": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "Buddy3D",
+      "models":[
+        {
+          "name": "Default",
+          "urlTemplate": {
+            "urlAuth": "rtsp://{user}:{password}@{addressip}:{port}/live",
+            "urlNoneAuth": "rtsp://{addressip}:{port}/live",
+            "additionalFields": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cinnado",
+      "models":[
+        {
+          "name": "Default",
+          "urlTemplate": {
+            "urlAuth": "rtsp://{user}:{password}@{addressip}:{port}/ch0",
+            "urlNoneAuth": "rtsp://{addressip}:{port}/ch0",
+            "additionalFields": []
+          }
+        }
+      ]
+    },
+    {
       "name": "Ctronics",
       "models":[
         {
@@ -72,7 +150,46 @@
       ]
     },
     {
-      "name": "Gembird",
+      "name": "ESP32-WROVER",
+      "models":[
+        {
+          "name": "ESP32CAM-RTSP",
+          "urlTemplate": {
+            "urlAuth": "rtsp://{user}:{password}@{addressip}:{port}/mjpeg/1",
+            "urlNoneAuth": "rtsp://{addressip}:{port}/mjpeg/1",
+            "additionalFields": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "Eufy",
+      "models": [
+        {
+          "name": "Default",
+          "urlTemplate": {
+            "urlAuth": "http://{user}:{password}@{addressip}:{port}/live0",
+            "urlNoneAuth": "http://{addressip}:{port}/live0",
+            "additionalFields": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "EZVIZ",
+      "models":[
+        {
+          "name": "Default",
+          "urlTemplate": {
+            "urlAuth": "rtsp://{user}:{password}@{addressip}:{port}/ch1/main",
+            "urlNoneAuth": "rtsp://{addressip}:{port}/ch1/main",
+            "additionalFields": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "Gembrid",
       "models":[
         {
           "name": "Default",
@@ -81,18 +198,57 @@
             "urlNoneAuth": "http://{addressip}:{port}/cgi-bin/snapshot.cgi",
             "additionalFields": []
           }
-        },{
+        },
+        {
+          "name": "HD",
+          "urlTemplate": {
+            "urlAuth": "http://{user}:{password}@{addressip}:{port}/onvif1",
+            "urlNoneAuth": "http://{addressip}:{port}/onvif1",
+            "additionalFields": []
+          }
+        },
+        {
           "name": "CAM78IP",
           "urlTemplate": {
             "urlAuth": "http://{user}:{password}@{addressip}:{port}/video/cam{channel}/2.0?audio=0&stream={stream}",
             "urlNoneAuth": "http://{addressip}:{port}/video/cam{channel}/2.0?audio=0&stream={stream}",
             "additionalFields": [1,2]
           }
-        },{
+        },
+        {
           "name": "ICAM-WHD-01",
           "urlTemplate": {
             "urlAuth": "http://{user}:{password}@{addressip}:{port}/live/ch0",
             "urlNoneAuth": "http://{addressip}:{port}/live/ch0",
+            "additionalFields": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "Guardzilla",
+      "models":[
+        {
+          "name": "Default",
+          "urlTemplate": {
+            "urlAuth": "rtsp://{user}:{password}@{addressip}:{port}/",
+            "urlNoneAuth": "rtsp://{addressip}:{port}/",
+            "additionalFields": []
+          }
+        },
+        {
+          "name": "GZ521B - media.amp",
+          "urlTemplate": {
+            "urlAuth": "rtsp://{user}:{password}@{addressip}:{port}/onvif-media/media.amp",
+            "urlNoneAuth": "rtsp://{addressip}:{port}/onvif-media/media.amp",
+            "additionalFields": []
+          }
+        },
+        {
+          "name": "GZ521B - mpeg4",
+          "urlTemplate": {
+            "urlAuth": "rtsp://{user}:{password}@{addressip}:{port}/mpeg4",
+            "urlNoneAuth": "rtsp://{addressip}:{port}/mpeg4",
             "additionalFields": []
           }
         }
@@ -119,7 +275,7 @@
         {
           "name": "Default",
           "urlTemplate": {
-            "urlAuth": "rtsp://{user}:{password}@{addressip}:{port}/{channel}/{user}:{password}/main",
+            "urlAuth": "rtsp://{user}:{password}@{addressip}:{port}/{channel}/main",
             "urlNoneAuth": "rtsp://{addressip}:{port}/{channel}/main",
             "additionalFields": [1]
           }
@@ -130,6 +286,19 @@
             "urlAuth": "rtsp://{user}:{password}@{addressip}:{port}/live0.264",
             "urlNoneAuth": "rtsp://{addressip}:{port}/live0.264",
             "additionalFields": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "Logitech",
+      "models": [
+        {
+          "name": "Default",
+          "urlTemplate": {
+            "urlAuth": "rtsp://{user}:{password}@{addressip}:{port}/HighResolutionVideo",
+            "urlNoneAuth": "rtsp://{addressip}:{port}/HighResolutionVideo",
+            "additionalFields": [1,2]
           }
         }
       ]
@@ -148,6 +317,32 @@
       ]
     },
     {
+      "name": "Reolink",
+      "models":[
+        {
+          "name": "Default",
+          "urlTemplate": {
+            "urlAuth": "rtsp://{user}:{password}@{addressip}:{port}/Preview_01_main",
+            "urlNoneAuth": "rtsp://{addressip}:{port}/Preview_01_main",
+            "additionalFields": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "TP-Link",
+      "models":[
+        {
+          "name": "Tapo",
+          "urlTemplate": {
+            "urlAuth": "rtsp://{user}:{password}@{addressip}:{port}/stream1",
+            "urlNoneAuth": "rtsp://{addressip}:{port}/stream1",
+            "additionalFields": []
+          }
+        }
+      ]
+    },
+    {
       "name": "TrendNet",
       "models":[
         {
@@ -155,6 +350,19 @@
           "urlTemplate": {
             "urlAuth": "rtsp://{user}:{password}@{addressip}:{port}/mpeg4",
             "urlNoneAuth": "rtsp://{addressip}:{port}/mpeg4",
+            "additionalFields": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "Ubiquiti",
+      "models": [
+        {
+          "name": "Default",
+          "urlTemplate": {
+            "urlAuth": "http://{user}:{password}@{addressip}:{port}/s0",
+            "urlNoneAuth": "http://{addressip}:{port}/s0",
             "additionalFields": []
           }
         }
@@ -177,6 +385,14 @@
       "name": "Wansview",
       "models":[
         {
+          "name": "Default",
+          "urlTemplate": {
+            "urlAuth": "http://{user}:{password}@{addressip}:{port}/live/ch{channel}",
+            "urlNoneAuth": "http://{addressip}:{port}/live/ch{channel}",
+            "additionalFields": [1]
+          }
+        },
+        {
           "name": "Q5, Q6",
           "urlTemplate": {
             "urlAuth": "http://{user}:{password}@{addressip}:{port}/live/ch{channel}",
@@ -194,6 +410,53 @@
           "urlTemplate": {
             "urlAuth": "http://{user}:{password}@{addressip}:{port}/live",
             "urlNoneAuth": "http://{addressip}:{port}/live",
+            "additionalFields": []
+          }
+        },
+        {
+          "name": "Pan3",
+          "urlTemplate": {
+            "urlAuth": "http://{user}:{password}@{addressip}:{port}/stream0",
+            "urlNoneAuth": "http://{addressip}:{port}/stream0",
+            "additionalFields": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "XMEye",
+      "models":[
+        {
+          "name": "Default",
+          "urlTemplate": {
+            "urlAuth": "rtsp://{addressip}:{port}/user={user}&password={password}&channel={channel}&stream={stream}.sdp?real_stream",
+            "urlNoneAuth": "rtsp://{addressip}:{port}/channel={channel}&stream={stream}.sdp?real_stream",
+            "additionalFields": [1,2]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Victure",
+      "models":[
+        {
+          "name": "1",
+          "urlTemplate": {
+            "urlAuth": "rtsp://{user}:{password}@{addressip}:{port}/cam/realmonitor?channel={channel}&subtype={stream}",
+            "urlNoneAuth": "rtsp://{addressip}:{port}/cam/realmonitor?channel={channel}&subtype={stream}",
+            "additionalFields": [1,2]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Yoosee",
+      "models":[
+        {
+          "name": "Default",
+          "urlTemplate": {
+            "urlAuth": "rtsp://{user}:{password}@{addressip}:{port}/onvif1",
+            "urlNoneAuth": "rtsp://{addressip}:{port}/onvif1",
             "additionalFields": []
           }
         }
