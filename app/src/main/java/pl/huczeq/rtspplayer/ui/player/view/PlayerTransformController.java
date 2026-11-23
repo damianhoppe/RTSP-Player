@@ -1,14 +1,11 @@
 package pl.huczeq.rtspplayer.ui.player.view;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.util.Log;
 import android.view.GestureDetector;
-import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
@@ -671,9 +668,10 @@ public class PlayerTransformController implements View.OnTouchListener {
 
     public interface OnSwipeAnimateListener {
         void onSwipe(float distance, float effectiveDistance, float threshold);
+
         void onSwipeEnd(float direction);
     }
-  
+
     public ZoomState captureZoomState() {
         if(scaleAnimator.isRunning()) {
             scaleAnimator.end();
