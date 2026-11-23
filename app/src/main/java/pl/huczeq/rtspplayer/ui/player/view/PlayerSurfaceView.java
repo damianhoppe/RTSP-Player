@@ -8,7 +8,6 @@ import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
 import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
-import android.view.ViewTreeObserver;
 
 import androidx.collection.ArraySet;
 
@@ -106,43 +105,6 @@ public class PlayerSurfaceView extends GLSurfaceView implements VideoInfoChangeL
 
         setBackgroundColor(Color.argb(0x00,0,0,0));
         getHolder().setFormat(PixelFormat.OPAQUE);
-
-        getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                if(VideoLayout.isEmptyOrNull(videoLayout) || getMeasuredWidth() * getMeasuredHeight() == 0) {
-                    renderer.isRenderingBlockedUntilSizeMeasured = true;
-                    return;
-                }
-                if(Math.abs(videoLayout.getWidthToHeightRatio() - (float)getMeasuredWidth()/getMeasuredHeight()) <= 0.1f) {
-                    renderer.isRenderingBlockedUntilSizeMeasured = false;
-                }
-            }
-        });
-    }
-
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        renderer.isRenderingBlockedUntilSizeMeasured = false;
-        if(VideoLayout.isEmptyOrNull(videoLayout)) {
-            super.onMeasure(MeasureSpec.makeMeasureSpec(1, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(1, MeasureSpec.EXACTLY));
-            return;
-        }
-
-        int width = getMeasuredWidth();
-        int height = getMeasuredHeight();
-
-        float videoAspectRatio = videoLayout.getHeightToWidthRatio();
-        float surfaceAspectRatio = (float)height / width;
-
-        float aspectDeformation = videoAspectRatio / surfaceAspectRatio - 1;
-        if(aspectDeformation < 0) {
-            height = (int) (width * videoAspectRatio);
-        }else {
-            width = (int) (height / videoAspectRatio);
-        }
-        super.onMeasure(MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY));
     }
 
     @Override
@@ -150,13 +112,11 @@ public class PlayerSurfaceView extends GLSurfaceView implements VideoInfoChangeL
         if(Objects.equals(this.videoLayout, newVideoLayout))
             return;
         this.videoLayout = newVideoLayout;
-        renderer.isRenderingBlockedUntilSizeMeasured = true;
         queueEvent(() -> this.renderer.onVideoLayoutChanged(videoLayout));
         if(newVideoLayout == null || newVideoLayout.getVisibleWidth() == 0 || newVideoLayout.getVisibleHeight() == 0) {
             return;
         }
         getHolder().setFixedSize(newVideoLayout.getVisibleWidth(), newVideoLayout.getVisibleHeight());
-        requestLayout();
     }
 
     @Override

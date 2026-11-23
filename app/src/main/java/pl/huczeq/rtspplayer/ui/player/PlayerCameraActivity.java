@@ -456,7 +456,12 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
                 if (right - left <= 0 || bottom - top <= 0)
                     return;
                 v.removeOnLayoutChangeListener(this);
-                controller.restoreZoomState(zoomState);
+                binding.playerView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        controller.restoreZoomState(zoomState);
+                    }
+                });
             }
         });
     }

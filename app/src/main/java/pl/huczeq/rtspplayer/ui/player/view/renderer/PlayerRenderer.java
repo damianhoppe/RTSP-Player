@@ -24,7 +24,6 @@ public class PlayerRenderer implements GLSurfaceView.Renderer, VideoInfoChangeLi
 
     private static final String TAG = PlayerRenderer.class.getSimpleName();
 
-    public boolean isRenderingBlockedUntilSizeMeasured;
     private boolean firstSurfaceReceived = false;
     private final AtomicBoolean surfaceTextureFrameAvailable = new AtomicBoolean(false);
     private final float[] mvpMatrix = new float[16];
@@ -98,8 +97,7 @@ public class PlayerRenderer implements GLSurfaceView.Renderer, VideoInfoChangeLi
             surfaceTexture.getTransformMatrix(videoSurfaceTransformationMatrix);
         }
 
-        if(isRenderingBlockedUntilSizeMeasured ||
-                !firstSurfaceReceived ||
+        if(!firstSurfaceReceived ||
                 videoWidth*videoHeight==0 ||
                 renderFramesFromTimestamp > surfaceTexture.getTimestamp()) {
             GLES20.glFlush();

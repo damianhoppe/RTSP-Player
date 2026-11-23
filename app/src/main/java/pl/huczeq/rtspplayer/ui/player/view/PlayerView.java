@@ -35,6 +35,7 @@ public class PlayerView extends FrameLayout implements VideoInfoChangeListenerPr
     private final Matrix playerTransformationMatrix = new Matrix();
     private final Set<SurfaceLifecycleListener> surfaceLifecycleListeners = new ArraySet<>();
     private final Set<OnVideoBoundsChangeListener> onVideoBoundsChangeListeners = new ArraySet<>();
+    private VideoLayout videoLayout;
 
     @Getter
     private final PlayerEventListener playerEventListener = new PlayerEventListener() {
@@ -233,9 +234,46 @@ public class PlayerView extends FrameLayout implements VideoInfoChangeListenerPr
     private final VideoInfoChangeListener videoInfoChangeListener = new VideoInfoChangeListener() {
         @Override
         public void onVideoLayoutChanged(VideoLayout videoLayout) {
+            PlayerView.this.videoLayout = videoLayout;
             playerSurfaceView.onVideoLayoutChanged(videoLayout);
+            updateSurfaceSize();
         }
     };
+
+
+    @Override
+    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+        super.onLayout(changed, left, top, right, bottom);
+        if(changed)
+            updateSurfaceSize();
+    }
+
+    private void updateSurfaceSize() {
+        if(videoLayout == null)
+            return;
+
+        int width = getWidth();
+        int height = getHeight();
+
+        float videoAspectRatio = videoLayout.getHeightToWidthRatio();
+        float surfaceAspectRatio = (float)height / width;
+
+        float aspectDeformation = videoAspectRatio / surfaceAspectRatio - 1;
+        if(aspectDeformation < 0) {
+            height = (int) (width * videoAspectRatio);
+        }else {
+            width = (int) (height / videoAspectRatio);
+        }
+
+        FrameLayout.LayoutParams params =
+                (FrameLayout.LayoutParams) playerSurfaceView.getLayoutParams();
+
+        params.width = width;
+        params.height = height;
+        params.gravity = Gravity.CENTER;
+
+        playerSurfaceView.setLayoutParams(params);
+    }
 
     @Override
     public VideoInfoChangeListener getVideoInfoChangeListener() {
