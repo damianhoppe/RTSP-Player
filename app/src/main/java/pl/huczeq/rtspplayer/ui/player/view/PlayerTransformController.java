@@ -673,9 +673,15 @@ public class PlayerTransformController implements View.OnTouchListener {
     }
 
     public ZoomState captureZoomState() {
-        if(scaleAnimator.isRunning()) {
+        if(scaleAnimator != null && scaleAnimator.isRunning()) {
             scaleAnimator.end();
         }
+
+        if(translationAnimator != null && translationAnimator.isRunning()) {
+            translationAnimator.end();
+        }
+
+        overScroller.abortAnimation();
 
         float viewportWidth = view.getWidth();
         float viewportHeight = view.getHeight();
@@ -763,6 +769,8 @@ public class PlayerTransformController implements View.OnTouchListener {
         });
 
         presentScale = scale;
+
+        clampMatrixTranslation(true, true);
 
         applyTransformation();
     }
