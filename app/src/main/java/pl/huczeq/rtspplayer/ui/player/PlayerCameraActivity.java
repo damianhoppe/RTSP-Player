@@ -31,7 +31,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Process;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.util.Pair;
 import android.util.Rational;
 import android.view.OrientationEventListener;
@@ -402,9 +401,9 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
     @Override
     protected void onStop() {
         super.onStop();
-        binding.playerView.animate().cancel();
-        binding.playerView.setTranslationX(0f);
-        binding.playerView.setAlpha(1f);
+        binding.playerView.getPlayerSurfaceView().animate().cancel();
+        binding.playerView.getPlayerSurfaceView().setTranslationX(0f);
+        binding.playerView.getPlayerSurfaceView().setAlpha(1f);
         switchAnimating = false;
         pendingSlideIn = null;
         player.stop();
@@ -782,7 +781,6 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
             pipActionsFilter.addAction(PIP_ACTION_PREVIOUS);
             pipActionsFilter.addAction(PIP_ACTION_NEXT);
 
-            Log.d("DEBUG", "registerReceiver");
             ContextCompat.registerReceiver(
                     this,
                     pipActionsReceiver,
@@ -892,12 +890,9 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         if(pictureInPictureParamsBuilder == null)
             return;
 
-        if(videoBounds.width() <= 1 && videoBounds.height() <= 1)
-            return;
-
         Rational videoAspectRatio;
 
-        if(videoBounds == null) {
+        if(videoBounds == null || videoBounds.width() <= 1 || videoBounds.height() <= 1) {
             videoAspectRatio = DEFAULT_PIP_ASPECT_RATION;
             videoBounds = new Rect(0,0,0,0);
         }else {

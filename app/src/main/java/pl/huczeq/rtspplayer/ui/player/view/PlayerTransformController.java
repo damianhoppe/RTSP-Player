@@ -335,10 +335,11 @@ public class PlayerTransformController implements View.OnTouchListener {
         });
 
         scaleAnimator.addListener(new AnimatorListenerAdapter() {
+
             @Override
             public void onAnimationEnd(Animator animation) {
                 super.onAnimationEnd(animation);
-                clampMatrixTranslation(true,true);
+                clampMatrixTranslation(true, true);
             }
         });
 

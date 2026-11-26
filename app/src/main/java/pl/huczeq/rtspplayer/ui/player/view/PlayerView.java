@@ -99,8 +99,8 @@ public class PlayerView extends FrameLayout implements VideoInfoChangeListenerPr
         });
 
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
-                LayoutParams.MATCH_PARENT,
-                LayoutParams.MATCH_PARENT,
+                1,
+                1,
                 Gravity.CENTER
         );
 

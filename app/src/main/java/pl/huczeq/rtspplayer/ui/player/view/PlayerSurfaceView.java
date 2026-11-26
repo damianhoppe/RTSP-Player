@@ -124,10 +124,13 @@ public class PlayerSurfaceView extends GLSurfaceView implements VideoInfoChangeL
         super.onSizeChanged(w, h, oldw, oldh);
         requestRender();
         Rect videoBounds = new Rect();
-        this.getGlobalVisibleRect(videoBounds);
-        if(Objects.equals(this.videoBounds, videoBounds)) {
-            return;
+        if(getLayoutParams() == null || getLayoutParams().width <= 1 || getLayoutParams().height <= 1) {
+            videoBounds.set(0,0,0,0);
+        }else {
+            this.getGlobalVisibleRect(videoBounds);
         }
+        if(Objects.equals(this.videoBounds, videoBounds))
+            return;
         this.videoBounds = videoBounds;
         onVideoBoundsChangeListener.onVideoBoundsChanged(videoBounds);
     }
