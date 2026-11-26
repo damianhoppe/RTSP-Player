@@ -1,10 +1,11 @@
 package pl.huczeq.rtspplayer.ui.player.view;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Matrix;
 import android.graphics.PointF;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
@@ -126,8 +127,8 @@ public class PlayerTransformController implements View.OnTouchListener {
             }
             if(x != 0) {
                 onSwipeAnimateListener.onSwipeEnd(swipeDirection);
-                animateToX(matrixValues[Matrix.MTRANS_X] + x);
-                matrixUpdated = true;
+                if(scaleAnimator != null && !scaleAnimator.isRunning())
+                    animateToX(matrixValues[Matrix.MTRANS_X] + x);
                 isClampingEnabled = true;
             }
             swipeDirection = 0;
@@ -331,6 +332,14 @@ public class PlayerTransformController implements View.OnTouchListener {
             );
 
             applyTransformation();
+        });
+
+        scaleAnimator.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                super.onAnimationEnd(animation);
+                clampMatrixTranslation(true,true);
+            }
         });
 
         scaleAnimator.start();
@@ -614,8 +623,6 @@ public class PlayerTransformController implements View.OnTouchListener {
             }
 
             int currentSwipeDirection;
-
-            Log.d("DEBUG", "scaleDetector.isInProgress() " + scaleDetector.isInProgress());
 
             if(scaleDetector.isInProgress()) {
                 currentSwipeDirection = 0;
