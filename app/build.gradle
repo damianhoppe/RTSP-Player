@@ -88,7 +88,7 @@ dependencies {
 
     implementation 'androidx.appcompat:appcompat:1.8.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.2.2'
-    implementation 'androidx.core:core:1.18.0'
+    implementation 'androidx.core:core:1.19.1'
 
     implementation('androidx.preference:preference:1.2.1') {
         exclude group: 'androidx.lifecycle' , module:'lifecycle-viewmodel-ktx'
