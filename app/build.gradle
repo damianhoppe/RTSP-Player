@@ -19,8 +19,8 @@ android {
     android.ndkVersion = "29.0.14033849"
 
     defaultConfig {
-        compileSdk = 36
-        targetSdk = 36
+        compileSdk = 37
+        targetSdk = 37
         minSdkVersion 23
         applicationId "pl.huczeq.rtspplayer"
         versionCode appVersionCode
