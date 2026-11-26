@@ -7,8 +7,12 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.util.concurrent.TimeUnit;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
+
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 
 @Singleton
 public class AppForegroundDetector implements Application.ActivityLifecycleCallbacks {
@@ -36,11 +40,13 @@ public class AppForegroundDetector implements Application.ActivityLifecycleCallb
 
     @Override
     public void onActivityStopped(@NonNull Activity activity) {
-        startedActivities--;
+        AndroidSchedulers.mainThread().scheduleDirect(() -> {
+            startedActivities--;
 
-        if (startedActivities == 0) {
-            appInBackground = true;
-        }
+            if (startedActivities == 0) {
+                appInBackground = true;
+            }
+        }, 500, TimeUnit.MILLISECONDS);
     }
 
     public boolean isReturnedFromBackground() {
