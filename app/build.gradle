@@ -110,7 +110,7 @@ dependencies {
     implementation 'com.github.jorgecastilloprz:fabprogresscircle:1.01@aar'
     implementation 'com.github.ben-manes.caffeine:caffeine:2.5.5'
     implementation 'com.google.android.material:material:1.8.0'
-    implementation 'com.google.code.gson:gson:2.9.1'
+    implementation 'com.google.code.gson:gson:2.15.0'
     implementation 'org.jetbrains:annotations:15.0'
     implementation 'org.videolan.android:libvlc-all:3.7.7'
 
