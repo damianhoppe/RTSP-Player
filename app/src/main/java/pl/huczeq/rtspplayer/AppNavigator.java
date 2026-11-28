@@ -28,6 +28,7 @@ public class AppNavigator {
 
     private final Context context;
     private final Settings settings;
+    public final System system = new System();
 
     @Inject
     public AppNavigator(@ActivityContext Context context, Settings settings) {
@@ -112,5 +113,15 @@ public class AppNavigator {
     public void startNewCameraModelRequestForm() {
         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(BuildConfig.URL_ADD_MODEL_FORM));
         context.startActivity(intent);
+    }
+
+    public class System {
+        public void openAppPermissionSettings() {
+            Intent intent = new Intent(
+                    android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                    Uri.fromParts("package", context.getPackageName(), null)
+            );
+            context.startActivity(intent);
+        }
     }
 }

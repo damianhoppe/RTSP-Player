@@ -4,6 +4,9 @@
     <string name="app_name">RTSP Player</string>
     <string name="double_back_2_exit_info">Kliknij ponownie WSTECZ, aby wyjść</string>
     <string name="error">Błąd</string>
+    <string name="label_more">Więcej</string>
+    <string name="label_settings">Ustawienia</string>
+    <string name="grant_access">Przyznaj dostęp</string>
 
     <!--Incorrect-->
 
@@ -61,6 +64,9 @@
         <item quantity="many">Ponowne połączenie za %1$d sekund</item>
         <item quantity="other">Ponowne połączenie za %1$d sekundy</item>
     </plurals>
+    <string name="label_playback_not_starting_due_to_lan_permissions">Odtwarzanie nie rozpoczyna się? Możliwy brak uprawnień sieciowych.</string>
+    <string name="title_lan_permission_rationale_dialog">Brak uprawnień do sieci lokalnej.</string>
+    <string name="message_lan_permission_rationale_dialog">Od wersji Android 17 aplikacje wymagają dodatkowego uprawnienia, aby móc łączyć się z urządzeniami w sieci lokalnej. Jeśli korzystasz z takiego połączenia, powinieneś przyznać aplikacji dostęp do sieci lokalnej.</string>
 
     <!--Activity App Info-->
     <string name="app_info">RTSP Player pozwala na odtwarzanie strumieni sieciowych wykorzystując bibliotekę libVLC. Aplikacja jest objęta licencją LGPL 3.0 oraz oferuje otwarty kod źródłowy.</string>
