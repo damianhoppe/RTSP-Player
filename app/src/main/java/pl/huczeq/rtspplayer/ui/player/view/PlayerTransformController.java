@@ -103,7 +103,7 @@ public class PlayerTransformController implements View.OnTouchListener {
         this.scaleDetector = new ScaleGestureDetector(context, new ScaleListener());
         this.gestureDetector = new GestureDetector(context, new GestureListener());
         this.overScroller = new OverScroller(context);
-        this.swipeThreshold = 300 * view.getResources().getDisplayMetrics().density;
+        this.swipeThreshold = 180 * view.getResources().getDisplayMetrics().density;
         reset();
     }
 
@@ -127,8 +127,10 @@ public class PlayerTransformController implements View.OnTouchListener {
             }
             if(x != 0) {
                 onSwipeAnimateListener.onSwipeEnd(swipeDirection);
-                if(scaleAnimator != null && !scaleAnimator.isRunning())
+                if(scaleAnimator == null || !scaleAnimator.isRunning() || scaleAnimator.isPaused()) {
                     animateToX(matrixValues[Matrix.MTRANS_X] + x);
+                    matrixUpdated = false;
+                }
                 isClampingEnabled = true;
             }
             swipeDirection = 0;
@@ -253,7 +255,7 @@ public class PlayerTransformController implements View.OnTouchListener {
 
     private void clearScaleAnimation() {
         if(scaleAnimator != null)
-            scaleAnimator.pause();
+            scaleAnimator.cancel();
     }
 
     private PointF calculateClampedTranslationWithScale(float scale, float pointX, float pointY) {
@@ -547,15 +549,6 @@ public class PlayerTransformController implements View.OnTouchListener {
                 }else {
                     animateToScale(DEFAULT_SCALE, pointX, pointY);
                 }
-                isClampingEnabled = true;
-                return true;
-            }
-            
-            if(e.getActionMasked() == MotionEvent.ACTION_UP) {
-                isClampingEnabled = true;
-                float pointX = e.getX();
-                float pointY = e.getY();
-                animateToScale(DEFAULT_SCALE, pointX, pointY);
                 return true;
             }
 
@@ -630,7 +623,7 @@ public class PlayerTransformController implements View.OnTouchListener {
                 hasScalingGestureOccurredDuringTouchInteraction = true;
                 onSwipeAnimateListener.onSwipeEnd(0);
             }else {
-                float threshold = swipeThreshold * 0.5f;
+                float threshold = swipeThreshold;
                 float swipeFactor = effectiveEdgeDragX / threshold;
 
                 if(onSwipeAnimateListener != null)
