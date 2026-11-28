@@ -2,9 +2,11 @@ package pl.huczeq.rtspplayer.ui.player;
 
 import static pl.huczeq.rtspplayer.ui.addeditcamera.BaseCameraFormActivity.EXTRA_CAMERA_INSTANCE_ID;
 
+import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.LayoutTransition;
+import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.app.AppOpsManager;
 import android.app.PendingIntent;
@@ -39,8 +41,11 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.HapticFeedbackConstantsCompat;
 import androidx.core.view.ViewCompat;
@@ -51,6 +56,8 @@ import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.Observer;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.common.base.Strings;
 
 import java.util.ArrayList;
@@ -60,6 +67,7 @@ import java.util.Set;
 import javax.inject.Inject;
 
 import dagger.hilt.android.AndroidEntryPoint;
+import pl.huczeq.rtspplayer.AppNavigator;
 import pl.huczeq.rtspplayer.BuildConfig;
 import pl.huczeq.rtspplayer.R;
 import pl.huczeq.rtspplayer.Settings;
@@ -71,6 +79,7 @@ import pl.huczeq.rtspplayer.ui.player.view.PlayerSurfaceView;
 import pl.huczeq.rtspplayer.ui.player.view.PlayerTransformController;
 import pl.huczeq.rtspplayer.ui.player.view.PlayerView;
 import pl.huczeq.rtspplayer.ui.player.view.renderer.OnFrameCaptureListener;
+import pl.huczeq.rtspplayer.util.ContextUtils;
 import pl.huczeq.rtspplayer.util.Timer;
 import pl.huczeq.rtspplayer.player.PlayerEventListener;
 import pl.huczeq.rtspplayer.player.RtspPlayer;
@@ -97,6 +106,8 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
     public RtspPlayerProvider playerProvider;
     @Inject
     public PlayerCameraViewModel viewModel;
+    @Inject
+    public AppNavigator appNavigator;
 
     private ActivityPreviewCameraSurfaceviewGlBinding binding;
 
@@ -146,7 +157,6 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         }
     };
 
-
     private final OnBackPressedCallback onBackPressedCallback = new OnBackPressedCallback(false) {
         @Override
         public void handleOnBackPressed() {
@@ -158,6 +168,51 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         }
     };
 
+    private boolean localNetworkPermissionDenied = false;
+    private Snackbar localNetworkPermissionSnackbar;
+    private AlertDialog dialog = null;
+
+    private final Timer playbackTimeoutTimer = new Timer(5000, new Timer.Callback() {
+        @Override
+        public void onStart() {}
+
+        @RequiresApi(api = Build.VERSION_CODES.CINNAMON_BUN)
+        @Override
+        public void onFinished() {
+            if(localNetworkPermissionSnackbar != null && localNetworkPermissionSnackbar.isShown())
+                return;
+            if(dialog != null && dialog.isShowing())
+                return;
+            localNetworkPermissionSnackbar = Snackbar.make(binding.playerControl.rootPlayerControl,getResources().getString(R.string.label_playback_not_starting_due_to_lan_permissions), Snackbar.LENGTH_INDEFINITE)
+                    .setAction(getResources().getString(R.string.label_more), view -> showLocalNetworkPermissionRationaleDialog())
+                    .setCloseIconVisible(true);
+            localNetworkPermissionSnackbar.show();
+        }
+    });
+
+    private final ActivityResultLauncher<String> requestLocalNetworkPermission = registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+        localNetworkPermissionDenied = !isGranted;
+        if(isGranted) {
+            reconnect();
+        }
+    });
+
+    @RequiresApi(api = Build.VERSION_CODES.CINNAMON_BUN)
+    private void showLocalNetworkPermissionRationaleDialog() {
+        MaterialAlertDialogBuilder dialog = new MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.title_lan_permission_rationale_dialog)
+            .setMessage(R.string.message_lan_permission_rationale_dialog)
+            .setNeutralButton(R.string.label_settings, (dialogInterface, i) ->
+                    appNavigator.system.openAppPermissionSettings())
+            .setNegativeButton(R.string.cancel, (dialogInterface, i) -> {});
+        if(!localNetworkPermissionDenied) {
+            dialog.setPositiveButton(R.string.grant_access, (dialogInterface, i) -> {
+                requestLocalNetworkPermission.launch(Manifest.permission.ACCESS_LOCAL_NETWORK);
+            });
+        }
+        this.dialog = dialog.show();
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.N)
     private boolean isPipModeAvailable() {
         AppOpsManager appOpsManager = (AppOpsManager) getSystemService(Context.APP_OPS_SERVICE);
@@ -166,6 +221,7 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         return getPackageManager().hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE);
     }
 
+    @SuppressLint("SourceLockedOrientationActivity")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -241,6 +297,9 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
 
             @Override
             public void onPlaying() {
+                if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.CINNAMON_BUN) {
+                    playbackTimeoutTimer.stopWithoutNotifying();
+                }
                 if(mute) {
                     player.setMute(true);
                 }
@@ -255,6 +314,9 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
             @Override
             public void onEncounteredError() {
                 onPlayingStopped();
+                if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.CINNAMON_BUN) {
+                    playbackTimeoutTimer.stop();
+                }
             }
         });
 
@@ -535,6 +597,8 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         assert activityManager != null;
         final List<ActivityManager.AppTask> appTasks = activityManager.getAppTasks();
         for (ActivityManager.AppTask task : appTasks) {
+            if(task.getTaskInfo() == null)
+                continue;
             final Intent baseIntent = task.getTaskInfo().baseIntent;
             final Set<String> categories = baseIntent.getCategories();
             if (categories != null && categories.contains(Intent.CATEGORY_LAUNCHER)) {
@@ -657,6 +721,9 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
         binding.pBLoading.setVisibility(View.VISIBLE);
         viewModel.stopReconnectTimer();
         player.play();
+        if(!ContextUtils.hasLocalNetworkPermission(getApplicationContext())) {
+            playbackTimeoutTimer.start();
+        }
     }
 
     private void onPlayingStarted() {
@@ -669,6 +736,9 @@ public class PlayerCameraActivity extends BaseActivity implements PlayerHandler,
             setPictureInPictureParams(pictureInPictureParamsBuilder.build());
         }
         captureFrame();
+        if(localNetworkPermissionSnackbar != null && localNetworkPermissionSnackbar.isShown()) {
+            localNetworkPermissionSnackbar.dismiss();
+        }
     }
 
     private void onPlayingStopped() {
